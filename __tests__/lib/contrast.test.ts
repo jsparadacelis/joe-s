@@ -53,17 +53,6 @@ const PAIRS: [string, string][] = [
   ["point", "surface"],
 ];
 
-// Pares que hoy NO alcanzan 4.5:1 con los valores del plan (hallazgo del tester, RGB-6).
-// Se esperan fallando para dejar la suite en verde sin ocultar el problema:
-// cuando se corrija el token, el test fallará y habrá que quitar la entrada.
-const KNOWN_FAILURES = new Set([
-  "claro|muted|surface-2", // 4.44
-  "claro|muted|off-soft", // 4.48
-  "claro|warn|warn-soft", // 4.48
-  "oscuro|point|point-soft", // 4.47
-  "oscuro (sistema)|point|point-soft", // 4.47
-]);
-
 describe("contraste WCAG AA (4.5:1) de los tokens", () => {
   it("el tema oscuro por media query coincide con data-theme=dark", () => {
     expect(themes["oscuro (sistema)"]).toEqual(themes.oscuro);
@@ -73,15 +62,9 @@ describe("contraste WCAG AA (4.5:1) de los tokens", () => {
     expect(Object.keys(themes.oscuro).sort()).toEqual(Object.keys(themes.claro).sort());
   });
 
-  describe.each(Object.entries(themes))("tema %s", (themeName, tokens) => {
+  describe.each(Object.entries(themes))("tema %s", (_themeName, tokens) => {
     it.each(PAIRS)("%s sobre %s", (fg, bg) => {
-      const known = KNOWN_FAILURES.has(`${themeName}|${fg}|${bg}`);
-      const check = () => expect(ratio(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(4.5);
-      if (known) {
-        expect(check).toThrow(); // sigue por debajo de 4.5:1 (ver KNOWN_FAILURES)
-      } else {
-        check();
-      }
+      expect(ratio(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(4.5);
     });
   });
 });
@@ -90,10 +73,10 @@ describe("contraste WCAG AA (4.5:1) de los tokens", () => {
 const PLAN: Record<string, [string, string]> = {
   bg: ["#F6F5F2", "#161719"], surface: ["#FFFFFF", "#1E1F22"], "surface-2": ["#EBEAE6", "#2A2B2F"],
   hair: ["#D6D5D1", "#34353A"], line: ["#A9A8A4", "#55565A"],
-  ink: ["#1C1D1F", "#EBEAE6"], "ink-2": ["#3A3B3E", "#D6D5D1"], muted: ["#6B6B68", "#A9A8A4"],
-  point: ["#5E2A35", "#C27C8A"], "point-soft": ["#EFE4E6", "#3A2429"],
+  ink: ["#1C1D1F", "#EBEAE6"], "ink-2": ["#3A3B3E", "#D6D5D1"], muted: ["#686865", "#A9A8A4"],
+  point: ["#5E2A35", "#C78492"], "point-soft": ["#EFE4E6", "#3A2429"],
   ok: ["#3E6B4A", "#8CC09A"], "ok-soft": ["#E3ECE5", "#23332A"],
-  warn: ["#8A6418", "#E0B866"], "warn-soft": ["#F3EAD6", "#3A3122"],
+  warn: ["#856016", "#E0B866"], "warn-soft": ["#F3EAD6", "#3A3122"],
   bad: ["#9B3326", "#E5907F"], "bad-soft": ["#F4E1DD", "#3D2623"],
   off: ["#8C8B87", "#A9A8A4"], "off-soft": ["#ECEBE8", "#2A2B2F"],
   side: ["#1C1D1F", "#0F1011"], "side-ink": ["#EBEAE6", "#EBEAE6"],

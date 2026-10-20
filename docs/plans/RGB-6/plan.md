@@ -59,13 +59,15 @@ Paleta (referencia: borrador navegable del Notion): grafito, cal, niebla, burdeo
 | `surface-2` | `#EBEAE6` | `#2A2B2F` |
 | `hair` (borde) | `#D6D5D1` | `#34353A` |
 | `line` | `#A9A8A4` | `#55565A` |
-| `ink` / `ink-2` / `muted` | `#1C1D1F` / `#3A3B3E` / `#6B6B68` | `#EBEAE6` / `#D6D5D1` / `#A9A8A4` |
-| `point` (burdeos) / `point-soft` | `#5E2A35` / `#EFE4E6` | `#C27C8A` / `#3A2429` |
+| `ink` / `ink-2` / `muted` | `#1C1D1F` / `#3A3B3E` / `#686865` | `#EBEAE6` / `#D6D5D1` / `#A9A8A4` |
+| `point` (burdeos) / `point-soft` | `#5E2A35` / `#EFE4E6` | `#C78492` / `#3A2429` |
 | `ok` / `ok-soft` | `#3E6B4A` / `#E3ECE5` | `#8CC09A` / `#23332A` |
-| `warn` / `warn-soft` | `#8A6418` / `#F3EAD6` | `#E0B866` / `#3A3122` |
+| `warn` / `warn-soft` | `#856016` / `#F3EAD6` | `#E0B866` / `#3A3122` |
 | `bad` / `bad-soft` | `#9B3326` / `#F4E1DD` | `#E5907F` / `#3D2623` |
 | `off` / `off-soft` | `#8C8B87` / `#ECEBE8` | `#A9A8A4` / `#2A2B2F` |
 | `side` / `side-ink` / `side-muted` / `side-active` | `#1C1D1F` / `#EBEAE6` / `#A9A8A4` / `#3A3B3E` | `#0F1011` / `#EBEAE6` / `#8C8B87` / `#2A2B2F` |
+
+Nota (AA): `muted` (claro), `warn` (claro) y `point` (oscuro) se ajustaron respecto al borrador (`#6B6B68`, `#8A6418`, `#C27C8A`) porque 5 pares quedaban entre 4.44 y 4.48:1, por debajo de 4.5:1. Con los nuevos valores todos los pares texto/fondo cumplen WCAG AA.
 
 Tipografía: escala 12/13/14/16/22/30 px. Radio base 8 px. Sidebar de 232 px.
 

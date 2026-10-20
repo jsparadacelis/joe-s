@@ -53,3 +53,15 @@ Hallazgos:
 3. (Baja) No se verificó visualmente en navegador el aspecto del foco (solo CSS y comportamiento de foco en jsdom).
 4. (Info) La compilación necesita acceso a Google Fonts (`next/font/google`); sin red, el build falla.
 5. Sin hallazgos de alcance: no hay auth, API, Docker ni CI; `node_modules` y `.next` no están versionados; sin secretos.
+
+## Corrección de contraste
+
+Fecha: 2026-10-20. Resuelve el hallazgo 1 del Tester (5 pares < 4.5:1).
+
+| Token | Antes | Ahora | Ratios resultantes |
+| --- | --- | --- | --- |
+| `muted` (claro) | `#6B6B68` | `#686865` | sobre surface-2 4.64 (antes 4.44), off-soft 4.69 (4.48), bg 5.13, surface 5.59 |
+| `warn` (claro) | `#8A6418` | `#856016` | sobre warn-soft 4.77 (4.48) |
+| `point` (oscuro, también en la media query) | `#C27C8A` | `#C78492` | sobre point-soft 4.88 (4.47), bg 6.10, surface 5.61 |
+
+Cambios mínimos de tono para conservar la identidad. Plan actualizado, `KNOWN_FAILURES` eliminado (la suite exige 4.5:1 en todos los pares) y tabla del test alineada con el plan.
