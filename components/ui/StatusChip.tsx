@@ -39,7 +39,7 @@ export function StatusChip({ tone = "neutral", variant = "tag", children }: Stat
   }
   return (
     <span
-      className={`inline-block whitespace-nowrap rounded px-2 py-[3px] text-xs font-medium ${TAG_TONES[tone]}`}
+      className={`inline-block whitespace-nowrap rounded-base px-2 py-[3px] text-xs font-medium ${TAG_TONES[tone]}`}
     >
       {children}
     </span>

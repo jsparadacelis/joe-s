@@ -65,3 +65,13 @@ Fecha: 2026-10-20. Resuelve el hallazgo 1 del Tester (5 pares < 4.5:1).
 | `point` (oscuro, también en la media query) | `#C27C8A` | `#C78492` | sobre point-soft 4.88 (4.47), bg 6.10, surface 5.61 |
 
 Cambios mínimos de tono para conservar la identidad. Plan actualizado, `KNOWN_FAILURES` eliminado (la suite exige 4.5:1 en todos los pares) y tabla del test alineada con el plan.
+
+## Corrección de foco
+
+Fecha: 2026-10-20. Bloqueo del Juez: el foco no se veía en la sidebar en claro (point/side 1.49:1).
+
+- Nuevos tokens: `--focus` (claro `#5E2A35`, oscuro `#C78492`) y `--focus-on-side` (`#EBEAE6` en ambos temas), definidos en `:root`, en la media query y en `[data-theme="dark"]`, y expuestos en `@theme`. `:focus-visible` usa `var(--focus)`; los enlaces de la Sidebar usan la clase `outline-focus-on-side`.
+- Ratios (>= 3:1) claro: focus sobre bg 10.36, surface 11.30, surface-2 9.39; focus-on-side sobre side 14.01 (antes 1.49), side-active 9.30 (antes 1.01). Oscuro: focus sobre bg 6.10, surface 5.61, surface-2 4.81; focus-on-side sobre side 15.82 y side-active 11.75.
+- Tests: bloque de contraste no textual (3:1) en los tres bloques de tema en `contrast.test.ts`; `keyboard-focus.test.tsx` ahora espera `var(--focus)`.
+- Radios: `rounded-base` (8px) en Button, Notice, Sidebar, skip link y StatusChip (tag); `rounded-full` solo en píldora y punto del semáforo.
+- `--color-*: initial;` al inicio de `@theme`; nuevo test `color-classes.test.ts` que falla si un componente usa una clase de color que no es un token (verificado con `text-white`).

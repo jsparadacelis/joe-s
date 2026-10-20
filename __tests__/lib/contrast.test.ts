@@ -69,6 +69,23 @@ describe("contraste WCAG AA (4.5:1) de los tokens", () => {
   });
 });
 
+// Contraste no textual (WCAG 1.4.11, >= 3:1, sin excepciones) del indicador de foco.
+const FOCUS_PAIRS: [string, string][] = [
+  ["focus", "bg"],
+  ["focus", "surface"],
+  ["focus", "surface-2"],
+  ["focus-on-side", "side"],
+  ["focus-on-side", "side-active"],
+];
+
+describe("contraste no textual (3:1) del foco", () => {
+  describe.each(Object.entries(themes))("tema %s", (_themeName, tokens) => {
+    it.each(FOCUS_PAIRS)("%s sobre %s", (fg, bg) => {
+      expect(ratio(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(3);
+    });
+  });
+});
+
 // Valores del plan RGB-6 (docs/plans/RGB-6/plan.md). `on-point` es un token añadido por el desarrollador.
 const PLAN: Record<string, [string, string]> = {
   bg: ["#F6F5F2", "#161719"], surface: ["#FFFFFF", "#1E1F22"], "surface-2": ["#EBEAE6", "#2A2B2F"],
@@ -81,6 +98,7 @@ const PLAN: Record<string, [string, string]> = {
   off: ["#8C8B87", "#A9A8A4"], "off-soft": ["#ECEBE8", "#2A2B2F"],
   side: ["#1C1D1F", "#0F1011"], "side-ink": ["#EBEAE6", "#EBEAE6"],
   "side-muted": ["#A9A8A4", "#8C8B87"], "side-active": ["#3A3B3E", "#2A2B2F"],
+  focus: ["#5E2A35", "#C78492"], "focus-on-side": ["#EBEAE6", "#EBEAE6"],
 };
 
 describe("valores de tokens según la tabla del plan", () => {

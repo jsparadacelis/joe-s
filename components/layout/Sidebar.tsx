@@ -21,7 +21,7 @@ export function Sidebar() {
                 <Link
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-2.5 rounded-md px-2.5 py-[9px] text-m hover:bg-side-active ${
+                  className={`flex items-center gap-2.5 rounded-base px-2.5 py-[9px] text-m outline-focus-on-side hover:bg-side-active ${
                     active ? "bg-side-active font-medium" : ""
                   }`}
                 >

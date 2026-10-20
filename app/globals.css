@@ -26,6 +26,8 @@
   --side-ink: #ebeae6;
   --side-muted: #a9a8a4;
   --side-active: #3a3b3e;
+  --focus: #5e2a35;
+  --focus-on-side: #ebeae6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,6 +56,8 @@
     --side-ink: #ebeae6;
     --side-muted: #8c8b87;
     --side-active: #2a2b2f;
+    --focus: #c78492;
+    --focus-on-side: #ebeae6;
   }
 }
 
@@ -82,9 +86,13 @@
   --side-ink: #ebeae6;
   --side-muted: #8c8b87;
   --side-active: #2a2b2f;
+  --focus: #c78492;
+  --focus-on-side: #ebeae6;
 }
 
 @theme inline {
+  --color-*: initial;
+
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -108,6 +116,8 @@
   --color-side-ink: var(--side-ink);
   --color-side-muted: var(--side-muted);
   --color-side-active: var(--side-active);
+  --color-focus: var(--focus);
+  --color-focus-on-side: var(--focus-on-side);
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-serif: var(--font-newsreader), Georgia, serif;
@@ -135,7 +145,7 @@
     -webkit-font-smoothing: antialiased;
   }
   :focus-visible {
-    outline: 2px solid var(--point);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
     border-radius: 4px;
   }

@@ -94,7 +94,7 @@ describe("foco visible (CSS)", () => {
   it("existe una regla :focus-visible con outline basado en token", () => {
     const m = css.match(/:focus-visible\s*\{([^}]*)\}/);
     expect(m).not.toBeNull();
-    expect(m![1]).toMatch(/outline:\s*\d+px solid var\(--point\)/);
+    expect(m![1]).toMatch(/outline:\s*\d+px solid var\(--focus\)/);
   });
 
   it("ningún componente elimina el outline", () => {

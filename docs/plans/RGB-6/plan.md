@@ -66,8 +66,11 @@ Paleta (referencia: borrador navegable del Notion): grafito, cal, niebla, burdeo
 | `bad` / `bad-soft` | `#9B3326` / `#F4E1DD` | `#E5907F` / `#3D2623` |
 | `off` / `off-soft` | `#8C8B87` / `#ECEBE8` | `#A9A8A4` / `#2A2B2F` |
 | `side` / `side-ink` / `side-muted` / `side-active` | `#1C1D1F` / `#EBEAE6` / `#A9A8A4` / `#3A3B3E` | `#0F1011` / `#EBEAE6` / `#8C8B87` / `#2A2B2F` |
+| `focus` / `focus-on-side` | `#5E2A35` / `#EBEAE6` | `#C78492` / `#EBEAE6` |
 
 Nota (AA): `muted` (claro), `warn` (claro) y `point` (oscuro) se ajustaron respecto al borrador (`#6B6B68`, `#8A6418`, `#C27C8A`) porque 5 pares quedaban entre 4.44 y 4.48:1, por debajo de 4.5:1. Con los nuevos valores todos los pares texto/fondo cumplen WCAG AA.
+
+Nota (foco): el anillo de foco usa `focus` (≥3:1 sobre bg, surface y surface-2) y, dentro de la barra lateral, `focus-on-side` (≥3:1 sobre side y side-active), porque en claro el burdeos no se distingue sobre el grafito (1.49:1). Criterio WCAG 1.4.11. Radios: se usa un único radio base de 8 px (`rounded-base`); solo los puntos y píldoras del semáforo usan `rounded-full`. La paleta por defecto de Tailwind está anulada (`--color-*: initial`): solo existen los colores de los tokens.
 
 Tipografía: escala 12/13/14/16/22/30 px. Radio base 8 px. Sidebar de 232 px.
 
