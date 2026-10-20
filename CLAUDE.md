@@ -13,6 +13,8 @@ Plataforma web de escritorio para que RGB Arquitectos gestione proyectos como un
 
 ## Flujo por tarea
 
+Toda tarea tiene un plan, documentado en el repo (`docs/plans/RGB-N/plan.md`, con `implementation_log.md` al ejecutar) y en la página de la tarea en Notion.
+
 1. Lee la tarea `RGB-N` en la base de datos Backlog de Notion y ejecútala siguiendo su prompt.
 2. Trabaja por orden de ID dentro de cada épica y respeta «Depende de».
 3. No marques nada hecho hasta cumplir los criterios de aceptación.

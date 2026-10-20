@@ -18,7 +18,7 @@ Plataforma web de escritorio para que RGB Arquitectos gestione cada proyecto com
 | Capa | Tecnología |
 | --- | --- |
 | Lenguaje | TypeScript |
-| Frontend | React con renderizado en servidor (framework por definir en el baseline) |
+| Frontend | Next.js 16 (App Router) + React 19 con renderizado en servidor, Tailwind CSS v4, Jest + Testing Library |
 | Backend | API en el mismo proyecto que el frontend |
 | Base de datos | PostgreSQL gestionado en la UE, con seguridad por fila (RLS) para multiestudio desde el día uno |
 | Autenticación | Google o Microsoft |
