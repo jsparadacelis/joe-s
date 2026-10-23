@@ -30,3 +30,34 @@ Ninguno (solo se añade un `describe`).
 - `ControlesRelieve`, `LecturasRelieve`, `AvisosRelieve`: el plan no fija sus props; no se testean directamente, quedan cubiertos por `VisorRelieve`.
 - `lib/relieve-escena.ts` no se testea con three (sin WebGL en jsdom); la liberación de WebGL se verifica con la escena falsa y la real queda para el Tester en navegador.
 - `proyectos.test.tsx` no mockea la escena: si el Desarrollador consulta automáticamente al renderizar la página, jsdom lanzaría «sin WebGL», que el componente debe tolerar.
+
+## Desarrollador
+
+Estado: implementado. `npm run lint`, `typecheck` y `build` en verde; `npm test`: 789 de 790 (ver «Test que no se puede cumplir»). three **0.186.1** y `@types/three` **0.186.0**, ambas versiones exactas (sin `^`) en `package.json` y `package-lock.json`.
+
+### Qué se hizo
+- `lib/relieve.ts`: tipos, constantes, `recortarPoligono` (Sutherland–Hodgman, devuelve copias, la coordenada del borde se fija exacta), `calcularVentana` (media de vértices, dimensión por dimensión) y `obtenerRelieve`. La capa de ejemplo (todo hasta `obtenerRelieve`) está marcada en un bloque como sustituible por el cliente de la API (RGB-33). Relieve sintético determinista por referencia (`aleatorio` FNV-1a); la parcela se escala a un área objetivo (rústica `^\d{5}A`: 8-10 ha; residencial: 400-1200 m²), lo que garantiza el criterio RGB-33 (ventana 200 × 200 y `recortada` con lado 200). Rejilla de paso 5 m que cubre exactamente la ventana, fila 0 = norte.
+- `lib/relieve-lecturas.ts`: `alturaEn`, `areaPoligono`, `puntoEnPoligono`, `calcularLecturas` (61 × 61, gradiente de paso 2 m).
+- `lib/relieve-colores.ts` (nuevo, puro, con test): lee `fondo/acento/borde` y la rampa de alturas de los tokens CSS con `getComputedStyle`.
+- `lib/relieve-escena.ts`: único módulo que importa `three` (+ `OrbitControls`). Escena del borrador con malla coloreada por altura, parcela translúcida, borde que sigue el terreno, borde del recorte, luces, `listenToKeyEvents(contenedor)`. `Error` si no hay WebGL (el renderer se crea primero y, si algo falla después, se libera). `liberar()` idempotente: RAF, ResizeObserver, `stopListenToKeyEvents` + `controls.dispose()`, dispose de geometrías y materiales recorriendo la escena, `renderer.dispose()`, `forceContextLoss()`, quita el canvas. `actualizarExageracion` reconstruye la geometría liberando la anterior (no consulta).
+- `components/proyecto/relieve/{VisorRelieve,ControlesRelieve,LecturasRelieve,AvisosRelieve}.tsx`. Solo `VisorRelieve` es Client Component. Lecturas con `dl/dt/dd`; avisos con `Notice`; lienzo `role="img"` + `aria-label` + `tabIndex=0` + ayuda de teclado; botones Restablecer/Acercar/Alejar con `aria-label` fuera del contenedor del lienzo (superpuestos); `aria-live="polite"` para carga, error, sin WebGL y validación.
+- Integración en `app/proyectos/[codigo]/fase/[fase]/page.tsx` (fase 3, todos los modos) con `referenciaInicial` de la ficha.
+- `app/globals.css`: 4 tokens `--relieve-bajo|medio-bajo|medio-alto|alto` en claro y oscuro (los tres bloques idénticos donde el test de contraste lo exige). `tokens.test.ts` rechaza literales hex también en `lib/`, así que la rampa se deriva de tokens y no de constantes. Las luces usan valores numéricos neutros (blanco/gris), no colores de interfaz.
+- Tests nuevos: `__tests__/lib/relieve-colores.test.ts` y `__tests__/lib/relieve-escena.test.ts` (escena real con renderer y controles falsos: montaje, sin WebGL, `liberar()` una sola vez y completo, reconstrucción al cambiar la exageración).
+- Configuración de pruebas: `jest.config.js` (`transformIgnorePatterns` para transformar `three`, publicado como ESM) y `jest.setup.ts` (polyfill de `structuredClone`, que jsdom no expone y que usa un test del Escritor).
+
+### Decisiones
+- Los atajos «Probar con» solo rellenan el campo; no consultan (el plan no lo exige y evita consultas no pedidas). El de la ficha queda deshabilitado si la ficha no tiene referencia.
+- No hay carga automática con la referencia inicial: se pulsa «Ver relieve».
+- Cambiar Recorte o Lado con un relieve mostrado consulta la referencia del relieve mostrado (no el texto a medio editar del campo).
+- Una consulta cancelada o posterior al desmontaje se descarta con un contador de solicitud; la escena se monta en un efecto con indicador `cancelado` y su cleanup la libera antes de montar la siguiente. Si la importación dinámica falla por otro motivo distinto de WebGL, también se muestra el mensaje de «sin WebGL».
+- Residencial simulada: `9876543DF3897N0001XY` (ficticia).
+
+### Test que no se puede cumplir (no modificado)
+`__tests__/lib/relieve.test.ts` › «margen 0 m ensancha la caja por los cuatro lados»: espera `[-0, -0, 40, 30]` (usa `-m` con `m = 0`) y `toEqual` distingue `-0` de `0`. El test siguiente («margen 0: exactamente la caja de la parcela») espera `[0, 0, 40, 30]` con la misma parcela y margen, y pasa. Ambos son incompatibles para cualquier implementación; el fallo es del test (`-m`), no de `calcularVentana`. Propuesta: `expect(ventana).toEqual([0 - m, 0 - m, ...])`.
+
+### Bundle de three
+En `npm run build`, `three` (y `OrbitControls`) queda en un único chunk de 569 KB (`.next/static/chunks/0tbjuc5vkmhfa.js`) que solo referencia el chunk del `VisorRelieve` mediante `import()`; no aparece en el chunk de la página ni en el manifiesto de cliente de la ruta.
+
+### Pendiente para el Tester
+Comprobación en navegador real con WebGL: liberación al desmontar/reemplazar (`WEBGL_lose_context`), teclado con flechas, pantallazos claro/oscuro, rampa de colores en el tema oscuro.

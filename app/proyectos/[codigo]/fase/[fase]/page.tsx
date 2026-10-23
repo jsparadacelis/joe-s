@@ -5,6 +5,7 @@ import { Panel } from "@/components/ui/Panel";
 import { FaseEntregable } from "@/components/proyecto/FaseEntregable";
 import { ModoBanner } from "@/components/proyecto/ModoBanner";
 import { PhaseTimeline } from "@/components/proyecto/PhaseTimeline";
+import { VisorRelieve } from "@/components/proyecto/relieve/VisorRelieve";
 import { DatosTecnicosEditor } from "@/components/proyecto/datos-tecnicos/DatosTecnicosEditor";
 import { obtenerDatosTecnicosGuardados } from "@/lib/datos-tecnicos";
 import { FASES, modoFase, parseFaseId } from "@/lib/fases";
@@ -25,11 +26,13 @@ export default async function Page({ params }: Props) {
   const fase = FASES[faseVista];
   const { faseActual } = proyecto;
   const modo = modoFase(faseVista, faseActual);
-  // Los datos técnicos se revisan en Briefing (fase 2).
+  // Los datos técnicos se revisan en Briefing (fase 2); el relieve se consulta en Anteproyecto (fase 3).
   const [guardados, referenciaFicha] =
     faseVista === 2
       ? await Promise.all([obtenerDatosTecnicosGuardados(proyecto.codigo), obtenerReferenciaCatastral(proyecto.codigo)])
-      : [null, ""];
+      : faseVista === 3
+        ? [null, await obtenerReferenciaCatastral(proyecto.codigo)]
+        : [null, ""];
 
   return (
     <>
@@ -46,6 +49,7 @@ export default async function Page({ params }: Props) {
           modo={modo}
         />
       ) : null}
+      {faseVista === 3 ? <VisorRelieve referenciaInicial={referenciaFicha} /> : null}
     </>
   );
 }
