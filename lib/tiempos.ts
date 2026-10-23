@@ -128,6 +128,18 @@ const PLANES: readonly PlanTiempos[] = [
     calendarioSemanas: 57,
     desviacionSemanas: 0,
   },
+  {
+    codigo: "PRY-EJ-004",
+    faseActual: 2,
+    fases: fasesDeEjemplo([2, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]),
+    pausas: [],
+    pausaActiva: null,
+    totalActivasSemanas: 3,
+    totalPlanSemanas: 64,
+    totalPausaSemanas: 0,
+    calendarioSemanas: 3,
+    desviacionSemanas: 0,
+  },
 ];
 
 // ---- Función pública (misma firma que el cliente de la API) ----
