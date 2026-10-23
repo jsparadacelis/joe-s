@@ -24,6 +24,8 @@ const config = {
       },
     }],
   },
+  // three se publica como ESM: se transforma para poder probar la escena con un renderer falso.
+  transformIgnorePatterns: ['/node_modules/(?!three/)'],
   testMatch: [
     '**/__tests__/**/*.test.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
