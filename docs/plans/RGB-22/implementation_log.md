@@ -30,3 +30,34 @@ Fecha: 2026-10-23
 8. Historial de PRY-EJ-001: el plan no da fechas ni fases de las 2 pausas; solo se exige que las semanas sumen `totalPausaSemanas` (4) y la coherencia general. Si la pausa activa de PRY-EJ-003 está o no en `pausas` no se comprueba.
 9. Los tests de página y layout usan los datos de ejemplo reales; asumen `Page({ params: Promise<{codigo}> })` y `Layout({ params, children })` async, con la página de plan con un único h1 (también en el estado vacío) y dos tablas en PRY-EJ-001.
 10. `obtenerPlanTiempos` devuelve copias (test añadido por coherencia con `lib/proyectos.ts`; si el Desarrollador prefiere datos inmutables compartidos, debe devolver copias igualmente).
+
+## Desarrollador
+
+Fecha: 2026-10-23
+
+### Qué se hizo
+
+- `lib/tiempos.ts`: tipos del contrato, `ETIQUETA_MOTIVO`, `ETIQUETA_SEMAFORO`, `porcentajeConsumo`, `semaforoConsumo`, `formatearFecha` (ISO a `dd/mm/aaaa` sin `Date`) y `obtenerPlanTiempos` con datos de ejemplo en un bloque «sustituible por el cliente de la API», que devuelve copias.
+- `components/proyecto/ProyectoTabs.tsx` (Client Component, `usePathname`).
+- `components/tiempos/{ResumenTiempos,TablaTiempos,HistorialPausas}.tsx`, reutilizando `Table`, `Notice`, `StatusChip`.
+- `app/proyectos/[codigo]/layout.tsx` (fragmento: pestañas + `children`, 404 si no existe) y `app/proyectos/[codigo]/plan-y-tiempos/page.tsx`.
+- Los tests escritos no se tocaron.
+
+### Decisiones
+
+- Semáforo con enteros, sin redondeo ni coma flotante: rojo si `activas > plan`; ámbar si `activas*5 >= plan*4`. `porcentajeConsumo` solo se usa para mostrar. Una sola fuente de verdad para ambos, usada por resumen y tabla.
+- Barra: `role="progressbar"` con `aria-valuenow` real (puede ser 150) y relleno en línea `min(porcentaje, 100)%`; color con `bg-ok`/`bg-warn`/`bg-bad` sobre `bg-surface-2`.
+- Filas con 0 activas (fases futuras): se muestra el 0 % pero no etiqueta de semáforo («En plazo» en una fase sin empezar induciría a error). Resuelve la ambigüedad 5.
+- Fechas en pantalla `dd/mm/aaaa`; porcentaje `80 %`; desviación `+N` / `0` / `-N`.
+- Layout devuelve un fragmento para conservar el `gap` del `main` del shell; el h1 sigue en cada página (uno por pantalla). Las páginas de plan usan el nombre del proyecto como h1, como la de fase.
+- Pestañas: el color-classes test rechaza `border-b-2` y `border-transparent`; la activa se distingue con `border-point` + `bg-surface-2` + `aria-current`.
+- Datos de ejemplo no fijados por el plan: PRY-EJ-001 con pausas 2026-08-03 (1 sem, fase 3) y 2026-05-04 (3 sem, fase 2); PRY-EJ-003 con totales 54 / 64 / 3 / 57 / 0 y pausa activa desde 2026-10-12, reanudación 2026-11-09 (también figura en el historial como «en curso»).
+- `TONO_SEMAFORO` (semáforo a tono de `StatusChip`) vive en `ResumenTiempos.tsx` y lo importa `TablaTiempos`.
+
+### Desviaciones
+
+Ninguna; no hay tests que se considere incorrectos.
+
+### Resultados
+
+`npm run lint`, `typecheck`, `test` (29 suites, 491 tests) y `build` en verde. Pantallazos pendientes para el Tester.
