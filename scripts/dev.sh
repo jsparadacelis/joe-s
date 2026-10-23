@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Levanta Postgres, aplica migraciones y arranca la API (8000) y el front (3000).
+# Start Postgres, apply migrations and run the API (8000) and the front end (3000).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

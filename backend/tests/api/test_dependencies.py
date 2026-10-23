@@ -3,54 +3,52 @@ from typing import Annotated
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from backend.app.api.dependencies import contexto_de_solicitud, get_settings
-from backend.app.estudio.domain.contexto import ContextoDeSolicitud, Rol
+from backend.app.api.dependencies import get_settings, request_context
 from backend.app.shared.config import Settings
+from backend.app.study.domain.context import RequestContext, Role
 
 
 def a_client(settings):
     app = FastAPI()
     app.dependency_overrides[get_settings] = lambda: settings
 
-    @app.get("/contexto")
-    def read(context: Annotated[ContextoDeSolicitud, Depends(contexto_de_solicitud)]):
-        return {"estudio": context.estudio_id, "usuario": context.usuario_id, "rol": context.rol}
+    @app.get("/context")
+    def read(context: Annotated[RequestContext, Depends(request_context)]):
+        return {"study": context.study_id, "user": context.user_id, "role": context.role}
 
     return TestClient(app)
 
 
 def test_development_context_comes_from_settings():
-    settings = Settings(
-        _env_file=None, dev_estudio_id="estudio-ficticio", dev_usuario_id="usuario-ficticio"
-    )
+    settings = Settings(_env_file=None, dev_study_id="sample-study", dev_user_id="sample-user")
     client = a_client(settings)
 
-    response = client.get("/contexto")
+    response = client.get("/context")
 
     assert response.json() == {
-        "estudio": "estudio-ficticio",
-        "usuario": "usuario-ficticio",
-        "rol": Rol.SOCIO.value,
+        "study": "sample-study",
+        "user": "sample-user",
+        "role": Role.PARTNER.value,
     }
 
 
 def test_development_role_and_qualifications_come_from_settings():
     settings = Settings(
-        _env_file=None, dev_rol="arquitecto", dev_habilitaciones="sponsor,firmante_habilitado"
+        _env_file=None, dev_role="architect", dev_qualifications="sponsor,licensed_signatory"
     )
     app = FastAPI()
     app.dependency_overrides[get_settings] = lambda: settings
 
-    @app.get("/habilitaciones")
-    def read(context: Annotated[ContextoDeSolicitud, Depends(contexto_de_solicitud)]):
+    @app.get("/qualifications")
+    def read(context: Annotated[RequestContext, Depends(request_context)]):
         return {
-            "rol": context.rol,
-            "habilitaciones": sorted(h.value for h in context.habilitaciones),
+            "role": context.role,
+            "qualifications": sorted(h.value for h in context.qualifications),
         }
 
-    response = TestClient(app).get("/habilitaciones")
+    response = TestClient(app).get("/qualifications")
 
     assert response.json() == {
-        "rol": "arquitecto",
-        "habilitaciones": ["firmante_habilitado", "sponsor"],
+        "role": "architect",
+        "qualifications": ["licensed_signatory", "sponsor"],
     }

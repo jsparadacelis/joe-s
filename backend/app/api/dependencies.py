@@ -1,4 +1,4 @@
-"""Dependencias de FastAPI compartidas por las rutas."""
+"""FastAPI dependencies shared by the routes."""
 
 from __future__ import annotations
 
@@ -9,13 +9,13 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from backend.app.auditoria.infrastructure.postgres_registro import PostgresRegistroDeAuditoria
-from backend.app.ciclo_de_vida.application.servicio_promocion import ServicioDePromocion
-from backend.app.ciclo_de_vida.application.validadores import VALIDADORES_POR_FASE
-from backend.app.ciclo_de_vida.infrastructure.postgres_ciclo_de_vida import PostgresCicloDeVida
-from backend.app.estudio.domain.contexto import ContextoDeSolicitud, Habilitacion, Rol
+from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
+from backend.app.lifecycle.application.promotion_service import PromotionService
+from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
+from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
 from backend.app.shared.config import Settings
-from backend.app.shared.db import transaccion_de_estudio
+from backend.app.shared.db import study_transaction
+from backend.app.study.domain.context import Qualification, RequestContext, Role
 
 
 @lru_cache
@@ -23,31 +23,31 @@ def get_settings() -> Settings:
     return Settings()
 
 
-def contexto_de_solicitud(
+def request_context(
     settings: Annotated[Settings, Depends(get_settings)],
-) -> ContextoDeSolicitud:
-    """Contexto fijo y ficticio de desarrollo. RGB-2 lo sustituirá por la sesión real."""
-    return ContextoDeSolicitud(
-        estudio_id=settings.dev_estudio_id,
-        usuario_id=settings.dev_usuario_id,
-        rol=Rol(settings.dev_rol),
-        habilitaciones=frozenset(Habilitacion(h) for h in settings.dev_habilitaciones),
+) -> RequestContext:
+    """Fixed, fictitious development context. RGB-2 replaces it with the real session."""
+    return RequestContext(
+        study_id=settings.dev_study_id,
+        user_id=settings.dev_user_id,
+        role=Role(settings.dev_role),
+        qualifications=frozenset(Qualification(h) for h in settings.dev_qualifications),
     )
 
 
-UnidadDeTrabajo = Callable[[ContextoDeSolicitud], AbstractContextManager[ServicioDePromocion]]
+UnitOfWork = Callable[[RequestContext], AbstractContextManager[PromotionService]]
 
 
-def unidad_de_trabajo(settings: Annotated[Settings, Depends(get_settings)]) -> UnidadDeTrabajo:
-    """Raíz de composición: una transacción por petición con el estudio fijado."""
+def unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> UnitOfWork:
+    """Composition root: one transaction per request with the study set."""
 
     @contextmanager
-    def abrir(contexto: ContextoDeSolicitud) -> Iterator[ServicioDePromocion]:
-        with transaccion_de_estudio(settings.database_url, contexto) as conn:
-            yield ServicioDePromocion(
-                PostgresCicloDeVida(conn),
-                PostgresRegistroDeAuditoria(conn),
-                VALIDADORES_POR_FASE,
+    def open_unit(context: RequestContext) -> Iterator[PromotionService]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield PromotionService(
+                PostgresLifecycle(conn),
+                PostgresAuditLog(conn),
+                VALIDATORS_BY_PHASE,
             )
 
-    return abrir
+    return open_unit

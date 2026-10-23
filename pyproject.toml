@@ -11,5 +11,5 @@ select = ["E", "F", "I", "B"]
 
 [tool.ruff.lint.per-file-ignores]
 # Textos literales del PRD y SQL embebido en tests.
-"backend/app/ciclo_de_vida/domain/fases.py" = ["E501"]
+"backend/app/lifecycle/domain/phases.py" = ["E501"]
 "backend/tests/**" = ["E501"]
