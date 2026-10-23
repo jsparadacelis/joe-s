@@ -17,6 +17,8 @@ Toda tarea tiene un plan, documentado en el repo (`docs/plans/RGB-N/plan.md`, co
 
 Las tareas de front se orquestan con subagentes: Escritor de tests (escribe los tests desde el plan y los criterios, antes de implementar), Desarrollador (implementa hasta ponerlos en verde, con buenas prácticas), Tester (verifica los criterios e intenta romper) y Juez (veredicto aprobado o rechazado). El PR solo se abre con veredicto aprobado. RGB-6 se ejecutó antes de añadir el Escritor de tests.
 
+Al abrir un PR con código, se monta un monitor que consulta su estado cada 30 s; cuando se mergea se sigue con la siguiente tarea de front, si está clara (y se explica la decisión si no lo está). Los PRs que solo tocan `.md` se mergean sin pedir permiso. Al cerrar cada tarea se actualizan `docs/estado.md`, el plan/log de la tarea y Notion.
+
 Todo PR de front incluye pantallazos de cómo queda la interfaz con el cambio (claro y oscuro cuando afecte al tema). Se guardan en `docs/plans/RGB-N/screenshots/` (con datos ficticios, nunca reales), se enlazan en la descripción del PR y se referencian en `implementation_log.md`. El Tester los genera con el build real y el Juez comprueba que existen y corresponden al cambio.
 
 1. Lee la tarea `RGB-N` en la base de datos Backlog de Notion y ejecútala siguiendo su prompt.
