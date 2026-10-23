@@ -7,7 +7,7 @@ description: Convenciones de backend para RGB Proyectos (TypeScript, API, Postgr
 
 ## Stack
 
-- Python + FastAPI en `backend/`, desplegado en Railway; el front (Next.js, TypeScript) va en Vercel.
+- Python + FastAPI en `backend/`, desplegado en Cloud Run (ver [docs/despliegue.md](../../docs/despliegue.md)); el front (Next.js, TypeScript) va en Vercel.
 - PostgreSQL en Supabase (UE) con seguridad por fila (RLS); multiestudio desde el día uno.
 - Autenticación con Google o Microsoft.
 

@@ -1,6 +1,6 @@
 # Arquitectura del backend
 
-Estado: propuesta (2026-10-23). Sigue el stack de parcerolegal: FastAPI + pytest + DDD en capas, Supabase y Railway.
+Estado: propuesta (2026-10-23). Sigue el stack de parcerolegal: FastAPI + pytest + DDD en capas, Supabase y Cloud Run.
 
 ## Principios
 
@@ -14,7 +14,7 @@ Estado: propuesta (2026-10-23). Sigue el stack de parcerolegal: FastAPI + pytest
 | Pieza | Servicio | Notas |
 | --- | --- | --- |
 | Front | Vercel | Next.js 16 en la raíz del repo (ya existe). |
-| API | Railway | FastAPI en `backend/`, con `railway.toml` y `/api/health`. |
+| API | Cloud Run | FastAPI en `backend/`, imagen del `Dockerfile` y `/api/health`. |
 | Base de datos | Supabase (Postgres, UE) | Migraciones SQL versionadas en `backend/migrations`. RLS en toda tabla de negocio. |
 | Auth | Fuera de alcance por ahora | Ver «Identidad y RLS». |
 
