@@ -61,3 +61,36 @@ Ninguna; no hay tests que se considere incorrectos.
 ### Resultados
 
 `npm run lint`, `typecheck`, `test` (29 suites, 491 tests) y `build` en verde. Pantallazos pendientes para el Tester.
+
+## Tester
+
+Fecha: 2026-10-23
+
+### Qué se ejecutó
+
+- `npm run lint`, `typecheck`, `test`, `build` antes y después de mis cambios, en verde (tras ellos: 30 suites, 496 tests).
+- Build real + `npm run start` (puerto 3472) y `curl`: `/proyectos` 200; `/proyectos/PRY-EJ-001` 307 a `/fase/3`; `/fase/0..7` 200 con un único h1 (modos: fases 0 y 1 solo lectura con «Fase cerrada · versión congelada», fase 3 con «Guardar», fase 5 vista previa con campos `disabled`); `/fase/8`, `/proyectos/NOEXISTE` y `/proyectos/NOEXISTE/plan-y-tiempos` 404; plan-y-tiempos de PRY-EJ-001/002/003 200. HTML servido: `aria-current="page"` en la pestaña «Plan y tiempos» (y en «Fase y promoción» en las rutas de fase), 7 `progressbar` con `aria-label` «Consumo de {fase}», `aria-valuemin/max/now`; PRY-EJ-001: 11 / 64 sem, 4 sem en pausa, 15 sem de calendario, +1 sem de desviación, fase actual 80 % Atención, filas 150 % y 133 % «Plan superado»; PRY-EJ-003: un `role="status"` con motivo y reanudación 09/11/2026; PRY-EJ-002: «Sin plan hasta promover», sin tablas ni progressbars.
+- Playwright (`playwright-core` en directorio temporal fuera del repo, Chromium headless shell ya instalado, locale `es-ES`, ancho 1440): Tab desde la página recorre skip link, 5 ítems de la barra lateral, «Fase y promoción» y «Plan y tiempos», todos con outline sólido de 2 px (`focus` en las pestañas, `focus-on-side` en la barra).
+- Contraste (tokens claro/oscuro): barra ok/warn/bad sobre `surface-2`: 5.12/4.74/6.03 y 6.82/7.55/5.81; sobre `surface`: 6.16/5.70/7.25 y 7.94/8.80/6.77 (todas >= 3:1). Etiquetas de semáforo `ok/ok-soft` 5.11/6.41, `warn/warn-soft` 4.77/6.83, `bad/bad-soft` 5.75/5.75; «Pendiente» `muted/surface-2` 4.64/5.94; «Actual» `point/point-soft` 9.10/4.88. Pestañas: activa `ink/surface-2` 14.01/11.75, inactiva `muted/bg` 5.13/7.54, borde `point/bg` 10.36/6.10. Todo >= 4.5:1 en texto.
+
+### Criterios
+
+Todos cumplen (ver informe del Tester). El front muestra los números del contrato sin recalcular; el semáforo se verifica en 79/80/100/101 % en `lib` (batería existente) y en la UI (test añadido).
+
+### Hallazgos
+
+1. **Baja, sin corregir.** `aria-valuenow` puede superar `aria-valuemax` (150 y 133 en PRY-EJ-001), lo que ARIA no permite estrictamente; el plan y los tests exigen el valor real. Alternativa si se quiere estricto: `aria-valuemax` = máximo real, o `aria-valuetext` con el porcentaje y mantener 100 en `valuenow`.
+2. **Baja, sin corregir.** En PRY-EJ-003 las fases hechas con consumo exactamente 100 % muestran «Atención» (regla del plan: 100 % = ámbar). Es coherente con el contrato, pero puede leerse como alerta en fases ya cerradas.
+3. **Baja, sin corregir.** La pestaña activa se distingue por fondo `surface-2` y borde inferior `point` (poco contraste entre fondo de pestaña y de página); legible, pero sutil. No hay solapes ni texto cortado.
+4. Higiene sin hallazgos: sin secretos ni colores sueltos, sin auth/API/Docker/CI, `node_modules`, `.next` y `test-results` no versionados.
+
+### Cambios del Tester
+
+- `__tests__/components/tiempos/TablaTiemposFronteras.test.tsx`: regresión de las fronteras del semáforo en la UI (79/80/100/101 % con plan 100; el redondeo de 79,6 % no cambia el semáforo).
+- Pantallazos.
+
+### Pantallazos (`docs/plans/RGB-22/screenshots/`, 1440 px, build real, datos ficticios)
+
+`plan-y-tiempos-PRY-EJ-001-{claro,oscuro}.png`, `plan-y-tiempos-pausa-activa-PRY-EJ-003-{claro,oscuro}.png`, `plan-y-tiempos-sin-plan-PRY-EJ-002-{claro,oscuro}.png`, `fase-con-pestanas-PRY-EJ-001-{claro,oscuro}.png`, `foco-pestana-fase-y-promocion-{claro,oscuro}.png`, `foco-pestana-plan-y-tiempos-{claro,oscuro}.png`.
+
+Defectos visuales: ninguno bloqueante; solo el hallazgo 3.
