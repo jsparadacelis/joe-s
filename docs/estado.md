@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-23 (tras RGB-10). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-23 (tras RGB-22). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -9,6 +9,7 @@ Actualizado: 2026-10-23 (tras RGB-10). Fuente de verdad del backlog: Notion («R
 | Baseline del repo (PR #1, #2) | README con alcance y stack, `CLAUDE.md` con reglas y flujo, skills de backend y frontend | — |
 | **RGB-6** · Diseño base de la interfaz (PR #3) | Proyecto Next.js 16 + React 19 + Tailwind v4 en la raíz; layout con barra lateral y cabecera; 5 rutas con estado vacío; tokens claro/oscuro; Button, Panel, StatusChip, Notice, Table; 185 tests | [plan](plans/RGB-6/plan.md) · [log](plans/RGB-6/implementation_log.md) |
 | **RGB-10** · Línea de fases navegable (PR #6) | `PhaseTimeline` con 8 fases (hecha/actual/vista), rutas `/proyectos`, `/proyectos/[codigo]` y `/proyectos/[codigo]/fase/[fase]`, modos edición / solo lectura / vista previa. Construida contra datos de ejemplo (`lib/fases.ts`, `lib/proyectos.ts`) porque RGB-9 no existe; 361 tests; 11 pantallazos | [plan](plans/RGB-10/plan.md) · [log](plans/RGB-10/implementation_log.md) |
+| **RGB-22** · Pestaña «Plan y tiempos» y semáforo por consumo (PR #8) | Pestañas del proyecto (`ProyectoTabs`, layout `app/proyectos/[codigo]/layout.tsx`), ruta `plan-y-tiempos` con resumen, tabla por fase con barras de consumo, historial de pausas y pausa activa. Contrato en `lib/tiempos.ts` con datos de ejemplo (RGB-20/21 no existen). Semáforo ámbar ≥80 %, rojo >100 % decidido con enteros; 496 tests; 12 pantallazos | [plan](plans/RGB-22/plan.md) · [log](plans/RGB-22/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 
 ## Decisiones
@@ -35,9 +36,10 @@ El PR incluye pantallazos. La tarea pasa a «En revisión» y una persona la pas
 - Pasada visual de RGB-6 en navegador (nadie la hizo; RGB-6 se mergeó antes de exigir pantallazos).
 - `next/font/google` necesita red en el build: pasar a fuentes locales antes de montar CI.
 - RGB-10: el anillo de la fase en pantalla se distingue poco de la tarjeta de la fase actual en claro (propuesta del Juez: `ring-inset ring-on-point`); las migas no muestran el nombre del proyecto; usar `estadoFase` en `lib/proyectos.ts`.
+- RGB-22: `aria-valuenow` >100 en barras sobre el plan (propuesta: `valuenow` acotado a 100 + `aria-valuetext` con el porcentaje real, ajustando plan y tests); `obtenerProyecto` se llama en layout y página (usar `cache()` o una sola fuente para la fase actual al conectar la API); fases hechas con 100 % exacto muestran «Atención» (decisión de producto).
 - RGB-1 (infra): Postgres con Docker, migraciones, CI.
 - Observaciones menores del Juez: enlace «Saltar al contenido» con foco de contenido sobre la barra lateral clara; pares de contraste del test mantenidos a mano; versiones con `^`.
 
 ## Siguiente trabajo de front
 
-RGB-22 (Plan y tiempos) depende de RGB-21 (backend de pausas) y RGB-10; RGB-23 de RGB-22; RGB-29 de RGB-24/27/28; RGB-34 de RGB-33. Mientras no exista el backend se construyen contra datos de ejemplo, como RGB-10.
+RGB-23 (semanas en la cartera) necesita la cartera (RGB-11, full-stack, sin hacer). RGB-29 depende de RGB-24/27/28 y RGB-34 de RGB-33 (backend/datos). Se construyen contra datos de ejemplo, como RGB-10 y RGB-22, cuando la tarea está clara.
