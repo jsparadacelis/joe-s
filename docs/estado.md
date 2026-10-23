@@ -16,11 +16,12 @@ Actualizado: 2026-10-23 (tras RGB-9 y RGB-29). Fuente de verdad del backlog: Not
 | **RGB-5** · Registro de auditoría inalterable | Tabla `audit_events` solo de inserción (permisos y disparador), `AuditEvent`, puerto `AuditLog`, `audit()` y adaptador Postgres que escribe en la transacción de negocio; 61 tests | [plan](plans/RGB-5/plan.md) · [log](plans/RGB-5/implementation_log.md) |
 | **RGB-8** · Modelo de ciclo de vida | Migración `004`: `phase_config` (8 fases), `projects`, `exit_deliverables`, `frozen_versions` e `promotions` inmutables, `internal_milestones`; dominio `PHASES`, `Proyecto`, `FrozenVersion`, `Promocion`; 147 tests | [plan](plans/RGB-8/plan.md) · [log](plans/RGB-8/implementation_log.md) |
 | **RGB-9** · Servicio de promoción | `PromotionService` (promover, retener, no perseguir) en una transacción con RLS: autoridad por rol o habilitación, validador de entregable por fase, congela versión, abre la fase siguiente y audita también los rechazos. Rutas `POST /api/projects/{code}/promote`, `/hold`, `/no-perseguir` con 403 (quién puede) y 422 (qué falta); 216 tests | [plan](plans/RGB-9/plan.md) · [log](plans/RGB-9/implementation_log.md) |
+| Preparación del despliegue (PR #17) | `Dockerfile` del backend para Cloud Run (EE. UU.), dependencias de desarrollo en `requirements-dev.txt`, guía en [despliegue](despliegue.md). Falta crear los proyectos en Supabase, Cloud Run y Vercel (cuentas) | — |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 
 ## Decisiones
 
-- **Stack del front:** el mismo de parcerolegal (Next.js 16, React 19, TypeScript estricto, Tailwind v4, `lucide-react`, Jest + Testing Library + `jest-axe`). Next en la raíz (Vercel). El backend es Python/FastAPI en `backend/` (Railway), con DDD y TDD: ver [arquitectura](arquitectura.md).
+- **Stack del front:** el mismo de parcerolegal (Next.js 16, React 19, TypeScript estricto, Tailwind v4, `lucide-react`, Jest + Testing Library + `jest-axe`). Next en la raíz (Vercel). El backend es Python/FastAPI en `backend/` (Cloud Run, ver [despliegue](despliegue.md)), con DDD y TDD: ver [arquitectura](arquitectura.md).
 - **Scaffold dentro de RGB-6:** El scaffold del front se hizo en RGB-6 y RGB-1 completó backend, Postgres, migraciones y CI.
 - **Accesibilidad como criterio:** texto ≥ 4.5:1 y foco ≥ 3:1 en ambos temas, medido en tests desde el CSS real. Dos tokens de foco (`--focus`, `--focus-on-side`) porque un solo color no servía en la barra lateral clara.
 - **Front contra contrato propio:** cuando el backend no existe, el front define el contrato como tipos TypeScript y lo sirve desde datos ficticios (RGB-10). Al llegar el backend se sustituye `lib/projects.ts` por el cliente de la API.
