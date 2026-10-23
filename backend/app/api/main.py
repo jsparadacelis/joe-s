@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.api.rutas_promocion import router as rutas_promocion
 from backend.app.shared.config import Settings
 
 
@@ -17,6 +18,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(rutas_promocion)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

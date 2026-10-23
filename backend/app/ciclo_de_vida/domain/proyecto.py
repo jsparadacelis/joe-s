@@ -31,6 +31,7 @@ class Proyecto:
     responsable_id: str | None = None
     proximo_hito: str | None = None
     semaforo: Semaforo | None = None
+    id: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("estudio_id", "codigo", "nombre"):

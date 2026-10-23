@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-23 (tras RGB-8). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-23 (tras RGB-9). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -14,6 +14,7 @@ Actualizado: 2026-10-23 (tras RGB-8). Fuente de verdad del backlog: Notion («RG
 | **RGB-3** · Modelo multiestudio con seguridad por fila | Tabla `estudios`, rol `rgb_app`, plantilla `proteger_tabla_de_estudio`, comprobación `tablas_sin_rls()` en CI, `ContextoDeSolicitud` y `transaccion_de_estudio`; test de aislamiento A/B con Postgres real | [plan](plans/RGB-3/plan.md) · [log](plans/RGB-3/implementation_log.md) |
 | **RGB-5** · Registro de auditoría inalterable | Tabla `eventos_auditoria` solo de inserción (permisos y disparador), `EventoDeAuditoria`, puerto `RegistroDeAuditoria`, `audit()` y adaptador Postgres que escribe en la transacción de negocio; 61 tests | [plan](plans/RGB-5/plan.md) · [log](plans/RGB-5/implementation_log.md) |
 | **RGB-8** · Modelo de ciclo de vida | Migración `004`: `fases_config` (8 fases), `proyectos`, `entregables_salida`, `versiones_congeladas` e `promociones` inmutables, `hitos_internos`; dominio `FASES`, `Proyecto`, `VersionCongelada`, `Promocion`; 147 tests | [plan](plans/RGB-8/plan.md) · [log](plans/RGB-8/implementation_log.md) |
+| **RGB-9** · Servicio de promoción | `ServicioDePromocion` (promover, retener, no perseguir) en una transacción con RLS: autoridad por rol o habilitación, validador de entregable por fase, congela versión, abre la fase siguiente y audita también los rechazos. Rutas `POST /api/proyectos/{codigo}/promover`, `/retener`, `/no-perseguir` con 403 (quién puede) y 422 (qué falta); 216 tests | [plan](plans/RGB-9/plan.md) · [log](plans/RGB-9/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 
 ## Decisiones

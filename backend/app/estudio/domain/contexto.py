@@ -15,11 +15,20 @@ class Rol(str, Enum):
     COLABORADOR_DE_OBRA = "colaborador_de_obra"
 
 
+class Habilitacion(str, Enum):
+    """Atributos del usuario que dan autoridad en fases avanzadas (los asigna RGB-4)."""
+
+    FIRMANTE_HABILITADO = "firmante_habilitado"
+    DIRECCION_FACULTATIVA = "direccion_facultativa"
+    SPONSOR = "sponsor"
+
+
 @dataclass(frozen=True)
 class ContextoDeSolicitud:
     estudio_id: str
     usuario_id: str
     rol: Rol
+    habilitaciones: frozenset[Habilitacion] = frozenset()
 
     def __post_init__(self) -> None:
         for name in ("estudio_id", "usuario_id"):

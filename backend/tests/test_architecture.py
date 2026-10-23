@@ -49,3 +49,17 @@ def test_domain_does_not_import_external_libraries():
     ]
 
     assert violations == []
+
+
+def test_ai_packages_never_import_the_promotion_service():
+    """Ninguna acción de IA cambia el estado de un proyecto (regla del PRD)."""
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for pkg in ("ia", "reporte")
+        for p in APP.rglob("*.py")
+        if pkg in p.relative_to(APP).parts
+        for name in _imports(p)
+        if "ciclo_de_vida" in name
+    ]
+
+    assert violations == []

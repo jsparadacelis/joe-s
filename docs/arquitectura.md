@@ -36,7 +36,7 @@ backend/
 
 parcerolegal usa una sola capa `domain/application/infrastructure` porque tiene un solo contexto. Aquí hay varios, así que cada contexto lleva sus tres capas.
 
-Regla de dependencias, vigilada con un test de arquitectura: `domain` no importa de `application`, `infrastructure` ni `api`; `application` solo de `domain`; `infrastructure` implementa los puertos del dominio; `api` solo llama a `application`.
+Regla de dependencias, vigilada con un test de arquitectura: `domain` no importa de `application`, `infrastructure` ni `api`; `application` solo de `domain`; `infrastructure` implementa los puertos del dominio; `api` solo llama a `application` y es la raíz de composición: en `dependencies.py` cablea los adaptadores de `infrastructure` con cada caso de uso.
 
 ## Contextos delimitados
 
@@ -104,5 +104,5 @@ El front de RGB-10 define el contrato en `lib/fases.ts` y `lib/proyectos.ts` (`l
 
 1. **Dónde vive el backend:** propongo `backend/` en este mismo repo, junto al Next de la raíz, para versionar contrato y código juntos.
 2. **Acceso a datos con `psycopg` directo** en lugar de REST, por la atomicidad de promoción más auditoría.
-3. **RGB-9 sin RGB-4:** `AutoridadPorFase` como política de dominio hasta que haya permisos reales.
+3. **RGB-9 sin RGB-4 (resuelta en RGB-9):** la autoridad por fase se decide con el rol o con una *habilitación* del usuario (`firmante_habilitado`, `direccion_facultativa`, `sponsor`); RGB-4 las asignará.
 4. **Lenguaje:** el README y el skill decían «TypeScript» para todo el proyecto. Con esto, el front sigue en TypeScript y el backend pasa a Python; actualizo esas líneas.
