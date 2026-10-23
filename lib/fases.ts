@@ -5,19 +5,19 @@ export interface Fase {
   nombre: string;
   /** Entregable de salida con el que se cierra la fase. */
   entregable: string;
-  /** Qué hace posible la promoción a la fase siguiente. */
+  /** Rol con autoridad para promover a la fase siguiente (PRD). */
   promueve: string;
 }
 
 export const FASES: readonly Fase[] = [
-  { id: 0, nombre: "Oportunidad", entregable: "Ficha de oportunidad", promueve: "Decisión de aceptar el encargo" },
-  { id: 1, nombre: "Inicio", entregable: "Encargo y datos de partida", promueve: "Encargo firmado y datos de partida completos" },
-  { id: 2, nombre: "Briefing y concepto", entregable: "Briefing y concepto aprobados", promueve: "Concepto aprobado por el cliente" },
-  { id: 3, nombre: "Anteproyecto", entregable: "Anteproyecto", promueve: "Anteproyecto aprobado por el cliente" },
-  { id: 4, nombre: "Proyecto básico", entregable: "Proyecto básico", promueve: "Proyecto básico visado y aprobado" },
-  { id: 5, nombre: "Proyecto de ejecución", entregable: "Proyecto de ejecución", promueve: "Proyecto de ejecución aprobado y licencia concedida" },
-  { id: 6, nombre: "Obra", entregable: "Acta de recepción de obra", promueve: "Obra recibida sin reservas pendientes" },
-  { id: 7, nombre: "Cierre", entregable: "Informe de cierre", promueve: "Cierre administrativo y económico completado" },
+  { id: 0, nombre: "Oportunidad", entregable: "Scoring (7 criterios de 1 a 5, nota sobre 100, umbral) + tipología y escala → plan de semanas", promueve: "Socio y director" },
+  { id: 1, nombre: "Inicio", entregable: "Ficha del proyecto completa (incluye referencia catastral, contrato, gobierno, repositorio)", promueve: "Socio y director" },
+  { id: 2, nombre: "Briefing y concepto", entregable: "Datos técnicos del inmueble verificados + brief manual (con topográfico y alineación) + aprobación del cliente registrada", promueve: "Director de proyecto" },
+  { id: 3, nombre: "Anteproyecto", entregable: "Paquete de anteproyecto aprobado y congelado; visor de relieve 3D como apoyo", promueve: "Director de proyecto" },
+  { id: 4, nombre: "Proyecto básico", entregable: "Básico emitido y licencia concedida con condiciones", promueve: "Firmante habilitado" },
+  { id: 5, nombre: "Proyecto de ejecución", entregable: "Ejecución coordinada, visada y emitida", promueve: "Firmante habilitado" },
+  { id: 6, nombre: "Obra", entregable: "Registro de obra completo y recepción", promueve: "Dirección facultativa" },
+  { id: 7, nombre: "Cierre", entregable: "Certificado final, Libro del Edificio y lecciones", promueve: "Sponsor" },
 ];
 
 export type EstadoFase = "hecha" | "actual" | "vista";

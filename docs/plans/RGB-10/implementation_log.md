@@ -57,3 +57,32 @@ Se adoptaron las 10 asunciones del Escritor de tests. Detalles: el estado en la 
 ### Resultado
 
 `npm run lint`, `npm run typecheck`: sin errores. `npm test`: 23 suites, 359 tests en verde. `npm run build`: correcto (rutas `/proyectos/[codigo]` y `/proyectos/[codigo]/fase/[fase]` dinámicas).
+
+## Tester
+
+Fecha: 2026-10-23
+
+### Qué se ejecutó
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` antes y después de mis cambios, en verde (tras ellos: 23 suites, 360 tests).
+- `npm run build && npm run start` (puerto 3457) y `curl`: `/proyectos` 200; `/proyectos/PRY-EJ-001` 307 a `/fase/3`; fases 0..7 de los 3 proyectos 200; `/proyectos/NOEXISTE`, `/fase/8`, `/fase/abc`, `/fase/01`, `/fase/-1` 404. HTML servido: `aria-current="page"` solo en el ítem en pantalla; fase 1: campos readonly/disabled, aviso «Fase cerrada · versión congelada», sin «Guardar»; fase 3: «Guardar»; fase 5: 3 campos `disabled`, aviso de vista previa, sin «Guardar».
+- Playwright + Chromium headless (instalado en un directorio temporal fuera del repo; no se añadió dependencia) con emulación de `prefers-color-scheme`. Tab recorre: skip link, Cartera, Proyectos, Por promover, Reporte semanal, Ajustes, fases 0..7 y «Volver a la fase actual», con outline de 2px en cada parada. Enter en campos de las fases 1 y 5: la URL no cambia y no hay envío.
+- Contraste con los tokens (claro/oscuro): hecha `ok/ok-soft` 5.11/6.41, actual `on-point/point` 11.3/6.1, vista `muted/surface-2` 4.64/5.94 (pares ya cubiertos en `contrast.test.ts`); anillo `ink/bg` 15.5/14.9 (par `ink/bg` cubierto); `focus/bg` 10.4/6.1.
+
+### Hallazgos
+
+1. **Media, corregido.** `FASES[].entregable` y `promueve` no coincidían con la tabla del PRD (textos inventados; `promueve` era una condición en lugar del rol). Se sustituyeron por los del PRD: `entregable` = entregable de salida y `promueve` = rol con autoridad. La página de fase muestra ahora «Entregable · {fase}» con el texto del PRD y «Autoridad para promover: {rol}»; los campos de ejemplo ya no incrustan el texto del entregable.
+2. **Baja, sin corregir.** El anillo `ring-ink` de la fase en pantalla apenas se distingue cuando esa fase es la actual (sobre `point`: 1.49:1 claro, 2.44:1 oscuro; contra el fondo de página sí supera 3:1), y el foco (`--focus` = `point` en claro) sobre esa tarjeta se funde con su color. Sugerencia: separar el anillo con un hueco o marcar la fase en pantalla con otro recurso.
+3. **Baja, sin corregir.** El miga de pan dice «Proyectos» en las pantallas de fase; fuera del alcance de RGB-10.
+4. Higiene sin hallazgos: sin secretos ni colores sueltos, sin auth/API/Docker/CI, `node_modules`, `.next` y `test-results` no versionados.
+
+### Cambios del Tester
+
+- `lib/fases.ts`, `lib/proyectos.ts`, `app/proyectos/[codigo]/fase/[fase]/page.tsx`: hallazgo 1.
+- `__tests__/components/proyecto/FaseEntregable.test.tsx`: regresión «submit forzado y Enter no llaman a `onGuardar` en solo lectura ni vista previa».
+
+### Pantallazos (`docs/plans/RGB-10/screenshots/`, 1440 px, build real, datos ficticios)
+
+`fase-actual-3-{claro,oscuro}.png`, `fase-anterior-1-{claro,oscuro}.png`, `fase-siguiente-5-{claro,oscuro}.png`, `lista-proyectos-{claro,oscuro}.png`, `foco-barra-lateral-claro.png`, `foco-linea-fases-{claro,oscuro}.png`.
+
+Defectos visuales: ninguno bloqueante; solo el hallazgo 2.

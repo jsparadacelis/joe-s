@@ -162,3 +162,16 @@ describe("FaseEntregable · vista previa", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe("FaseEntregable · el envío del formulario nunca guarda fuera de edición (Tester)", () => {
+  it.each(["solo-lectura", "vista-previa"] as const)("%s: submit forzado y Enter en un campo no llaman a onGuardar", async (modo) => {
+    const onGuardar = jest.fn();
+    const { container } = render(<FaseEntregable entregable={entregable({ versionCongelada: "v1" })} modo={modo} onGuardar={onGuardar} />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    fireEvent.submit(form);
+    screen.getByLabelText("Título del briefing").focus();
+    await userEvent.setup().keyboard("{Enter}");
+    expect(onGuardar).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /guardar/i })).toBeNull();
+  });
+});

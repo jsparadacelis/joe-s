@@ -36,9 +36,9 @@ const PROYECTOS: readonly Proyecto[] = [
 ];
 
 function camposDeEjemplo(fase: FaseId): Campo[] {
-  const { nombre, entregable } = FASES[fase];
+  const { nombre } = FASES[fase];
   return [
-    { id: "titulo", etiqueta: `Título de «${entregable}»`, tipo: "texto", valor: `${entregable} de ejemplo` },
+    { id: "titulo", etiqueta: `Título del entregable de ${nombre}`, tipo: "texto", valor: `${nombre} (texto de ejemplo)` },
     { id: "resumen", etiqueta: `Resumen de la fase ${nombre}`, tipo: "area", valor: `Texto ficticio de la fase ${nombre.toLowerCase()}.` },
     { id: "fecha", etiqueta: "Fecha prevista de cierre", tipo: "fecha", valor: `2026-0${fase + 1}-15` },
   ];

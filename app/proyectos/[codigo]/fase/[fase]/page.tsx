@@ -28,7 +28,7 @@ export default async function Page({ params }: Props) {
       <PageHead title={proyecto.nombre} description={`${proyecto.codigo} · Fase ${fase.id}: ${fase.nombre}`} />
       <PhaseTimeline codigo={proyecto.codigo} faseActual={faseActual} faseVista={faseVista} />
       <ModoBanner codigo={proyecto.codigo} faseActual={faseActual} faseVista={faseVista} />
-      <Panel title={fase.entregable} description={`Promueve a la siguiente fase: ${fase.promueve}`}>
+      <Panel title={`Entregable · ${fase.nombre}`} description={`${fase.entregable}. Autoridad para promover: ${fase.promueve}.`}>
         <FaseEntregable entregable={entregable} modo={modoFase(faseVista, faseActual)} />
       </Panel>
     </>
