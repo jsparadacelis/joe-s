@@ -31,3 +31,29 @@ Los 6 suites nuevos fallan con «Could not locate module @/lib/fases / @/lib/pro
 8. `onGuardar`: sin argumentos definidos; solo se comprueba que se llama una vez. Se asume botón de tipo submit dentro de un `form` (o click directo; ambos valen).
 9. Tipos de campo en los tests: `texto` → `input`, `area` → `textarea`, `fecha` → `input[type=date]` (el plan no lo dice explícitamente).
 10. La página de fase en solo lectura/vista previa debe tener campos `textbox` (los datos de ejemplo incluyen al menos un campo de texto o área en cada fase).
+
+## Desarrollador
+
+Fecha: 2026-10-23
+
+### Qué se hizo
+
+- `lib/fases.ts`: `FASES`, `estadoFase`, `modoFase` (derivado de `estadoFase`, única fuente de verdad) y `parseFaseId` (regex `^[0-7]$`).
+- `lib/proyectos.ts`: datos ficticios en un bloque marcado «DATOS DE EJEMPLO (sustituible por el cliente de la API)»; tres campos por fase (texto, área, fecha) con ids únicos; `versionCongelada = "v1"` solo en fases anteriores a la actual; `obtenerEntregable` con código inexistente devuelve campos vacíos (los tests no lo cubren).
+- `components/proyecto/PhaseTimeline.tsx` (Server Component): `nav` + `ol` + 8 `Link`; cada ítem muestra número, nombre y el estado como texto visible (no solo color); la fase en pantalla lleva `aria-current="page"` y anillo (`ring-2 ring-ink`). El foco visible lo da el `:focus-visible` global con `--focus`.
+- `components/proyecto/ModoBanner.tsx` (Server Component): reutiliza `Notice` (info en solo lectura, warn en vista previa) con enlace «Volver a la fase actual».
+- `components/proyecto/FaseEntregable.tsx` (`"use client"`, necesario por `onSubmit`/`onGuardar`): campos no controlados (`defaultValue`), `label` asociado con `useId`; solo lectura = `readOnly` (texto/área) o `disabled` (fecha, porque `readOnly` no se aplica a `type=date`); vista previa = `disabled`; «Guardar» solo en edición.
+- Rutas: `/proyectos` (lista en `Panel`, con `EmptyState` si no hay proyectos), `/proyectos/[codigo]` (redirect/404) y `/proyectos/[codigo]/fase/[fase]` (Server Component async; `h1` único vía `PageHead` con el nombre del proyecto).
+
+### Decisiones y ambigüedades
+
+Se adoptaron las 10 asunciones del Escritor de tests. Detalles: el estado en la línea va como texto separado por espacios (los tests lo detectan con `\b`); la versión congelada se muestra como «Versión congelada: v1» solo en `FaseEntregable`, de modo que en la página «Fase cerrada · versión congelada» sigue siendo único.
+
+### Desviaciones
+
+- Ninguna sobre los tests: no se modificó ningún test existente ni se añadió ninguno nuevo (los existentes cubren el código).
+- `color-classes.test` solo admite clases cuyo sufijo sea un token: se evitaron `divide-y`, `ring-offset-*` y `last:border-b-0`; el anillo es `ring-2 ring-ink` sin separación.
+
+### Resultado
+
+`npm run lint`, `npm run typecheck`: sin errores. `npm test`: 23 suites, 359 tests en verde. `npm run build`: correcto (rutas `/proyectos/[codigo]` y `/proyectos/[codigo]/fase/[fase]` dinámicas).
