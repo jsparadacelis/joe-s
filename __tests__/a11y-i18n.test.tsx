@@ -13,7 +13,6 @@ import { Table } from "@/components/ui/Table";
 import AjustesPage from "@/app/ajustes/page";
 import CarteraPage from "@/app/cartera/page";
 import PorPromoverPage from "@/app/por-promover/page";
-import ProyectosPage from "@/app/proyectos/page";
 import ReportePage from "@/app/reporte-semanal/page";
 
 const mockPathname = jest.fn();
@@ -21,7 +20,6 @@ jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 const pages = [
   ["/cartera", CarteraPage],
-  ["/proyectos", ProyectosPage],
   ["/por-promover", PorPromoverPage],
   ["/reporte-semanal", ReportePage],
   ["/ajustes", AjustesPage],
