@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql://rgb:rgb@localhost:54329/rgb"
+    # Contexto ficticio mientras no haya autenticación (RGB-2).
+    dev_estudio_id: str = "00000000-0000-0000-0000-00000000e001"
+    dev_usuario_id: str = "usuario-ejemplo"
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
 
     @field_validator("cors_origins", mode="before")

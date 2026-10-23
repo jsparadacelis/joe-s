@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-23 (tras RGB-22). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-23 (tras RGB-3). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -10,12 +10,14 @@ Actualizado: 2026-10-23 (tras RGB-22). Fuente de verdad del backlog: Notion («R
 | **RGB-6** · Diseño base de la interfaz (PR #3) | Proyecto Next.js 16 + React 19 + Tailwind v4 en la raíz; layout con barra lateral y cabecera; 5 rutas con estado vacío; tokens claro/oscuro; Button, Panel, StatusChip, Notice, Table; 185 tests | [plan](plans/RGB-6/plan.md) · [log](plans/RGB-6/implementation_log.md) |
 | **RGB-10** · Línea de fases navegable (PR #6) | `PhaseTimeline` con 8 fases (hecha/actual/vista), rutas `/proyectos`, `/proyectos/[codigo]` y `/proyectos/[codigo]/fase/[fase]`, modos edición / solo lectura / vista previa. Construida contra datos de ejemplo (`lib/fases.ts`, `lib/proyectos.ts`) porque RGB-9 no existe; 361 tests; 11 pantallazos | [plan](plans/RGB-10/plan.md) · [log](plans/RGB-10/implementation_log.md) |
 | **RGB-22** · Pestaña «Plan y tiempos» y semáforo por consumo (PR #8) | Pestañas del proyecto (`ProyectoTabs`, layout `app/proyectos/[codigo]/layout.tsx`), ruta `plan-y-tiempos` con resumen, tabla por fase con barras de consumo, historial de pausas y pausa activa. Contrato en `lib/tiempos.ts` con datos de ejemplo (RGB-20/21 no existen). Semáforo ámbar ≥80 %, rojo >100 % decidido con enteros; 496 tests; 12 pantallazos | [plan](plans/RGB-22/plan.md) · [log](plans/RGB-22/implementation_log.md) |
+| **RGB-1** · Baseline del backend (PR #10) | Backend FastAPI en `backend/` con `/api/health`, Postgres 16 local con Docker, migrador propio, `npm run dev` levanta todo, CI de front y backend, test de arquitectura DDD | [plan](plans/RGB-1/plan.md) · [log](plans/RGB-1/implementation_log.md) |
+| **RGB-3** · Modelo multiestudio con seguridad por fila | Tabla `estudios`, rol `rgb_app`, plantilla `proteger_tabla_de_estudio`, comprobación `tablas_sin_rls()` en CI, `ContextoDeSolicitud` y `transaccion_de_estudio`; test de aislamiento A/B con Postgres real | [plan](plans/RGB-3/plan.md) · [log](plans/RGB-3/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 
 ## Decisiones
 
-- **Stack del front:** el mismo de parcerolegal (Next.js 16, React 19, TypeScript estricto, Tailwind v4, `lucide-react`, Jest + Testing Library + `jest-axe`). Un solo proyecto Next en la raíz; la API vivirá en `app/api`.
-- **Scaffold dentro de RGB-6:** RGB-1 (Infra) seguía pendiente; el scaffold del front se hizo en RGB-6. Postgres, Docker, migraciones y CI siguen sin hacer.
+- **Stack del front:** el mismo de parcerolegal (Next.js 16, React 19, TypeScript estricto, Tailwind v4, `lucide-react`, Jest + Testing Library + `jest-axe`). Next en la raíz (Vercel). El backend es Python/FastAPI en `backend/` (Railway), con DDD y TDD: ver [arquitectura](arquitectura.md).
+- **Scaffold dentro de RGB-6:** El scaffold del front se hizo en RGB-6 y RGB-1 completó backend, Postgres, migraciones y CI.
 - **Accesibilidad como criterio:** texto ≥ 4.5:1 y foco ≥ 3:1 en ambos temas, medido en tests desde el CSS real. Dos tokens de foco (`--focus`, `--focus-on-side`) porque un solo color no servía en la barra lateral clara.
 - **Front contra contrato propio:** cuando el backend no existe, el front define el contrato como tipos TypeScript y lo sirve desde datos ficticios (RGB-10). Al llegar el backend se sustituye `lib/proyectos.ts` por el cliente de la API.
 - **Sin colores sueltos:** `--color-*: initial` en `@theme` y un test que falla si un componente usa una clase de color que no es un token.
