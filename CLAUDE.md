@@ -6,11 +6,12 @@ Plataforma web de escritorio para que RGB Arquitectos gestione proyectos como un
 
 - Nada de datos reales de clientes en semillas, tests ni capturas.
 - Todo texto de la interfaz en español.
+- **El código siempre en inglés:** paquetes, clases, funciones, variables, tablas y columnas, rutas y claves JSON de la API, comentarios, docstrings, nombres de tests y datos de prueba. Solo va en español lo que ve la persona usuaria (interfaz y mensajes de error de la API) y los textos del PRD sembrados como datos (nombres y entregables de las fases). La documentación (`docs/`, Notion) puede seguir en español.
 - Ninguna acción de IA cambia el estado de un proyecto.
 - Cada transición de estado escribe en el registro de auditoría (quién, qué, cuándo, versión).
 - Toda consulta externa va por el servidor, con caché y con ruta manual si falla.
 - Antes de escribir código de una tarea, resume el plan y los archivos que vas a tocar.
-- **DDD:** el backend (Python, FastAPI, en `backend/`) se organiza por contexto delimitado (`backend/app/<contexto>/{domain,application,infrastructure}`), con el lenguaje del PRD en español. El dominio es Python puro: no importa FastAPI, Supabase ni nada de fuera. Detalle en [docs/arquitectura.md](docs/arquitectura.md).
+- **DDD:** el backend (Python, FastAPI, en `backend/`) se organiza por contexto delimitado (`backend/app/<context>/{domain,application,infrastructure}`), con el lenguaje del PRD en español. El dominio es Python puro: no importa FastAPI, Supabase ni nada de fuera. Detalle en [docs/arquitectura.md](docs/arquitectura.md).
 - **TDD:** ningún código de producción sin un test (pytest) que falle antes (rojo → verde → refactor). Dominio con tests unitarios puros, casos de uso con puertos simulados con `create_autospec`, infraestructura con Postgres real (incluida la RLS). Un test incorrecto se corrige justificándolo, no se debilita.
 
 ## Flujo por tarea

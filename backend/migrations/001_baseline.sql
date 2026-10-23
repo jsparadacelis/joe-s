@@ -1,4 +1,4 @@
--- Baseline: función de apoyo para las políticas RLS multiestudio (RGB-3).
--- Cada transacción fija app.estudio_id antes de consultar; las políticas la leen aquí.
-CREATE OR REPLACE FUNCTION app_estudio_id() RETURNS text
-LANGUAGE sql STABLE AS $$ SELECT current_setting('app.estudio_id', true) $$;
+-- Baseline: helper for the multi-study RLS policies (RGB-3).
+-- Every transaction sets app.study_id before querying; policies read it here.
+CREATE OR REPLACE FUNCTION app_study_id() RETURNS text
+LANGUAGE sql STABLE AS $$ SELECT current_setting('app.study_id', true) $$;

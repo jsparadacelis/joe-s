@@ -5,27 +5,27 @@ Tipo: Backend · Épica E0 · P0 · Tamaño S. Depende de RGB-3. Apilada sobre s
 
 ## Alcance
 
-- Tabla `eventos_auditoria` solo de inserción: estudio, usuario, entidad, id de entidad, acción, versión, valor anterior, valor nuevo (jsonb), resultado y fecha.
+- Tabla `audit_events` solo de inserción: estudio, usuario, entidad, id de entidad, acción, versión, valor anterior, valor nuevo (jsonb), resultado y fecha.
 - Inalterable por dos vías: `rgb_app` solo tiene `SELECT` e `INSERT`, y un disparador rechaza `UPDATE`, `DELETE` y `TRUNCATE` incluso al propietario.
 - Aislada por estudio con la plantilla de RGB-3.
-- `audit()` para los servicios: construye el evento desde el `ContextoDeSolicitud` y lo entrega al puerto `RegistroDeAuditoria`. El adaptador de Postgres escribe con la misma conexión de la transacción de negocio, así la promoción y su auditoría son atómicas.
+- `audit()` para los servicios: construye el evento desde el `RequestContext` y lo entrega al puerto `AuditLog`. El adaptador de Postgres escribe con la misma conexión de la transacción de negocio, así la promoción y su auditoría son atómicas.
 
 Fuera de alcance: consulta o pantalla de auditoría, y los eventos concretos de cada servicio (los añade cada tarea).
 
 ## Archivos
 
 ```
-backend/migrations/003_auditoria.sql
-backend/app/auditoria/domain/evento.py            # EventoDeAuditoria, Resultado
-backend/app/auditoria/domain/ports.py             # RegistroDeAuditoria (Protocol)
-backend/app/auditoria/application/auditar.py      # audit()
-backend/app/auditoria/infrastructure/postgres_registro.py
-backend/tests/auditoria/{domain,application,infrastructure}/...
+backend/migrations/003_audit.sql
+backend/app/audit/domain/event.py            # EventoDeAuditoria, Resultado
+backend/app/audit/domain/ports.py             # RegistroDeAuditoria (Protocol)
+backend/app/audit/application/record.py      # audit()
+backend/app/audit/infrastructure/postgres_audit_log.py
+backend/tests/audit/{domain,application,infrastructure}/...
 ```
 
 ## Criterios de aceptación
 
 - [ ] No existe ruta para editar ni borrar eventos: ni `rgb_app` (permisos) ni el propietario (disparador).
 - [ ] Cada evento guarda usuario, estudio, entidad, acción, valores antes y después y fecha.
-- [ ] Un estudio no ve ni escribe eventos de otro; `tablas_sin_rls()` sigue vacía.
+- [ ] Un estudio no ve ni escribe eventos de otro; `tables_without_rls()` sigue vacía.
 - [ ] pytest, ruff y CI en verde.

@@ -1,10 +1,11 @@
-"""Entrada de la API (FastAPI). Solo cablea; la lógica vive en application."""
+"""API entry point (FastAPI). It only wires things up; the logic lives in application."""
 
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.api.promotion_routes import router as promotion_routes
 from backend.app.shared.config import Settings
 
 
@@ -17,6 +18,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(promotion_routes)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

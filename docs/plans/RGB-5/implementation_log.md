@@ -1,13 +1,13 @@
 # RGB-5 · implementation_log
 
-Rama: `feat/RGB-5-auditoria`, apilada sobre `feat/RGB-3-multiestudio` (PR #11 abierto al empezar). TDD: tests en rojo por módulos inexistentes, implementación mínima, verde.
+Rama: `feat/RGB-5-audit`, apilada sobre `feat/RGB-3-multiestudio` (PR #11 abierto al empezar). TDD: tests en rojo por módulos inexistentes, implementación mínima, verde.
 
 ## Qué se hizo
 
-- Migración `003_auditoria.sql`: `eventos_auditoria` con estudio, usuario, entidad, id de entidad, acción, versión, valor anterior y nuevo (jsonb), resultado (`ok` o `rechazado`) y fecha; protegida con la plantilla de RGB-3.
-- Dominio: `EventoDeAuditoria` (valida campos obligatorios y versión ≥ 1) y `Resultado`; puerto `RegistroDeAuditoria`.
-- Aplicación: `audit()` construye el evento desde el `ContextoDeSolicitud`.
-- Infraestructura: `PostgresRegistroDeAuditoria` escribe con la conexión de la transacción de negocio.
+- Migración `003_audit.sql`: `audit_events` con estudio, usuario, entidad, id de entidad, acción, versión, valor anterior y nuevo (jsonb), resultado (`ok` o `rechazado`) y fecha; protegida con la plantilla de RGB-3.
+- Dominio: `AuditEvent` (valida campos obligatorios y versión ≥ 1) y `Resultado`; puerto `AuditLog`.
+- Aplicación: `audit()` construye el evento desde el `RequestContext`.
+- Infraestructura: `PostgresAuditLog` escribe con la conexión de la transacción de negocio.
 
 ## Decisiones
 
