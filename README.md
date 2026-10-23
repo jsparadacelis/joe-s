@@ -17,10 +17,9 @@ Plataforma web de escritorio para que RGB Arquitectos gestione cada proyecto com
 
 | Capa | Tecnología |
 | --- | --- |
-| Lenguaje | TypeScript |
-| Frontend | Next.js 16 (App Router) + React 19 con renderizado en servidor, Tailwind CSS v4, Jest + Testing Library |
-| Backend | API en el mismo proyecto que el frontend |
-| Base de datos | PostgreSQL gestionado en la UE, con seguridad por fila (RLS) para multiestudio desde el día uno |
+| Frontend | TypeScript, Next.js 16 (App Router) + React 19 con renderizado en servidor, Tailwind CSS v4, Jest + Testing Library. Despliegue en Vercel |
+| Backend | Python + FastAPI en `backend/`, DDD y TDD con pytest. Despliegue en Railway. Ver [docs/arquitectura.md](docs/arquitectura.md) |
+| Base de datos | PostgreSQL en Supabase (UE), con seguridad por fila (RLS) para multiestudio desde el día uno |
 | Autenticación | Google o Microsoft |
 | IA | Claude API: solo propone; nunca firma, emite ni aprueba |
 

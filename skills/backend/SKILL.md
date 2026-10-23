@@ -7,9 +7,14 @@ description: Convenciones de backend para RGB Proyectos (TypeScript, API, Postgr
 
 ## Stack
 
-- TypeScript, API en el mismo proyecto que el frontend.
-- PostgreSQL en la UE con seguridad por fila (RLS); multiestudio desde el día uno.
+- Python + FastAPI en `backend/`, desplegado en Railway; el front (Next.js, TypeScript) va en Vercel.
+- PostgreSQL en Supabase (UE) con seguridad por fila (RLS); multiestudio desde el día uno.
 - Autenticación con Google o Microsoft.
+
+## Método
+
+- **DDD:** `backend/app/<contexto>/{domain,application,infrastructure}`. `domain` no importa de las otras capas ni de librerías externas; `api` solo llama a casos de uso. Ver [docs/arquitectura.md](../../docs/arquitectura.md).
+- **TDD (pytest):** escribe primero el test que falla. Dominio: unitario puro. Aplicación: puertos con `create_autospec`. Infraestructura: Postgres real, con tests de RLS. Convenciones de test como en parcerolegal (`backend/CLAUDE.md`).
 
 ## Reglas
 
