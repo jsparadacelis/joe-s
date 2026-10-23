@@ -63,3 +63,47 @@ Implementado para poner en verde los tests del Escritor de tests, sin modificarl
 
 ### Resultados
 `npm run lint`, `npm run typecheck`, `npm test` (670 tests) y `npm run build` en verde.
+
+## Tester
+
+Fecha: 2026-10-23
+
+### Qué se ejecutó
+
+- `npm run lint`, `typecheck`, `test` (34 suites, 670 tests) y `build` en verde, sin cambios de código mío. La suite tarda 74-88 s; se ejecutó tres veces (completa dos veces y una con `--testTimeout=5000`) sin ningún test flaky. El `testTimeout` de 20 s es razonable como margen (en esta máquina todo pasa incluso con 5 s, pero axe con 26 controles sube con CPU compartida); no debilita ningún test.
+- Build real + `npm run start` (puerto 3489) y `curl`: `/proyectos` 200; `/proyectos/PRY-EJ-004` 307 a `/fase/2`; `/plan-y-tiempos` 200 para EJ-001..004; `/proyectos/NOEXISTE`, `/fase/8` y `/fase/x` 404. Fases 0..7 de EJ-001..004: un único h1 en todas; el panel «Datos técnicos del inmueble» solo aparece en la fase 2 (EJ-003 en fase 2: «Sin datos técnicos registrados.»).
+- Playwright (`playwright-core` en el directorio temporal de la sesión, fuera del repo; Chromium, locale `es-ES`, 1440 px, claro y oscuro) sobre `/proyectos/PRY-EJ-004/fase/2`:
+  - Referencia prellenada `1234567DG3413S0001AB`. Con 19 caracteres, con símbolo (`...0001A!`), vacía, con espacio y con guiones: aviso «La referencia catastral debe tener 20 caracteres.» y no aparece ningún grupo. 21 caracteres: `maxLength=20` impide teclearlos; quitando el atributo desde la consola, el aviso también sale. El aviso desaparece al editar.
+  - «Obtener datos técnicos» pasa a «Volver a consultar»; 3 grupos + Capacidad; 26 etiquetas con su origen y unidad, idénticas a `TECH_DEF`; valores idénticos a `TECH_SRC.residencial`; listas con «Sin dato» y opciones idénticas al borrador (22 de aceleración, 15 zonas, 13 usos...). «Consultando…» no se llega a ver en el navegador porque la función de ejemplo resuelve al instante (lo cubren los tests con promesa diferida).
+  - Editar `sc` y `uso`: chip «Editado» y «Valor de Catastro: 142 / Residencial»; «Restaurar» devuelve el valor; contador «2 editados»; editar un dato manual (`altura`) no muestra «Editado». «Verificado»: 26 sin verificar a 19 tras marcar 7; «Marcar todo como verificado» deja «Todo verificado».
+  - Capacidad a mano contra la fórmula (spc 96, spp 99,4, edif 1,5, ocup 70, PB+2): catastral techo 144 / huella 67,2 / x3 201,6, máximo 144, limita Edificabilidad, existente 142 (99 %); Polígono: 149,1 / 69,6 / 208,7, máximo 149,1; con ocupación 40: huella 39,8, x3 119,3, limita Ocupación × plantas, existente 119 %; parcela mínima 100: «No cumple (99 < 100 m²)»; con mínima 80: «Cumple (96 ≥ 80 m²)». Edificabilidad no numérica: vuelve el aviso de rellenar. Todos coinciden.
+  - «Volver a consultar» conserva los manuales (altura 12, edif 1,5, plantas PB+2) y repone los datos de origen (sc 142, uso Residencial) sin verificar.
+  - Solo teclado: Tab entre campos, escribir en los números, flechas en las listas (PB+2 con 3 flechas), Espacio en «Verificado», Enter en «Restaurar». Foco: outline sólido de 2 px, offset 2 px.
+  - Ninguna petición a otro origen que el servidor propio.
+- Modos: EJ-001 (solo lectura, datos visibles, 59 controles, 0 habilitados, «Todo verificado», sc 138 con «Valor de Catastro: 142») y EJ-002 (vista previa, 4 controles, 0 habilitados). 
+- axe-core 4.x real en el navegador (wcag2a/aa, 21aa, best-practice): 0 violaciones en EJ-004 antes y después de consultar, EJ-001 y EJ-002.
+- Contraste con los tokens (texto sobre fondo del chip): `warn/warn-soft` 4,77 claro / 6,83 oscuro; `ok/ok-soft` 5,11 / 6,41; `point/point-soft` («Limita») 9,10 / 4,88. Bordes de estado sobre `surface` en claro: ok 6,16, warn 5,70, point 11,3. Todo >= 4,5 (texto) y >= 3 (no textual).
+- Higiene: sin `fetch`, `process.env` ni URLs de servicios externos en `lib`, `components` y `app`; sin auth/API/Docker/CI; `node_modules` y `.next` ignorados, no existe `test-results`; datos ficticios.
+
+### Criterios
+
+Todos cumplen salvo lo indicado en hallazgos (ruta manual solo verificada por tests, no en navegador).
+
+### Hallazgos
+
+1. **Media, sin corregir.** Tras la ruta manual («Introducir datos manualmente») todos los datos tienen `original = null`; si luego una consulta funciona, `reconsultar` los trata como manuales y los datos de origen nunca se rellenan. Hay que decidir si la ruta manual marca los datos de parcela y condiciones como «sin origen» distinto de «manual» (p. ej. `reconsultar` solo conserva los de planeamiento, como dice el plan: «manuales (planeamiento)»). No se corrigió porque cambia el contrato de `reconsultar`, fijado por tests.
+2. **Baja.** La ruta manual y el estado «Consultando…» no se pueden forzar en el build de producción (la consulta de ejemplo no falla ni tarda); solo están cubiertos por tests con promesas.
+3. **Baja.** Los controles (`border-hair` #d6d5d1 sobre blanco, 1,4:1) no llegan a 3:1 como límite del control (WCAG 1.4.11). Es el mismo token que ya usan los campos de `FaseEntregable` y el resto de la app (patrón heredado), y el texto del control sí cumple; se anota para el sistema de diseño.
+4. **Baja.** Visual: con 12 datos frente a 6, «Condiciones técnicas» deja unos 300 px vacíos bajo ella (`items-start`, igual que `.tgroups` del borrador). Sin solapes ni texto cortado; etiquetas largas («Sup. de parcela (polígono)») envuelven a 2 líneas sin desalinear filas.
+5. **Baja.** Copia: el texto «Todos editables…» se mantiene también en solo lectura y vista previa, donde nada se puede editar. La referencia se muestra en mayúsculas por CSS pero el valor interno conserva las minúsculas (la validación es insensible a mayúsculas). `aria-invalid` no tiene estilo visible propio (el aviso lo compensa).
+6. **Info.** La vista previa del borrador permitía probar la consulta y editar; el plan (RGB-10/RGB-29) la deja toda deshabilitada: se sigue el plan.
+
+### Cambios del Tester
+
+- Solo pantallazos (ningún código ni test).
+
+### Pantallazos (`docs/plans/RGB-29/screenshots/`, 1440 px, build real, datos ficticios)
+
+`EJ-004-antes-de-consultar-{claro,oscuro}.png`, `EJ-004-tras-consultar-{claro,oscuro}.png` (con «Uso catastral» y «Superficie construida» editados, 7 datos verificados y la capacidad de PB+2, 70 %, 1,5), `EJ-004-referencia-invalida-{claro,oscuro}.png`, `EJ-004-foco-teclado-{claro,oscuro}.png`, `EJ-001-solo-lectura-{claro,oscuro}.png`, `EJ-002-vista-previa-{claro,oscuro}.png`.
+
+Defectos visuales: ninguno bloqueante; solo el hallazgo 4 (hueco bajo «Condiciones técnicas»). Los estados verificado (borde y casilla verde), editado (chip y texto «Valor de…») y sin verificar se distinguen también sin color.
