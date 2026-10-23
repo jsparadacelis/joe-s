@@ -49,14 +49,14 @@ class TestApplyMigrations:
 
 
 class TestBaselineMigration:
-    def test_estudio_id_helper_reads_the_session_setting(self, schema_url):
+    def test_study_id_helper_reads_the_session_setting(self, schema_url):
         from backend.app.shared.migrate import MIGRATIONS_DIR
 
         url, _ = schema_url
         apply_migrations(url, MIGRATIONS_DIR)
 
         with psycopg.connect(url) as conn:
-            conn.execute("SELECT set_config('app.estudio_id', 'estudio-demo', true)")
-            value = conn.execute("SELECT app_estudio_id()").fetchone()[0]
+            conn.execute("SELECT set_config('app.study_id', 'demo-study', true)")
+            value = conn.execute("SELECT app_study_id()").fetchone()[0]
 
-        assert value == "estudio-demo"
+        assert value == "demo-study"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Levanta Postgres, aplica migraciones y arranca la API (8000) y el front (3000).
+# Start Postgres, apply migrations and run the API (8000) and the front end (3000).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 [ -d .venv-back ] || python3 -m venv .venv-back
 # shellcheck disable=SC1091
 . .venv-back/bin/activate
-pip install -q -r requirements.txt
+pip install -q -r requirements-dev.txt
 
 [ -d node_modules ] || npm ci
 docker compose up -d --wait db

@@ -34,7 +34,7 @@ railway.toml, requirements.txt, pyproject.toml (pytest + ruff), .env.example
 Crea el esquema de apoyo, sin tablas de negocio:
 
 - Tabla de control `schema_migrations`.
-- Función `app_estudio_id()` que lee `current_setting('app.estudio_id', true)`, base de todas las políticas RLS futuras.
+- Función `app_study_id()` que lee `current_setting('app.study_id', true)`, base de todas las políticas RLS futuras.
 
 ## Orden TDD
 

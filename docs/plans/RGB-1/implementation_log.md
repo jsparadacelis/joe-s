@@ -7,7 +7,7 @@ Rama: `feat/RGB-1-baseline-backend`. Flujo TDD: tests en rojo (`ModuleNotFoundEr
 - Backend FastAPI en `backend/` con `create_app()` y `/api/health`; CORS configurable.
 - `Settings` (pydantic-settings): `DATABASE_URL` y `CORS_ORIGINS` (lista separada por comas).
 - Migrador propio (`backend/app/shared/migrate.py`): archivos `NNN_*.sql` en orden, una transacción por archivo, tabla `schema_migrations`, idempotente.
-- Migración `001_baseline.sql`: función `app_estudio_id()` para las políticas RLS (RGB-3).
+- Migración `001_baseline.sql`: función `app_study_id()` para las políticas RLS (RGB-3).
 - `docker-compose.yml` (Postgres 16 en el puerto 54329), `scripts/dev.sh`, `npm run dev` (todo) y `npm run dev:front` (solo front).
 - `railway.toml` (migra y arranca uvicorn), `.env.example`, `pyproject.toml` (pytest y ruff).
 - CI en GitHub Actions: front (lint, tipos, tests, build) y backend (ruff y pytest con Postgres 16).

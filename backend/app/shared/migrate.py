@@ -1,4 +1,4 @@
-"""Aplica las migraciones SQL numeradas de `backend/migrations`, una vez cada una."""
+"""Apply the numbered SQL migrations in `backend/migrations`, once each."""
 
 from __future__ import annotations
 

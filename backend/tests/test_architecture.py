@@ -1,4 +1,4 @@
-"""Regla de dependencias DDD: domain <- application <- api; infrastructure implementa puertos."""
+"""DDD dependency rule: domain <- application <- api; infrastructure implements ports."""
 
 import ast
 from pathlib import Path
@@ -46,6 +46,20 @@ def test_domain_does_not_import_external_libraries():
         for p in _layer_files("domain")
         for name in _imports(p)
         if name.split(".")[0] in EXTERNAL
+    ]
+
+    assert violations == []
+
+
+def test_ai_packages_never_import_the_promotion_service():
+    """No AI action changes a project's state (PRD rule)."""
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for pkg in ("ai", "report")
+        for p in APP.rglob("*.py")
+        if pkg in p.relative_to(APP).parts
+        for name in _imports(p)
+        if "lifecycle" in name
     ]
 
     assert violations == []

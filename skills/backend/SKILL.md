@@ -7,17 +7,18 @@ description: Convenciones de backend para RGB Proyectos (TypeScript, API, Postgr
 
 ## Stack
 
-- Python + FastAPI en `backend/`, desplegado en Railway; el front (Next.js, TypeScript) va en Vercel.
+- Python + FastAPI en `backend/`, desplegado en Cloud Run (ver [docs/despliegue.md](../../docs/despliegue.md)); el front (Next.js, TypeScript) va en Vercel.
 - PostgreSQL en Supabase (UE) con seguridad por fila (RLS); multiestudio desde el día uno.
 - Autenticación con Google o Microsoft.
 
 ## Método
 
-- **DDD:** `backend/app/<contexto>/{domain,application,infrastructure}`. `domain` no importa de las otras capas ni de librerías externas; `api` solo llama a casos de uso. Ver [docs/arquitectura.md](../../docs/arquitectura.md).
+- **DDD:** `backend/app/<context>/{domain,application,infrastructure}`. `domain` no importa de las otras capas ni de librerías externas; `api` solo llama a casos de uso. Ver [docs/arquitectura.md](../../docs/arquitectura.md).
 - **TDD (pytest):** escribe primero el test que falla. Dominio: unitario puro. Aplicación: puertos con `create_autospec`. Infraestructura: Postgres real, con tests de RLS. Convenciones de test como en parcerolegal (`backend/CLAUDE.md`).
 
 ## Reglas
 
+0. **Código en inglés:** identificadores, tablas, columnas, rutas, claves JSON, comentarios, docstrings y tests. Español solo para mensajes al usuario y textos del PRD como datos.
 1. **Multiestudio:** toda tabla de negocio lleva `studio_id` y política RLS. Ninguna consulta se salta la RLS.
 2. **Fase = estado:** el proyecto solo cambia de fase mediante una transición explícita que valida (a) entregable de salida completo y aprobado y (b) rol con autoridad en esa fase.
 3. **Auditoría:** cada transición de estado escribe en el registro de auditoría (quién, qué, cuándo, versión) en la misma transacción.

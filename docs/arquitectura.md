@@ -1,10 +1,11 @@
 # Arquitectura del backend
 
-Estado: propuesta (2026-10-23). Sigue el stack de parcerolegal: FastAPI + pytest + DDD en capas, Supabase y Railway.
+Estado: propuesta (2026-10-23). Sigue el stack de parcerolegal: FastAPI + pytest + DDD en capas, Supabase y Cloud Run.
 
 ## Principios
 
-- **DDD:** el código se organiza por contexto delimitado, con el lenguaje ubicuo del PRD en español: Proyecto, Fase, Entregable de salida, Promoción, Pausa, Dato técnico.
+- **Código en inglés:** el lenguaje ubicuo del PRD se traduce al código: Proyecto → `Project`, Fase → `Phase`, Entregable de salida → `ExitDeliverable`, Promoción → `Promotion`, Pausa → `Pause`, Dato técnico → `TechnicalDatum`. Solo se mantiene en español el texto que ve la persona usuaria.
+- **DDD:** el código se organiza por contexto delimitado.
 - **TDD:** ningún código de producción sin un test que falle antes (rojo → verde → refactor).
 - **El dominio no conoce nada de fuera:** ni FastAPI, ni Supabase, ni `requests`. Python puro con `dataclasses` y `Protocol` para los puertos, como en parcerolegal.
 
@@ -13,7 +14,7 @@ Estado: propuesta (2026-10-23). Sigue el stack de parcerolegal: FastAPI + pytest
 | Pieza | Servicio | Notas |
 | --- | --- | --- |
 | Front | Vercel | Next.js 16 en la raíz del repo (ya existe). |
-| API | Railway | FastAPI en `backend/`, con `railway.toml` y `/api/health`. |
+| API | Cloud Run | FastAPI en `backend/`, imagen del `Dockerfile` y `/api/health`. |
 | Base de datos | Supabase (Postgres, UE) | Migraciones SQL versionadas en `backend/migrations`. RLS en toda tabla de negocio. |
 | Auth | Fuera de alcance por ahora | Ver «Identidad y RLS». |
 
@@ -25,7 +26,7 @@ El front llama a la API por HTTP (CORS limitado al dominio de Vercel).
 backend/
   app/
     api/               # FastAPI: main.py, routes, schemas (Pydantic), dependencies
-    <contexto>/
+    <context>/
       domain/          # entidades, objetos de valor, eventos, políticas, ports.py (Protocols)
       application/     # casos de uso
       infrastructure/  # repositorios Postgres, clientes externos
@@ -36,36 +37,36 @@ backend/
 
 parcerolegal usa una sola capa `domain/application/infrastructure` porque tiene un solo contexto. Aquí hay varios, así que cada contexto lleva sus tres capas.
 
-Regla de dependencias, vigilada con un test de arquitectura: `domain` no importa de `application`, `infrastructure` ni `api`; `application` solo de `domain`; `infrastructure` implementa los puertos del dominio; `api` solo llama a `application`.
+Regla de dependencias, vigilada con un test de arquitectura: `domain` no importa de `application`, `infrastructure` ni `api`; `application` solo de `domain`; `infrastructure` implementa los puertos del dominio; `api` solo llama a `application` y es la raíz de composición: en `dependencies.py` cablea los adaptadores de `infrastructure` con cada caso de uso.
 
 ## Contextos delimitados
 
 | Contexto | Conceptos | Tareas |
 | --- | --- | --- |
-| `estudio` | Estudio, contexto de solicitud | RGB-3, RGB-4 (después) |
-| `auditoria` | Registro inalterable (quién, qué, cuándo, versión) | RGB-5 |
-| `ciclo_de_vida` | Proyecto (raíz), Fase, Entregable de salida, Promoción, versión congelada | RGB-8, RGB-9, RGB-11, RGB-12 |
-| `oportunidad` | Oportunidad, Scoring, plantillas de semanas, factor de escala | RGB-13 a RGB-16 |
-| `tiempos` | Reloj activo, Pausa, calendario | RGB-20, RGB-21 |
-| `datos_tecnicos` | Dato técnico (valor, origen, original, editado, verificado), tablas CTE/NCSE | RGB-27, RGB-28, RGB-30, RGB-31 |
-| `datos_externos` | Catastro, INSPIRE, IGN, Open-Meteo, PVGIS, caché de 30 días | RGB-18, RGB-24 a RGB-26, RGB-33 |
-| `reporte` | Reporte semanal propuesto por Claude (solo propone) | RGB-42 |
+| `study` | Estudio, contexto de solicitud | RGB-3, RGB-4 (después) |
+| `audit` | Registro inalterable (quién, qué, cuándo, versión) | RGB-5 |
+| `lifecycle` | Proyecto (raíz), Fase, Entregable de salida, Promoción, versión congelada | RGB-8, RGB-9, RGB-11, RGB-12 |
+| `opportunity` | Oportunidad, Scoring, plantillas de semanas, factor de escala | RGB-13 a RGB-16 |
+| `timing` | Reloj activo, Pausa, calendario | RGB-20, RGB-21 |
+| `technical_data` | Dato técnico (valor, origen, original, editado, verificado), tablas CTE/NCSE | RGB-27, RGB-28, RGB-30, RGB-31 |
+| `external_data` | Catastro, INSPIRE, IGN, Open-Meteo, PVGIS, caché de 30 días | RGB-18, RGB-24 a RGB-26, RGB-33 |
+| `report` | Reporte semanal propuesto por Claude (solo propone) | RGB-42 |
 
 Los contextos se comunican por identificadores y eventos de dominio (p. ej. `ProyectoPromovido`), no compartiendo entidades. La promoción y su registro de auditoría se escriben en la **misma transacción**.
 
 ## Reglas de dominio que se codifican primero
 
-1. `Proyecto.promover(...)` solo avanza una fase (n → n+1) y solo con el entregable de salida completo y aprobado.
+1. `Project.promote(...)` solo avanza una fase (n → n+1) y solo con el entregable de salida completo y aprobado.
 2. Solo promueve quien tiene autoridad en esa fase (política `AutoridadPorFase`).
 3. Al promover se crea una versión inmutable del entregable.
-4. Ninguna acción de IA llama a `promover`: el puerto de IA no tiene acceso al agregado `Proyecto`.
+4. Ninguna acción de IA llama a `promote`: el puerto de IA no tiene acceso al agregado `Proyecto`.
 5. Cada promoción emite `ProyectoPromovido` (quién, de qué fase a cuál, cuándo, qué versión).
 
 ## Acceso a datos
 
 parcerolegal habla con Supabase por REST (PostgREST) con `requests`. Aquí no basta: REST no permite abrir una transacción que agrupe varias escrituras, y la promoción más su auditoría deben ser atómicas, con RLS activa.
 
-Propuesta: **`psycopg` 3 (conexión directa al pooler de Supabase) con SQL explícito** dentro de los repositorios, sin ORM, igual que parcerolegal no usa ninguno. Cada caso de uso abre una transacción y fija `set_config('app.estudio_id', ..., true)` antes de consultar.
+Propuesta: **`psycopg` 3 (conexión directa al pooler de Supabase) con SQL explícito** dentro de los repositorios, sin ORM, igual que parcerolegal no usa ninguno. Cada caso de uso abre una transacción y fija `set_config('app.study_id', ..., true)` antes de consultar.
 
 ## Identidad y RLS (sin autenticación por ahora)
 
@@ -73,16 +74,16 @@ El backend depende de un puerto, no de un proveedor:
 
 ```python
 @dataclass(frozen=True)
-class ContextoDeSolicitud:
-    estudio_id: str
-    usuario_id: str
-    rol: Rol
+class RequestContext:
+    study_id: str
+    user_id: str
+    role: Role
 ```
 
 - Hoy: una dependencia de FastAPI entrega un contexto fijo con datos ficticios.
 - Mañana (RGB-2): esa dependencia lee la sesión de Supabase Auth.
-- Las políticas RLS filtran por `current_setting('app.estudio_id')`. Al llegar la autenticación solo cambia el origen del valor.
-- Toda tabla de negocio lleva `estudio_id` y un test de RLS que prueba que un estudio no ve los datos de otro.
+- Las políticas RLS filtran por `current_setting('app.study_id')`. Al llegar la autenticación solo cambia el origen del valor.
+- Toda tabla de negocio lleva `study_id` y un test de RLS que prueba que un estudio no ve los datos de otro.
 
 ## Estrategia de tests (TDD)
 
@@ -98,11 +99,11 @@ Se adoptan las convenciones de `backend/CLAUDE.md` de parcerolegal: Arrange / Ac
 
 ## Contrato con el front
 
-El front de RGB-10 define el contrato en `lib/fases.ts` y `lib/proyectos.ts` (`listarProyectos`, `obtenerProyecto`, `obtenerEntregable`) sobre datos de ejemplo. Los esquemas Pydantic de la API reproducen esos tipos, y el front sustituye el bloque de ejemplo por un cliente HTTP sin tocar los componentes.
+El front de RGB-10 define el contrato en `lib/phases.ts` y `lib/projects.ts` (`listarProyectos`, `obtenerProyecto`, `obtenerEntregable`) sobre datos de ejemplo. Los esquemas Pydantic de la API reproducen esos tipos, y el front sustituye el bloque de ejemplo por un cliente HTTP sin tocar los componentes.
 
 ## Decisiones abiertas
 
 1. **Dónde vive el backend:** propongo `backend/` en este mismo repo, junto al Next de la raíz, para versionar contrato y código juntos.
 2. **Acceso a datos con `psycopg` directo** en lugar de REST, por la atomicidad de promoción más auditoría.
-3. **RGB-9 sin RGB-4:** `AutoridadPorFase` como política de dominio hasta que haya permisos reales.
+3. **RGB-9 sin RGB-4 (resuelta en RGB-9):** la autoridad por fase se decide con el rol o con una *habilitación* del usuario (`firmante_habilitado`, `direccion_facultativa`, `sponsor`); RGB-4 las asignará.
 4. **Lenguaje:** el README y el skill decían «TypeScript» para todo el proyecto. Con esto, el front sigue en TypeScript y el backend pasa a Python; actualizo esas líneas.

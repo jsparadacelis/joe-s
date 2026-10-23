@@ -1,4 +1,4 @@
-"""Transacciones con el contexto de estudio fijado, para que actúe la RLS."""
+"""Transactions with the study context set, so RLS applies."""
 
 from __future__ import annotations
 
@@ -7,18 +7,16 @@ from contextlib import contextmanager
 
 import psycopg
 
-from backend.app.estudio.domain.contexto import ContextoDeSolicitud
+from backend.app.study.domain.context import RequestContext
 
 
 @contextmanager
-def transaccion_de_estudio(
-    database_url: str, contexto: ContextoDeSolicitud
-) -> Iterator[psycopg.Connection]:
-    """Abre una transacción como `rgb_app` con `app.estudio_id` válido solo en ella.
+def study_transaction(database_url: str, context: RequestContext) -> Iterator[psycopg.Connection]:
+    """Open a transaction as `rgb_app` with `app.study_id` valid only inside it.
 
-    Confirma al salir sin error y deshace si hay excepción.
+    Commits on a clean exit and rolls back on an exception.
     """
     with psycopg.connect(database_url) as conn:
         conn.execute("SET LOCAL ROLE rgb_app")
-        conn.execute("SELECT set_config('app.estudio_id', %s, true)", (contexto.estudio_id,))
+        conn.execute("SELECT set_config('app.study_id', %s, true)", (context.study_id,))
         yield conn
