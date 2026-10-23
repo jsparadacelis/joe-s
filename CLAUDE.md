@@ -10,6 +10,8 @@ Plataforma web de escritorio para que RGB Arquitectos gestione proyectos como un
 - Cada transición de estado escribe en el registro de auditoría (quién, qué, cuándo, versión).
 - Toda consulta externa va por el servidor, con caché y con ruta manual si falla.
 - Antes de escribir código de una tarea, resume el plan y los archivos que vas a tocar.
+- **DDD:** el backend (Python, FastAPI, en `backend/`) se organiza por contexto delimitado (`backend/app/<contexto>/{domain,application,infrastructure}`), con el lenguaje del PRD en español. El dominio es Python puro: no importa FastAPI, Supabase ni nada de fuera. Detalle en [docs/arquitectura.md](docs/arquitectura.md).
+- **TDD:** ningún código de producción sin un test (pytest) que falle antes (rojo → verde → refactor). Dominio con tests unitarios puros, casos de uso con puertos simulados con `create_autospec`, infraestructura con Postgres real (incluida la RLS). Un test incorrecto se corrige justificándolo, no se debilita.
 
 ## Flujo por tarea
 
