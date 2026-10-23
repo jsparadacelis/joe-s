@@ -114,12 +114,23 @@ export function esReferenciaCatastralValida(ref: string): boolean {
   return /^[0-9A-Za-z]{20}$/.test(ref.trim());
 }
 
-/** Datos de origen nuevos (sin verificar); los manuales del estado actual se conservan. */
+const GRUPO_POR_ID = new Map(DEFINICIONES.map((d) => [d.id, d.grupo]));
+
+/** Manual = del grupo Planeamiento; un id desconocido se considera manual si no tiene original. */
+function esManual(d: DatoTecnico): boolean {
+  const grupo = GRUPO_POR_ID.get(d.id);
+  return grupo ? grupo === "planeamiento" : d.original === null;
+}
+
+/**
+ * Datos de origen nuevos (sin verificar); los manuales (planeamiento) del estado actual se conservan.
+ * Los de parcela y condiciones son de origen aunque se hayan introducido a mano tras un fallo de la consulta.
+ */
 export function reconsultar(actual: DatoTecnico[], nuevos: DatoTecnico[]): DatoTecnico[] {
   const previos = new Map(actual.map((d) => [d.id, d]));
   return nuevos.map((n) => {
     const previo = previos.get(n.id);
-    return previo && previo.original === null ? { ...previo } : { ...n };
+    return previo && esManual(previo) ? { ...previo } : { ...n };
   });
 }
 

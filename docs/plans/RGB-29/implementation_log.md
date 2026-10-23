@@ -107,3 +107,11 @@ Todos cumplen salvo lo indicado en hallazgos (ruta manual solo verificada por te
 `EJ-004-antes-de-consultar-{claro,oscuro}.png`, `EJ-004-tras-consultar-{claro,oscuro}.png` (con «Uso catastral» y «Superficie construida» editados, 7 datos verificados y la capacidad de PB+2, 70 %, 1,5), `EJ-004-referencia-invalida-{claro,oscuro}.png`, `EJ-004-foco-teclado-{claro,oscuro}.png`, `EJ-001-solo-lectura-{claro,oscuro}.png`, `EJ-002-vista-previa-{claro,oscuro}.png`.
 
 Defectos visuales: ninguno bloqueante; solo el hallazgo 4 (hueco bajo «Condiciones técnicas»). Los estados verificado (borde y casilla verde), editado (chip y texto «Valor de…») y sin verificar se distinguen también sin color.
+
+## Corrección tras el Tester
+
+Hallazgo (media): tras «Introducir datos manualmente» todos los datos quedaban con `original = null`; `reconsultar` los trataba como manuales y una consulta correcta posterior no rellenaba parcela ni condiciones.
+
+- `lib/datos-tecnicos.ts`: `reconsultar` define «manual» por el grupo de la definición (solo Planeamiento). Para un id desconocido mantiene el criterio anterior (`original === null`). Los tests del Escritor no fijaban otra cosa, así que siguen en verde sin cambios.
+- (b) Los datos escritos a mano en parcela y condiciones tras la ruta manual siguen con `original = null`: no muestran «Editado» ni «Valor de {origen}: vacío». No hizo falta tocar el editor.
+- Tests de regresión nuevos: `__tests__/lib/reconsultar-grupos.test.ts` y `__tests__/components/proyecto/datos-tecnicos/DatosTecnicosEditorManualYConsulta.test.tsx` (ruta manual, luego consulta correcta).
