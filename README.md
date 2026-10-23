@@ -50,6 +50,10 @@ Cada dato técnico guarda: valor, origen, valor original, editado (sí/no) y ver
 - Toda consulta externa va por el servidor, con caché y con ruta manual si falla.
 - Antes de escribir código de una tarea, resumir el plan y los archivos a tocar.
 
+## Estado
+
+Qué está hecho, decisiones y pendientes: [docs/estado.md](docs/estado.md).
+
 ## Skills
 
 Guías para trabajar con Claude Code, separadas por área:
