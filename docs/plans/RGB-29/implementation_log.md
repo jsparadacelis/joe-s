@@ -34,3 +34,32 @@ Para comprobar que los tests son correctos y no piden imposibles, se implementó
 11. **`obtenerDatosTecnicosGuardados('PRY-EJ-001')`**: el plan solo dice «verificados» y «2 editados»; se exige 0 pendientes, 26 datos y 2 editados, sin fijar valores concretos. `PRY-EJ-003` también devuelve null (el plan dice «el resto → null»).
 12. **`formatearNumero`**: decimales por defecto 0 (como el borrador); no se prueba el separador de millares en 4 cifras (ICU `es-ES` no lo aplica).
 13. **Duración**: el editor tarda ~40 s en esta suite (user-event + 26 controles); se fija `jest.setTimeout(20000)` en ese archivo.
+
+## Desarrollador
+
+Implementado para poner en verde los tests del Escritor de tests, sin modificarlos ni debilitarlos.
+
+### Qué se hizo
+- `lib/datos-tecnicos.ts`: `GRUPOS`, `DEFINICIONES` (26, listas copiadas del borrador; `ab` generada: «< 0,04 g» y 0,04 a 0,24 g), funciones puras (`estaEditado`, contadores, `restaurarDato`, `marcarTodoVerificado`, `esReferenciaCatastralValida`, `reconsultar`) y, en un bloque «DATOS DE EJEMPLO» sustituible por el cliente de la API, `obtenerDatosTecnicos` y `obtenerDatosTecnicosGuardados` (siempre copias). PRY-EJ-001 devuelve los datos verificados con 2 editados (`sc` y `spp`) y planeamiento de ejemplo.
+- `lib/capacidad.ts`: `parseNumero`, `formatearNumero` (Intl.NumberFormat cacheado), `calcularCapacidad`.
+- `lib/proyectos.ts`: PRY-EJ-004 («Local comercial (ejemplo)», fase 2) y `obtenerReferenciaCatastral(codigo)` (referencias ficticias de las fichas). `lib/tiempos.ts`: plan de PRY-EJ-004 (2 + 1 semanas activas, sin pausas).
+- `components/proyecto/datos-tecnicos/`: `DatosTecnicosEditor` (único Client Component, estado local inmutable), `FilaDato` (memoizada), `PanelGrupo`, `PanelCapacidad`, `ResumenVerificacion` (Server-compatibles, sin estado).
+- Página de la fase 2: muestra el editor bajo el entregable genérico; el resto de fases no cambia.
+- Test nuevo `DatosTecnicosEditorFallo.test.tsx` para código no cubierto (ruta manual).
+
+### Decisiones
+- **Referencia de la ficha**: `Proyecto` no cambia (un test fija su forma exacta con `toEqual`); se añade la función aparte `obtenerReferenciaCatastral`. La página usa la referencia guardada si la hay, si no la de la ficha.
+- **Rendimiento**: `FilaDato` con `memo`, callbacks estables por `id` (actualización funcional), `Map` por id y capacidad con `useMemo`; al teclear solo se repinta la fila editada.
+- **Ruta manual** (regla del repo «ruta manual si falla»): si `consultar` rechaza, aviso «No se pudo consultar. Puedes introducir los datos manualmente.» y botón «Introducir datos manualmente», que crea los 26 datos vacíos sin origen (no cuentan como editados).
+- **Solo lectura sin datos**: solo el aviso «Sin datos técnicos registrados.». **Vista previa sin datos**: entrada con referencia y consulta deshabilitadas.
+- En solo lectura y vista previa, «Restaurar» se muestra deshabilitado; «Marcar todo como verificado» y «Volver a consultar» también.
+- Estados en texto (chips «Editado», «Limita», «Verificado» con nombre accesible «Verificado {dato}»); los bordes de color son un refuerzo. `aria-live="polite"` en el contador y en avisos/resultado de la consulta.
+- Texto de origen: «Consultado el {fecha} a través del servidor» (el borrador decía «valores simulados»).
+
+### Desviaciones
+- `jest.config.js`: `testTimeout: 20000`. Axe sobre pantallas con 26 controles tarda ~2 s aislado y, con las suites en paralelo, superaba los 5 s por defecto de tests que no puedo tocar (y provocaba «Axe is already running» en cascada). Es configuración, no debilita ningún test.
+- No hay cambios en los tests del Escritor. Ninguno pareció incorrecto.
+- `last:border-b-0` lo rechaza el test de clases de color; las filas conservan todas su borde inferior.
+
+### Resultados
+`npm run lint`, `npm run typecheck`, `npm test` (670 tests) y `npm run build` en verde.
