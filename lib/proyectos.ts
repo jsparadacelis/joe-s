@@ -33,7 +33,14 @@ const PROYECTOS: readonly Proyecto[] = [
   { codigo: "PRY-EJ-001", nombre: "Vivienda unifamiliar (ejemplo)", faseActual: 3 },
   { codigo: "PRY-EJ-002", nombre: "Reforma de local comercial (ejemplo)", faseActual: 0 },
   { codigo: "PRY-EJ-003", nombre: "Edificio de oficinas (ejemplo)", faseActual: 6 },
+  { codigo: "PRY-EJ-004", nombre: "Local comercial (ejemplo)", faseActual: 2 },
 ];
+
+/** Referencia catastral (ficticia) de la ficha de cada proyecto. */
+const REFERENCIAS_CATASTRALES: Readonly<Record<string, string>> = {
+  "PRY-EJ-001": "1234567DG3413S0001AB",
+  "PRY-EJ-004": "1234567DG3413S0001AB",
+};
 
 function camposDeEjemplo(fase: FaseId): Campo[] {
   const { nombre } = FASES[fase];
@@ -63,4 +70,9 @@ export async function obtenerEntregable(codigo: string, fase: FaseId): Promise<E
     versionCongelada: fase < proyecto.faseActual ? "v1" : null,
     campos: camposDeEjemplo(fase),
   };
+}
+
+/** Referencia catastral de la ficha del proyecto; cadena vacía si no la tiene. */
+export async function obtenerReferenciaCatastral(codigo: string): Promise<string> {
+  return REFERENCIAS_CATASTRALES[codigo] ?? "";
 }
