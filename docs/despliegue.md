@@ -57,7 +57,7 @@ Usa en el secreto la conexión directa si el pooler da problemas con DDL.
 
 - Escala a cero: la primera petición tras un rato sin uso tarda 1–3 s. `--min-instances 1` lo evita, pero deja de ser gratis.
 - Mientras no exista autenticación (RGB-2) la API usa un estudio y usuario ficticios (`DEV_ESTUDIO_ID`, `DEV_USUARIO_ID`). No publiques endpoints de negocio ni datos reales hasta tenerla.
-- `railway.toml` queda sin uso mientras el backend esté en Cloud Run.
+- `railway.toml` quedó de la primera opción (Railway) y no se usa.
 
 ## 3. Front (Vercel)
 
