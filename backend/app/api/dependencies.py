@@ -13,6 +13,8 @@ from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
+from backend.app.opportunity.application.plan_settings import PlanSettingsService
+from backend.app.opportunity.infrastructure.postgres_plan_settings import PostgresPlanSettings
 from backend.app.shared.config import Settings
 from backend.app.shared.db import study_transaction
 from backend.app.study.domain.context import Qualification, RequestContext, Role
@@ -49,5 +51,19 @@ def unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> UnitOf
                 PostgresAuditLog(conn),
                 VALIDATORS_BY_PHASE,
             )
+
+    return open_unit
+
+
+PlanUnitOfWork = Callable[[RequestContext], AbstractContextManager[PlanSettingsService]]
+
+
+def plan_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> PlanUnitOfWork:
+    """Composition root for the plan settings: one transaction per request."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[PlanSettingsService]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield PlanSettingsService(PostgresPlanSettings(conn), PostgresAuditLog(conn))
 
     return open_unit
