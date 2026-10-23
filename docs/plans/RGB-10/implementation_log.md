@@ -64,7 +64,7 @@ Fecha: 2026-10-23
 
 ### Qué se ejecutó
 
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` antes y después de mis cambios, en verde (tras ellos: 23 suites, 360 tests).
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` antes y después de mis cambios, en verde (tras ellos: 23 suites, 361 tests).
 - `npm run build && npm run start` (puerto 3457) y `curl`: `/proyectos` 200; `/proyectos/PRY-EJ-001` 307 a `/fase/3`; fases 0..7 de los 3 proyectos 200; `/proyectos/NOEXISTE`, `/fase/8`, `/fase/abc`, `/fase/01`, `/fase/-1` 404. HTML servido: `aria-current="page"` solo en el ítem en pantalla; fase 1: campos readonly/disabled, aviso «Fase cerrada · versión congelada», sin «Guardar»; fase 3: «Guardar»; fase 5: 3 campos `disabled`, aviso de vista previa, sin «Guardar».
 - Playwright + Chromium headless (instalado en un directorio temporal fuera del repo; no se añadió dependencia) con emulación de `prefers-color-scheme`. Tab recorre: skip link, Cartera, Proyectos, Por promover, Reporte semanal, Ajustes, fases 0..7 y «Volver a la fase actual», con outline de 2px en cada parada. Enter en campos de las fases 1 y 5: la URL no cambia y no hay envío.
 - Contraste con los tokens (claro/oscuro): hecha `ok/ok-soft` 5.11/6.41, actual `on-point/point` 11.3/6.1, vista `muted/surface-2` 4.64/5.94 (pares ya cubiertos en `contrast.test.ts`); anillo `ink/bg` 15.5/14.9 (par `ink/bg` cubierto); `focus/bg` 10.4/6.1.
