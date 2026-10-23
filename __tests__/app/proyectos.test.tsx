@@ -184,3 +184,64 @@ describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe("/proyectos/[codigo]/fase/3 · visor de relieve 3D (RGB-34)", () => {
+  const TITULO = "Relieve 3D del terreno";
+
+  it("PRY-EJ-001 (fase actual): panel con la referencia de la ficha, bajo el entregable genérico", async () => {
+    render(await fase("PRY-EJ-001", "3"));
+    const panel = screen.getByRole("heading", { name: TITULO });
+    expect(panel).toBeInTheDocument();
+    expect(screen.getByLabelText("Referencia catastral")).toHaveValue("1234567DG3413S0001AB");
+    expect(screen.getByRole("button", { name: "Ver relieve" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeInTheDocument();
+    const entregable = screen.getByRole("heading", { name: /^Entregable/ });
+    expect(entregable.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it.each([
+    ["PRY-EJ-002", "vista previa (fase actual 0)"],
+    ["PRY-EJ-004", "vista previa (fase actual 2)"],
+    ["PRY-EJ-003", "solo lectura (fase actual 6)"],
+  ])("%s fase 3, %s: el visor también está disponible (es consulta, no guarda nada)", async (codigo) => {
+    render(await fase(codigo, "3"));
+    expect(screen.getByRole("heading", { name: TITULO })).toBeInTheDocument();
+    expect(screen.getByLabelText("Referencia catastral")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Ver relieve" })).toBeEnabled();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it("PRY-EJ-002 fase 3: sin referencia en la ficha, el mensaje guía del visor", async () => {
+    render(await fase("PRY-EJ-002", "3"));
+    expect(screen.getByLabelText("Referencia catastral")).toHaveValue("");
+    expect(
+      screen.getByText("Escribe una referencia catastral de 20 caracteres y pulsa «Ver relieve»."),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ["PRY-EJ-001", "0"],
+    ["PRY-EJ-001", "1"],
+    ["PRY-EJ-001", "2"],
+    ["PRY-EJ-001", "4"],
+    ["PRY-EJ-001", "5"],
+    ["PRY-EJ-001", "6"],
+    ["PRY-EJ-001", "7"],
+    ["PRY-EJ-004", "2"],
+    ["PRY-EJ-003", "6"],
+  ])("%s fase %s: no muestra el visor de relieve", async (codigo, f) => {
+    render(await fase(codigo, f));
+    expect(screen.queryByRole("heading", { name: TITULO })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ver relieve" })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["PRY-EJ-001", "3"],
+    ["PRY-EJ-002", "3"],
+    ["PRY-EJ-003", "3"],
+  ])("%s fase %s: sin violaciones de accesibilidad", async (codigo, f) => {
+    const { container } = render(<main>{await fase(codigo, f)}</main>);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
