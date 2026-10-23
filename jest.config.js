@@ -1,6 +1,8 @@
 /** @type {import('jest').Config} */
 const config = {
   coverageProvider: 'v8',
+  // axe sobre pantallas con muchos controles (RGB-29) tarda varios segundos con la CPU compartida.
+  testTimeout: 20000,
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {

@@ -24,6 +24,7 @@ describe("/proyectos", () => {
     expect(screen.getByRole("link", { name: /PRY-EJ-001/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-001/fase/3");
     expect(screen.getByRole("link", { name: /PRY-EJ-002/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-002/fase/0");
     expect(screen.getByRole("link", { name: /PRY-EJ-003/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-003/fase/6");
+    expect(screen.getByRole("link", { name: /PRY-EJ-004/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-004/fase/2");
   });
 
   it("indica que son proyectos de ejemplo", async () => {
@@ -112,5 +113,74 @@ describe("/proyectos/[codigo]/fase/[fase]", () => {
       expect(await axe(container)).toHaveNoViolations();
       unmount();
     }
+  });
+});
+
+describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
+  const TITULO = "Datos técnicos del inmueble";
+
+  it("PRY-EJ-004 (fase actual): panel con la referencia prellenada y «Obtener datos técnicos»", async () => {
+    render(await fase("PRY-EJ-004", "2"));
+    expect(screen.getByRole("heading", { name: TITULO })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Referencia catastral/)).toHaveValue("1234567DG3413S0001AB");
+    expect(screen.getByRole("button", { name: "Obtener datos técnicos" })).toBeEnabled();
+    expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it("PRY-EJ-004 sigue mostrando el entregable genérico, con «Guardar»", async () => {
+    render(await fase("PRY-EJ-004", "2"));
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: TITULO })).toBeInTheDocument();
+  });
+
+  it("PRY-EJ-001 (fase hecha): solo lectura, con datos guardados visibles y deshabilitados", async () => {
+    render(await fase("PRY-EJ-001", "2"));
+    expect(screen.getByRole("heading", { name: TITULO })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Parcela" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Capacidad" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Dirección/)).toBeDisabled();
+    expect(screen.getByLabelText(/^Dirección/)).not.toHaveValue("");
+    expect(screen.getByLabelText(/^Zona climática/)).toBeDisabled();
+    expect(screen.getByLabelText(/^Edificabilidad/)).toBeDisabled();
+    expect(screen.getAllByRole("checkbox")).toHaveLength(26);
+    for (const c of screen.getAllByRole("checkbox")) expect(c).toBeDisabled();
+    expect(screen.getByText("Todo verificado")).toBeInTheDocument();
+    expect(screen.getByText("2 editados")).toBeInTheDocument();
+    for (const nombre of [/Obtener datos técnicos/, /Volver a consultar/, /Marcar todo como verificado/]) {
+      const b = screen.queryByRole("button", { name: nombre });
+      if (b) expect(b).toBeDisabled();
+    }
+  });
+
+  it("PRY-EJ-002 (fase siguiente): vista previa con la consulta deshabilitada", async () => {
+    render(await fase("PRY-EJ-002", "2"));
+    expect(screen.getByRole("heading", { name: TITULO })).toBeInTheDocument();
+    // El plan no fija si, sin datos, la vista previa muestra la entrada o un aviso: ambos valen, pero nunca consultable.
+    const b = screen.queryByRole("button", { name: /Obtener datos técnicos/ });
+    if (b) expect(b).toBeDisabled();
+    else expect(screen.getByText("Sin datos técnicos registrados.")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["PRY-EJ-001", "3"],
+    ["PRY-EJ-001", "1"],
+    ["PRY-EJ-004", "3"],
+    ["PRY-EJ-004", "1"],
+    ["PRY-EJ-003", "6"],
+  ])("%s fase %s: no muestra el panel de datos técnicos", async (codigo, f) => {
+    render(await fase(codigo, f));
+    expect(screen.queryByRole("heading", { name: TITULO })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Obtener datos técnicos/ })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["PRY-EJ-004", "2"],
+    ["PRY-EJ-001", "2"],
+    ["PRY-EJ-002", "2"],
+  ])("%s fase %s: sin violaciones de accesibilidad", async (codigo, f) => {
+    const { container } = render(<main>{await fase(codigo, f)}</main>);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

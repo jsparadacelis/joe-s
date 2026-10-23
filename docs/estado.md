@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-23 (tras RGB-9). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-23 (tras RGB-9 y RGB-29). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -10,6 +10,7 @@ Actualizado: 2026-10-23 (tras RGB-9). Fuente de verdad del backlog: Notion («RG
 | **RGB-6** · Diseño base de la interfaz (PR #3) | Proyecto Next.js 16 + React 19 + Tailwind v4 en la raíz; layout con barra lateral y cabecera; 5 rutas con estado vacío; tokens claro/oscuro; Button, Panel, StatusChip, Notice, Table; 185 tests | [plan](plans/RGB-6/plan.md) · [log](plans/RGB-6/implementation_log.md) |
 | **RGB-10** · Línea de fases navegable (PR #6) | `PhaseTimeline` con 8 fases (hecha/actual/vista), rutas `/proyectos`, `/proyectos/[codigo]` y `/proyectos/[codigo]/fase/[fase]`, modos edición / solo lectura / vista previa. Construida contra datos de ejemplo (`lib/fases.ts`, `lib/proyectos.ts`) porque RGB-9 no existe; 361 tests; 11 pantallazos | [plan](plans/RGB-10/plan.md) · [log](plans/RGB-10/implementation_log.md) |
 | **RGB-22** · Pestaña «Plan y tiempos» y semáforo por consumo (PR #8) | Pestañas del proyecto (`ProyectoTabs`, layout `app/proyectos/[codigo]/layout.tsx`), ruta `plan-y-tiempos` con resumen, tabla por fase con barras de consumo, historial de pausas y pausa activa. Contrato en `lib/tiempos.ts` con datos de ejemplo (RGB-20/21 no existen). Semáforo ámbar ≥80 %, rojo >100 % decidido con enteros; 496 tests; 12 pantallazos | [plan](plans/RGB-22/plan.md) · [log](plans/RGB-22/implementation_log.md) |
+| **RGB-29** · Pantalla de datos técnicos editables (PR #14) | Panel en la fase 2 (Briefing): referencia catastral validada, «Obtener datos técnicos», 26 datos en Parcela / Condiciones técnicas / Planeamiento con origen, «Editado» + Restaurar y «Verificado», contadores, capacidad en vivo, ruta manual si falla la consulta. Contrato en `lib/datos-tecnicos.ts` y `lib/capacidad.ts` con datos de ejemplo (RGB-24/27/28 sin hacer); proyecto de ejemplo `PRY-EJ-004`; 672 tests; 12 pantallazos | [plan](plans/RGB-29/plan.md) · [log](plans/RGB-29/implementation_log.md) |
 | **RGB-1** · Baseline del backend (PR #10) | Backend FastAPI en `backend/` con `/api/health`, Postgres 16 local con Docker, migrador propio, `npm run dev` levanta todo, CI de front y backend, test de arquitectura DDD | [plan](plans/RGB-1/plan.md) · [log](plans/RGB-1/implementation_log.md) |
 | **RGB-3** · Modelo multiestudio con seguridad por fila | Tabla `estudios`, rol `rgb_app`, plantilla `proteger_tabla_de_estudio`, comprobación `tablas_sin_rls()` en CI, `ContextoDeSolicitud` y `transaccion_de_estudio`; test de aislamiento A/B con Postgres real | [plan](plans/RGB-3/plan.md) · [log](plans/RGB-3/implementation_log.md) |
 | **RGB-5** · Registro de auditoría inalterable | Tabla `eventos_auditoria` solo de inserción (permisos y disparador), `EventoDeAuditoria`, puerto `RegistroDeAuditoria`, `audit()` y adaptador Postgres que escribe en la transacción de negocio; 61 tests | [plan](plans/RGB-5/plan.md) · [log](plans/RGB-5/implementation_log.md) |
@@ -48,3 +49,8 @@ El PR incluye pantallazos. La tarea pasa a «En revisión» y una persona la pas
 ## Siguiente trabajo de front
 
 RGB-23 (semanas en la cartera) necesita la cartera (RGB-11, full-stack, sin hacer). RGB-29 depende de RGB-24/27/28 y RGB-34 de RGB-33 (backend/datos). Se construyen contra datos de ejemplo, como RGB-10 y RGB-22, cuando la tarea está clara.
+
+## Pendientes de RGB-29 (front)
+
+- Comentario de `DatoTecnico` (manual = grupo Planeamiento) y descripción del panel cuando no es editable; quitar el `testTimeout` global de `jest.config.js`; aviso al reconsultar (sustituye lo escrito a mano); contraste del borde de controles `border-hair` (1,4:1, heredado de toda la app) y estilo de `aria-invalid`.
+- Al llegar RGB-24/27/28/30: sustituir `obtenerDatosTecnicos` por el cliente de la API y `calcularCapacidad` por el servicio.

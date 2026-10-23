@@ -57,6 +57,14 @@ describe("/proyectos/[codigo]/plan-y-tiempos", () => {
     expect(screen.getAllByRole("progressbar")).toHaveLength(7);
   });
 
+  it("PRY-EJ-004 (fase 2, RGB-29): muestra su plan con siete barras y un único h1", async () => {
+    mockPathname.mockReturnValue("/proyectos/PRY-EJ-004/plan-y-tiempos");
+    render(await pagina("PRY-EJ-004"));
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getAllByRole("progressbar")).toHaveLength(7);
+    expect(screen.queryByText("Sin plan hasta promover")).not.toBeInTheDocument();
+  });
+
   it("PRY-EJ-002 (fase 0): estado vacío «Sin plan hasta promover», sin tabla ni barras", async () => {
     mockPathname.mockReturnValue("/proyectos/PRY-EJ-002/plan-y-tiempos");
     render(await pagina("PRY-EJ-002"));
@@ -66,7 +74,7 @@ describe("/proyectos/[codigo]/plan-y-tiempos", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003"])("%s: sin violaciones de accesibilidad", async (c) => {
+  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004"])("%s: sin violaciones de accesibilidad", async (c) => {
     const { container } = render(<main>{await pagina(c)}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });
