@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 [ -d .venv-back ] || python3 -m venv .venv-back
 # shellcheck disable=SC1091
 . .venv-back/bin/activate
-pip install -q -r requirements.txt
+pip install -q -r requirements-dev.txt
 
 [ -d node_modules ] || npm ci
 docker compose up -d --wait db
