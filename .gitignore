@@ -6,3 +6,8 @@ next-env.d.ts
 coverage
 .env*
 .DS_Store
+!.env.example
+.venv-back
+__pycache__
+.pytest_cache
+.ruff_cache
