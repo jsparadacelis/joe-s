@@ -185,7 +185,7 @@ describe("obtenerPlanTiempos", () => {
 });
 
 describe("coherencia de los datos de ejemplo", () => {
-  const codigos = ["PRY-EJ-001", "PRY-EJ-003"];
+  const codigos = ["PRY-EJ-001", "PRY-EJ-003", "PRY-EJ-004"];
 
   it.each(codigos)("%s: ids de fase únicos, ordenados y con nombre en FASES", async (c) => {
     const p = (await obtenerPlanTiempos(c))!;
@@ -225,5 +225,42 @@ describe("coherencia de los datos de ejemplo", () => {
     const p = (await obtenerPlanTiempos(c))!;
     expect(p.codigo).toMatch(/^PRY-EJ-\d{3}$/);
     expect(JSON.stringify(p)).not.toMatch(/@|\b\d{9}\b/);
+  });
+});
+
+describe("obtenerPlanTiempos · PRY-EJ-004 (RGB-29)", () => {
+  it("tiene plan de siete fases 1..7 con la fase actual 2", async () => {
+    const p = (await obtenerPlanTiempos("PRY-EJ-004"))!;
+    expect(p).not.toBeNull();
+    expect(p.codigo).toBe("PRY-EJ-004");
+    expect(p.faseActual).toBe(2);
+    expect(p.fases.map((f) => f.fase)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(p.fases.map((f) => f.planSemanas)).toEqual([2, 3, 5, 6, 8, 36, 4]);
+  });
+
+  it("solo hay semanas activas en las fases hasta la actual", async () => {
+    const p = (await obtenerPlanTiempos("PRY-EJ-004"))!;
+    for (const f of p.fases.filter((x) => x.fase > p.faseActual)) {
+      expect(f.activasSemanas).toBe(0);
+      expect(f.pausaSemanas).toBe(0);
+    }
+    expect(p.fases[0].activasSemanas).toBeGreaterThan(0);
+  });
+
+  it("los totales coinciden con la suma de las fases y el calendario es activas + pausa", async () => {
+    const p = (await obtenerPlanTiempos("PRY-EJ-004"))!;
+    const suma = (k: "planSemanas" | "activasSemanas" | "pausaSemanas") => p.fases.reduce((a, f) => a + f[k], 0);
+    expect(p.totalPlanSemanas).toBe(suma("planSemanas"));
+    expect(p.totalActivasSemanas).toBe(suma("activasSemanas"));
+    expect(p.totalPausaSemanas).toBe(suma("pausaSemanas"));
+    expect(p.calendarioSemanas).toBe(p.totalActivasSemanas + p.totalPausaSemanas);
+    expect(Number.isInteger(p.desviacionSemanas)).toBe(true);
+  });
+
+  it("las semanas del historial de pausas suman las de pausa y no hay pausa activa inconsistente", async () => {
+    const p = (await obtenerPlanTiempos("PRY-EJ-004"))!;
+    expect(p.pausas.reduce((a, x) => a + x.semanas, 0)).toBe(p.totalPausaSemanas);
+    if (p.pausaActiva) expect(p.pausas.some((x) => x.hasta === null)).toBe(true);
+    else expect(p.pausas.every((x) => x.hasta !== null)).toBe(true);
   });
 });

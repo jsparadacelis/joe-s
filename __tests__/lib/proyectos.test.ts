@@ -4,16 +4,17 @@ import { listarProyectos, obtenerEntregable, obtenerProyecto } from "@/lib/proye
 const IDS: FaseId[] = [0, 1, 2, 3, 4, 5, 6, 7];
 
 describe("listarProyectos", () => {
-  it("devuelve los tres proyectos de ejemplo con su fase actual", async () => {
+  it("devuelve los cuatro proyectos de ejemplo con su fase actual", async () => {
     const ps = await listarProyectos();
     expect(ps.map((p) => [p.codigo, p.faseActual])).toEqual(
       expect.arrayContaining([
         ["PRY-EJ-001", 3],
         ["PRY-EJ-002", 0],
         ["PRY-EJ-003", 6],
+        ["PRY-EJ-004", 2],
       ]),
     );
-    expect(ps).toHaveLength(3);
+    expect(ps).toHaveLength(4);
   });
 
   it("los datos son ficticios: «(ejemplo)» en el nombre y códigos PRY-EJ-NNN", async () => {
@@ -43,6 +44,28 @@ describe("obtenerProyecto", () => {
   });
 });
 
+describe("PRY-EJ-004 (RGB-29)", () => {
+  it("es el local comercial de ejemplo, en la fase 2", async () => {
+    expect(await obtenerProyecto("PRY-EJ-004")).toEqual({
+      codigo: "PRY-EJ-004",
+      nombre: "Local comercial (ejemplo)",
+      faseActual: 2,
+    });
+  });
+
+  it("el entregable de la fase 2 tiene campos y no está congelado", async () => {
+    const e = await obtenerEntregable("PRY-EJ-004", 2);
+    expect(e.fase).toBe(2);
+    expect(e.versionCongelada).toBeNull();
+    expect(e.campos.length).toBeGreaterThan(0);
+    for (const c of e.campos) expect(c.etiqueta.length).toBeGreaterThan(0);
+  });
+
+  it("la fase 1 de PRY-EJ-004 está congelada", async () => {
+    expect((await obtenerEntregable("PRY-EJ-004", 1)).versionCongelada).toEqual(expect.any(String));
+  });
+});
+
 describe("obtenerEntregable", () => {
   it.each(IDS)("la fase %i del proyecto 001 tiene campos bien formados", async (fase) => {
     const e = await obtenerEntregable("PRY-EJ-001", fase);
@@ -57,7 +80,7 @@ describe("obtenerEntregable", () => {
     }
   });
 
-  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003"])(
+  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004"])(
     "%s: versionCongelada no nula antes de la actual y nula en la actual y siguientes",
     async (codigo) => {
       const { faseActual } = (await obtenerProyecto(codigo))!;
