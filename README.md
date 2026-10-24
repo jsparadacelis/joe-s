@@ -49,6 +49,18 @@ Cada dato técnico guarda: valor, origen, valor original, editado (sí/no) y ver
 - Toda consulta externa va por el servidor, con caché y con ruta manual si falla.
 - Antes de escribir código de una tarea, resumir el plan y los archivos a tocar.
 
+## Estructura
+
+```
+frontend/   Next.js (app, components, lib, __tests__)
+backend/    FastAPI (app, migrations, tests, Dockerfile, requirements)
+docs/       arquitectura, despliegue, estado y planes por tarea
+skills/     guías para Claude Code
+scripts/    dev.sh: Postgres + migraciones + API (8000) + front (3000)
+```
+
+Para levantar todo en local: `bash scripts/dev.sh` (copia `.env.example` y `frontend/.env.example` si faltan).
+
 ## Estado
 
 Qué está hecho, decisiones y pendientes: [docs/estado.md](docs/estado.md).

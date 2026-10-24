@@ -24,6 +24,7 @@ El front llama a la API por HTTP (CORS limitado al dominio de Vercel).
 
 ```
 backend/
+  Dockerfile, requirements*.txt, pyproject.toml   # imagen y herramientas de Python
   app/
     api/               # FastAPI: main.py, routes, schemas (Pydantic), dependencies
     <context>/

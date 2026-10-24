@@ -2,6 +2,13 @@
 
 Plataforma web de escritorio para que RGB Arquitectos gestione proyectos como una sucesión de fases-estado (0 Oportunidad … 7 Cierre). Contexto, stack y alcance: [README.md](README.md). Fuente de verdad: PRD y backlog del MVP en Notion.
 
+## Estructura del repo
+
+- `frontend/`: Next.js (rutas en `app/`, `components/`, `lib/`, `__tests__/`, configuración y `package.json`). Comandos con `npm --prefix frontend <script>` o desde esa carpeta.
+- `backend/`: FastAPI. Código en `app/`, `migrations/`, `tests/`; `Dockerfile`, `requirements*.txt` y `pyproject.toml` en la misma carpeta. Comandos desde la raíz: `ruff check backend`, `pytest backend`, `python -m backend.app.shared.migrate`.
+- `docs/` (arquitectura, despliegue, estado y planes por tarea), `skills/`, `scripts/` y `docker-compose.yml` (Postgres local) en la raíz, junto a `.github/` (CI).
+- Los planes antiguos de `docs/plans/` citan rutas anteriores al reordenado (`app/`, `lib/`... ahora bajo `frontend/`).
+
 ## Reglas
 
 - Nada de datos reales de clientes en semillas, tests ni capturas.

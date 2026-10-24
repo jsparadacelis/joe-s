@@ -24,9 +24,9 @@ gcloud services enable run.googleapis.com artifactregistry.googleapis.com secret
 # Secreto con la conexión a la base de datos
 printf '%s' 'postgresql://...' | gcloud secrets create database-url --data-file=-
 
-# Primer despliegue (construye con el Dockerfile de la raíz)
+# Primer despliegue (construye con backend/Dockerfile)
 gcloud run deploy rgb-api \
-  --source . \
+  --source backend \
   --region $REGION \
   --allow-unauthenticated \
   --min-instances 0 --max-instances 2 \
@@ -45,7 +45,7 @@ La imagen **no** migra al arrancar: con escala a cero cada arranque en frío las
 
 ```bash
 gcloud run jobs deploy rgb-migrar \
-  --source . --region $REGION \
+  --source backend --region $REGION \
   --command python --args=-m,backend.app.shared.migrate \
   --set-secrets DATABASE_URL=database-url:latest
 gcloud run jobs execute rgb-migrar --region $REGION --wait
@@ -57,11 +57,11 @@ Usa en el secreto la conexión directa si el pooler da problemas con DDL.
 
 - Escala a cero: la primera petición tras un rato sin uso tarda 1–3 s. `--min-instances 1` lo evita, pero deja de ser gratis.
 - Mientras no exista autenticación (RGB-2) la API usa un estudio y usuario ficticios (`DEV_ESTUDIO_ID`, `DEV_USUARIO_ID`). No publiques endpoints de negocio ni datos reales hasta tenerla.
-- `railway.toml` quedó de la primera opción (Railway) y no se usa.
+- El Dockerfile y las dependencias de Python viven en `backend/`; el contexto de construcción es esa carpeta. `railway.toml` (primera opción, Railway) se eliminó.
 
 ## 3. Front (Vercel)
 
-1. Importa el repositorio; la raíz es el proyecto Next.js. No hace falta `vercel.json`.
+1. Importa el repositorio; en *Root Directory* pon `frontend`. No hace falta `vercel.json`.
 2. Variable de entorno `NEXT_PUBLIC_API_URL` = URL de Cloud Run.
 3. Añade el dominio de Vercel (y los de preview que uses) a `CORS_ORIGINS` en Cloud Run, separados por comas:
    `gcloud run services update rgb-api --region $REGION --update-env-vars ^@^CORS_ORIGINS=https://a.vercel.app,https://b.vercel.app`

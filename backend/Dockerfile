@@ -1,4 +1,4 @@
-# Imagen del backend para Cloud Run. Ver docs/despliegue.md.
+# Imagen del backend para Cloud Run. El contexto de construcción es backend/. Ver docs/despliegue.md.
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -9,7 +9,7 @@ WORKDIR /srv
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend ./backend
+COPY . ./backend
 
 RUN useradd --system --no-create-home app
 USER app

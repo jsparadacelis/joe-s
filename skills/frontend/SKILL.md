@@ -8,9 +8,9 @@ description: Convenciones de frontend para RGB Proyectos (React con SSR, TypeScr
 ## Stack
 
 - TypeScript estricto, Next.js 16 (App Router) + React 19 con renderizado en servidor.
-- Tailwind CSS v4: los tokens viven en el bloque `@theme` de `app/globals.css`; ningún color suelto en componentes.
+- Tailwind CSS v4: los tokens viven en el bloque `@theme` de `frontend/app/globals.css`; ningún color suelto en componentes.
 - Iconos con `lucide-react`. Tests con Jest + Testing Library (+ `jest-axe`).
-- Estructura: `app/` (rutas), `components/layout`, `components/ui`, `lib/`, `__tests__/`.
+- Estructura (todo en `frontend/`): `app/` (rutas), `components/layout`, `components/ui`, `lib/`, `__tests__/`.
 - Solo escritorio en el MVP (sin versión móvil).
 
 ## Reglas
