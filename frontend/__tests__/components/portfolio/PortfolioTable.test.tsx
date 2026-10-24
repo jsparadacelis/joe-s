@@ -91,6 +91,7 @@ describe("PortfolioTable cells", () => {
     ["red", "Plan superado", "bg-bad"],
     ["paused", "En pausa", "bg-off"],
     ["no-plan", "Sin plan", "bg-off"],
+    ["unknown", "Sin calcular", "bg-off"],
   ] as const)("status %s shows «%s» as a traffic-light chip with the %s dot", (status, label, dot) => {
     render(<PortfolioTable rows={[makeRow({ status })]} />);
     const chip = within(rowOf("PRY-EJ-901")).getByText(label);
@@ -356,6 +357,57 @@ describe("PortfolioTable phase weeks (RGB-23)", () => {
     const { container } = render(
       <main>
         <PortfolioTable rows={ROWS} />
+      </main>,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+// RGB-13: states and nulls that come from the real API.
+describe("PortfolioTable with API data (RGB-13)", () => {
+  it("a milestone without a date shows its name and «Sin fecha», with no <time>", () => {
+    render(<PortfolioTable rows={[makeRow({ nextMilestone: { name: "Kick-off", date: null } })]} />);
+    const row = rowOf("PRY-EJ-901");
+    expect(within(row).getByText("Kick-off")).toBeInTheDocument();
+    expect(within(row).getByText("Sin fecha")).toBeInTheDocument();
+    expect(row.querySelector("time")).toBeNull();
+  });
+
+  it("«Sin calcular» uses a neutral tone, not the warning or error ones", () => {
+    render(<PortfolioTable rows={[makeRow({ status: "unknown", phaseWeeks: null })]} />);
+    // Two texts say «Sin calcular» in the row (chip and weeks cell): the chip is the one with a dot.
+    const dot = rowOf("PRY-EJ-901").querySelector('[aria-hidden="true"]');
+    expect(dot).not.toHaveClass("bg-warn");
+    expect(dot).not.toHaveClass("bg-bad");
+  });
+
+  it("no phase weeks: «Sin plan hasta promover» for an opportunity, «Sin calcular» for an unknown row", () => {
+    render(
+      <PortfolioTable
+        rows={[
+          makeRow({ code: "PRY-EJ-901", status: "no-plan", phase: 0, phaseWeeks: null }),
+          makeRow({ code: "PRY-EJ-902", status: "unknown", phaseWeeks: null }),
+          makeRow({ code: "PRY-EJ-903", status: "green", phaseWeeks: null }),
+        ]}
+      />,
+    );
+    expect(within(rowOf("PRY-EJ-901")).getByText("Sin plan hasta promover")).toBeInTheDocument();
+    for (const code of ["PRY-EJ-902", "PRY-EJ-903"]) {
+      const cell = within(rowOf(code));
+      expect(cell.getByText("Sin calcular", { selector: "span.text-muted" })).toBeInTheDocument();
+      expect(cell.queryByText("Sin plan hasta promover")).not.toBeInTheDocument();
+      expect(cell.queryByRole("progressbar")).not.toBeInTheDocument();
+    }
+  });
+
+  it("no accessibility violations with unknown rows and undated milestones", async () => {
+    const { container } = render(
+      <main>
+        <PortfolioTable
+          rows={[
+            makeRow({ status: "unknown", phaseWeeks: null, nextMilestone: { name: "Kick-off", date: null } }),
+          ]}
+        />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();

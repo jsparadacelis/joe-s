@@ -8,20 +8,20 @@ Fuente del reparto: tabla del Backlog de Notion (título, tipo, dependencias y n
 
 | Archivo del front | Pantalla | Lo sustituye (tareas) |
 | --- | --- | --- |
-| `frontend/lib/projects.ts` | Línea de fases, entregables, proyectos | Lecturas de proyecto y de entregables: **sin tarea propia**; las crean RGB-13 (alta), RGB-17 (ficha), RGB-36 (entregables) y las fases de RGB-19/32/35 |
+| `frontend/lib/projects.ts` | Línea de fases, entregables, proyectos | Lectura mínima de proyecto (`GET /api/projects/{code}`) **resuelta por RGB-13**; faltan entregables y fases: RGB-17 (ficha), RGB-36 (entregables) y las fases de RGB-19/32/35 |
 | `frontend/lib/timing.ts` | «Plan y tiempos» | RGB-21 (pausas y su persistencia) sobre RGB-20 (hecha, funciones puras) |
-| `frontend/lib/portfolio.ts` | Cartera | RGB-11 (parte back, ver análisis) con RGB-13, RGB-17, RGB-21 |
+| `frontend/lib/portfolio.ts` | Cartera | Lectura mínima (`GET /api/portfolio`) **resuelta por RGB-13**; el semáforo, el hito y las semanas siguen nulos/`unknown` hasta RGB-17, RGB-21 y RGB-16 |
 | `frontend/lib/technical-data.ts` | Datos técnicos | RGB-24 (Catastro), RGB-27 (tablas técnicas), RGB-28 (modelo del dato) |
 | `frontend/lib/capacity.ts` | Capacidad edificable | RGB-30 |
 | `frontend/lib/relief.ts` | Visor 3D | RGB-33 (MDT del IGN), con RGB-25 (perímetro INSPIRE) |
 
-Conectado a la API real: ajustes del plan en `/settings` (PR #27).
+Conectado a la API real: ajustes del plan en `/settings` (PR #27); alta de oportunidad, cartera y ficha mínima (RGB-13).
 
 ## Huecos por dato
 
 | Hueco | Qué bloquea | Quién lo resuelve | Notas |
 | --- | --- | --- | --- |
-| Nadie hace `INSERT` en `projects` | La cartera real, que hoy saldría vacía | **RGB-13** · Alta de oportunidad (full-stack, depende de RGB-8) | Su criterio: «la oportunidad aparece en la cartera en fase 0 con “Sin plan hasta promover”». Campos: cliente, localización, tipología, presupuesto, plazo, fuente, responsable, fecha de decisión |
+| ~~Nadie hace `INSERT` en `projects`~~ | ~~La cartera real, que hoy saldría vacía~~ | **Resuelto por RGB-13** (`POST /api/opportunities`, migración 006) | La oportunidad aparece en la cartera en fase 0 con «Sin plan hasta promover». Pendiente solo desplegarlo en Cloud Run/Supabase |
 | Responsable: hoy solo un id | Columna «Responsable» con nombre | RGB-2 (usuarios) y RGB-4 (roles); el id lo guarda RGB-13 | Hasta entonces, `owner_name` nulo |
 | Tipología y escala | Plan y semáforo calculado en servidor | RGB-13 guarda la tipología; **RGB-16** elige tipología y escala desde el scoring, confirma el plan como línea base y crea la ficha | El análisis previo atribuía todo a RGB-16; el alta de la tipología es de RGB-13 |
 | Próximo hito, semáforo y riesgo | Columnas de hito y estado | **RGB-17** · Ficha (bloques «Tiempo»: plan confirmado, próximo hito y fecha; «Estado»: semáforo; «Riesgo») | La ficha es la fuente del hito: apunta a que manda el hito de la ficha frente a `internal_milestones` **(por verificar con el PRD)** |

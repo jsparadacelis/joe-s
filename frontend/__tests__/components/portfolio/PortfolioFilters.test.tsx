@@ -17,7 +17,7 @@ describe("PortfolioFilters", () => {
     expect(within(group).getByRole("combobox", { name: "Responsable" })).toBeInTheDocument();
   });
 
-  it("the traffic-light select offers «Todos» plus the five statuses in Spanish", () => {
+  it("the traffic-light select offers «Todos» plus the six statuses in Spanish (RGB-13 adds «Sin calcular»)", () => {
     render(<PortfolioFilters owners={OWNERS} value={NONE} onChange={jest.fn()} />);
     expect(optionNames(screen.getByRole("combobox", { name: "Semáforo" }))).toEqual([
       "Todos",
@@ -26,6 +26,7 @@ describe("PortfolioFilters", () => {
       "Plan superado",
       "En pausa",
       "Sin plan",
+      "Sin calcular",
     ]);
   });
 

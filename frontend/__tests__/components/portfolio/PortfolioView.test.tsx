@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { PortfolioView } from "@/components/portfolio/PortfolioView";
 import { ApiError } from "@/lib/api";
-import { ROWS, TODAY, makeRow } from "../../helpers/portfolio-rows";
+import type { Portfolio } from "@/lib/portfolio";
+import { ROWS, TODAY, makeRow, portfolioOf } from "../../helpers/portfolio-rows";
 
 // F3: next/link schedules an async router update that triggers `act(...)` warnings in jsdom; a plain anchor is enough here.
 jest.mock("next/link", () => ({
@@ -18,7 +19,7 @@ jest.mock("next/link", () => ({
 const UNEXPECTED = "Ocurrió un error inesperado. Inténtalo de nuevo.";
 const NO_RESULTS = "Ningún proyecto coincide con los filtros";
 
-function setup(fetcher: jest.Mock = jest.fn().mockResolvedValue(ROWS)) {
+function setup(fetcher: jest.Mock = jest.fn().mockResolvedValue(portfolioOf(ROWS))) {
   const user = userEvent.setup();
   const view = render(<PortfolioView fetcher={fetcher} today={TODAY} />);
   return { fetcher, user, ...view };
@@ -63,7 +64,7 @@ describe("PortfolioView states", () => {
   });
 
   it("«Reintentar» fetches again and shows the table when it works", async () => {
-    const fetcher = jest.fn().mockRejectedValueOnce(new Error("x")).mockResolvedValue(ROWS);
+    const fetcher = jest.fn().mockRejectedValueOnce(new Error("x")).mockResolvedValue(portfolioOf(ROWS));
     const { user } = setup(fetcher);
     await user.click(await screen.findByRole("button", { name: "Reintentar" }));
     expect(await screen.findByRole("table", { name: "Proyectos de la cartera" })).toBeInTheDocument();
@@ -81,7 +82,7 @@ describe("PortfolioView states", () => {
   });
 
   it("empty portfolio: empty state, without summary, filters or table", async () => {
-    setup(jest.fn().mockResolvedValue([]));
+    setup(jest.fn().mockResolvedValue(portfolioOf([])));
     expect(await screen.findByText("Aún no hay proyectos en la cartera")).toBeInTheDocument();
     expect(screen.getByText("Cuando se creen proyectos, aparecerán aquí con su fase y su semáforo.")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
@@ -91,11 +92,11 @@ describe("PortfolioView states", () => {
 
   it("does not update state after unmount (no warnings)", async () => {
     const errors = jest.spyOn(console, "error").mockImplementation(() => {});
-    let resolve!: (rows: typeof ROWS) => void;
-    const fetcher = jest.fn(() => new Promise<typeof ROWS>((r) => (resolve = r)));
+    let resolve!: (portfolio: Portfolio) => void;
+    const fetcher = jest.fn(() => new Promise<Portfolio>((r) => (resolve = r)));
     const { unmount } = setup(fetcher);
     unmount();
-    await act(async () => resolve(ROWS));
+    await act(async () => resolve(portfolioOf(ROWS)));
     expect(errors).not.toHaveBeenCalled();
     errors.mockRestore();
   });
@@ -150,14 +151,27 @@ describe("PortfolioView loaded", () => {
     expect(screen.getAllByText("Desactualizada")).toHaveLength(2);
   });
 
-  it("without the today prop uses the current date", async () => {
+  it("without the today prop the summary uses the as_of date of the portfolio (RGB-13)", async () => {
+    // Real time is far from the fixtures: only `asOf` can make the milestone of 2026-10-26 fall inside the window.
+    render(<PortfolioView fetcher={jest.fn().mockResolvedValue(portfolioOf(ROWS, TODAY))} />);
+    await screen.findByRole("table");
+    expect(summaryValue("Hitos en 7 días")).toBe("2");
+  });
+
+  it("the today prop wins over as_of", async () => {
+    render(<PortfolioView fetcher={jest.fn().mockResolvedValue(portfolioOf(ROWS, "2030-01-01"))} today={TODAY} />);
+    await screen.findByRole("table");
+    expect(summaryValue("Hitos en 7 días")).toBe("2");
+  });
+
+  it("without today and without as_of (empty string) falls back to the current date", async () => {
     jest.useFakeTimers({ advanceTimers: true, now: new Date("2026-06-01T12:00:00Z") });
     try {
       const rows = [
         makeRow({ code: "PRY-EJ-920", nextMilestone: { name: "M", date: "2026-06-02" } }),
         makeRow({ code: "PRY-EJ-921", nextMilestone: { name: "M", date: "2026-06-20" } }),
       ];
-      render(<PortfolioView fetcher={jest.fn().mockResolvedValue(rows)} />);
+      render(<PortfolioView fetcher={jest.fn().mockResolvedValue(portfolioOf(rows, ""))} />);
       await screen.findByRole("table");
       expect(summaryValue("Hitos en 7 días")).toBe("1");
     } finally {
@@ -282,7 +296,7 @@ describe("PortfolioView accessibility", () => {
   });
 
   it("empty: no violations", async () => {
-    const { container } = setup(jest.fn().mockResolvedValue([]));
+    const { container } = setup(jest.fn().mockResolvedValue(portfolioOf([])));
     await screen.findByText("Aún no hay proyectos en la cartera");
     expect(await axe(container)).toHaveNoViolations();
   });

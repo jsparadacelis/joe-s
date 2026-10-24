@@ -1,5 +1,5 @@
 import { PHASES } from "@/lib/phases";
-import { fetchProject, listProjects } from "@/lib/projects";
+import { ApiError } from "@/lib/api";
 import {
   ALL_FILTER,
   STALE_AFTER_DAYS,
@@ -12,10 +12,10 @@ import {
   type PortfolioRow,
   type PortfolioStatus,
 } from "@/lib/portfolio";
-import { TRAFFIC_LIGHT_LABEL, consumptionPercent, consumptionTrafficLight, fetchTimingPlan } from "@/lib/timing";
+import { TRAFFIC_LIGHT_LABEL, consumptionPercent, consumptionTrafficLight } from "@/lib/timing";
+import { SAMPLE_AS_OF, SAMPLE_ROWS, apiProject, requestReturning, toApiPortfolio } from "../helpers/portfolio-sample";
 
 const TODAY = "2026-10-24";
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 let counter = 0;
 function row(extra: Partial<PortfolioRow> = {}): PortfolioRow {
@@ -189,203 +189,171 @@ describe("filterPortfolio", () => {
   });
 });
 
-describe("fetchPortfolio (sample data)", () => {
-  // RGB-23: the exact key list now includes the new required field `phaseWeeks`.
-  it("returns rows with the contract shape", async () => {
-    const rows = await fetchPortfolio();
-    expect(rows.length).toBeGreaterThanOrEqual(6);
-    for (const r of rows) {
-      expect(Object.keys(r).sort()).toEqual(
-        ["blocker", "code", "daysSinceUpdate", "name", "nextMilestone", "owner", "phase", "phaseWeeks", "status"],
-      );
-      expect(r.code).toMatch(/^PRY-EJ-\d{3}$/);
-      expect(r.name.length).toBeGreaterThan(0);
-      expect(r.owner.length).toBeGreaterThan(0);
-      expect(PHASES.map((p) => p.id)).toContain(r.phase);
-      expect(["green", "amber", "red", "paused", "no-plan"]).toContain(r.status);
-      expect(Number.isInteger(r.daysSinceUpdate)).toBe(true);
-      expect(r.daysSinceUpdate).toBeGreaterThanOrEqual(0);
-      expect(r.blocker === null || r.blocker.length > 0).toBe(true);
-      if (r.nextMilestone) {
-        expect(r.nextMilestone.name.length).toBeGreaterThan(0);
-        expect(r.nextMilestone.date).toMatch(ISO);
-        expect(new Date(r.nextMilestone.date).toISOString().startsWith(r.nextMilestone.date)).toBe(true);
-      }
-    }
+// RGB-13: `fetchPortfolio` reads `GET /api/portfolio` and maps snake_case to the front contract.
+// Replaces the former "sample data" tests (contract shape, PRY-EJ coherence with lib/projects.ts and
+// lib/timing.ts, RGB-11 B1 and RGB-23 invariants). Those checked that hand-written fixtures agreed with
+// each other; with real data the status, weeks and milestones come from the API, so the cases that still
+// matter (shape, status mapping, nulls, summary reference date, independence of the result) are below.
+describe("fetchPortfolio (API)", () => {
+  it("calls GET /api/portfolio", async () => {
+    const request = requestReturning({ as_of: TODAY, projects: [] });
+    await fetchPortfolio(request);
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledWith("/api/portfolio");
   });
 
-  it("codes are unique", async () => {
-    const rows = await fetchPortfolio();
-    expect(new Set(rows.map((r) => r.code)).size).toBe(rows.length);
-  });
-
-  it("includes the PRY-EJ projects of lib/projects.ts with the same name and phase", async () => {
-    const [rows, projects] = await Promise.all([fetchPortfolio(), listProjects()]);
-    for (const project of projects) {
-      const match = rows.find((r) => r.code === project.code);
-      expect(match).toBeDefined();
-      expect(match?.name).toBe(project.name);
-      expect(match?.phase).toBe(project.currentPhase);
-    }
-  });
-
-  // RGB-11 fix F1: every portfolio link must resolve, so ALL rows (not just four) exist in lib/projects.ts.
-  it("every portfolio row exists in lib/projects.ts with the same name and current phase", async () => {
-    const rows = await fetchPortfolio();
-    const listed = await listProjects();
-    expect(listed.map((p) => p.code).sort()).toEqual(rows.map((r) => r.code).sort());
-    for (const row of rows) {
-      const project = await fetchProject(row.code);
-      expect(project).not.toBeNull();
-      expect(project?.name).toBe(row.name);
-      expect(project?.currentPhase).toBe(row.phase);
-    }
-  });
-
-  it("opportunities (phase 0) have the no-plan status and only they do", async () => {
-    const rows = await fetchPortfolio();
-    expect(rows.some((r) => r.phase === 0)).toBe(true);
-    for (const r of rows) expect(r.status === "no-plan").toBe(r.phase === 0);
-  });
-
-  it("PRY-EJ-003 is paused, like its timing plan", async () => {
-    const rows = await fetchPortfolio();
-    expect(rows.find((r) => r.code === "PRY-EJ-003")?.status).toBe("paused");
-  });
-
-  it("covers every status, several owners, blockers, stale and fresh sheets", async () => {
-    const rows = await fetchPortfolio();
-    expect(new Set(rows.map((r) => r.status))).toEqual(new Set(["green", "amber", "red", "paused", "no-plan"]));
-    expect(new Set(rows.map((r) => r.owner)).size).toBeGreaterThanOrEqual(2);
-    expect(rows.some((r) => r.blocker !== null)).toBe(true);
-    expect(rows.some((r) => isStale(r))).toBe(true);
-    expect(rows.some((r) => !isStale(r))).toBe(true);
-  });
-
-  it("is fictitious: every name is marked as an example", async () => {
-    const rows = await fetchPortfolio();
-    for (const r of rows) expect(r.name).toMatch(/\(ejemplo\)/);
-  });
-
-  it("returns independent copies (mutating one result does not affect the next)", async () => {
-    const first = await fetchPortfolio();
-    first[0].name = "mutated";
-    first.pop();
-    const second = await fetchPortfolio();
-    expect(second[0].name).not.toBe("mutated");
-    expect(second).toHaveLength(first.length + 1);
-  });
-});
-
-describe("portfolio traffic light is the one of the timing plan (RGB-11 B1)", () => {
-  it("every green/amber/red row has the consumptionTrafficLight of the plan's current phase", async () => {
-    const rows = await fetchPortfolio();
-    const checked: string[] = [];
-    for (const r of rows) {
-      if (r.status !== "green" && r.status !== "amber" && r.status !== "red") continue;
-      const plan = await fetchTimingPlan(r.code);
-      expect(plan).not.toBeNull();
-      const current = plan!.phases.find((p) => p.phase === plan!.currentPhase)!;
-      expect({ code: r.code, phase: current.phase, status: r.status }).toEqual({
-        code: r.code,
-        phase: current.phase,
-        status: consumptionTrafficLight(current.activeWeeks, current.plannedWeeks),
-      });
-      checked.push(r.code);
-    }
-    expect(checked.length).toBeGreaterThanOrEqual(3);
-  });
-
-  it("paused rows have an active pause in the plan, and only they", async () => {
-    for (const r of await fetchPortfolio()) {
-      const plan = await fetchTimingPlan(r.code);
-      expect({ code: r.code, paused: r.status === "paused" }).toEqual({ code: r.code, paused: plan?.activePause != null });
-    }
-  });
-
-  it("no-plan rows are exactly those without a timing plan (phase 0)", async () => {
-    for (const r of await fetchPortfolio()) {
-      const plan = await fetchTimingPlan(r.code);
-      expect({ code: r.code, noPlan: r.status === "no-plan" }).toEqual({ code: r.code, noPlan: plan === null });
-      expect({ code: r.code, phase0: r.phase === 0 }).toEqual({ code: r.code, phase0: plan === null });
-    }
-  });
-
-  it("the next milestone of a paused row is the plan's expected resumption", async () => {
-    const paused = (await fetchPortfolio()).filter((r) => r.status === "paused");
-    expect(paused.length).toBeGreaterThanOrEqual(1);
-    for (const r of paused) {
-      const plan = await fetchTimingPlan(r.code);
-      expect({ code: r.code, date: r.nextMilestone?.date }).toEqual({ code: r.code, date: plan!.activePause!.expectedResumption });
-    }
-  });
-
-  it("the summary counts at-risk from the plan-derived lights and keeps every state represented", async () => {
-    const rows = await fetchPortfolio();
-    expect(new Set(rows.map((r) => r.status))).toEqual(new Set(["green", "amber", "red", "paused", "no-plan"]));
-    const summary = summarizePortfolio(rows, TODAY);
-    expect(summary.active).toBe(rows.length);
-    // Phase lights from the plans: 001 amber (4/5), 004 green (1/3), 005 red, 006 amber (5/6).
-    expect(summary.atRisk).toBe(3);
-  });
-});
-
-describe("RGB-23 phaseWeeks of the rows are the weeks of the plan's current phase", () => {
-  async function currentPhaseOf(code: string) {
-    const plan = await fetchTimingPlan(code);
-    return plan && plan.phases.find((p) => p.phase === plan.currentPhase)!;
-  }
-
-  it("phaseWeeks is null if and only if the status is no-plan, i.e. there is no timing plan", async () => {
-    const rows = await fetchPortfolio();
-    for (const r of rows) {
-      const plan = await fetchTimingPlan(r.code);
-      expect({ code: r.code, nullWeeks: r.phaseWeeks === null }).toEqual({ code: r.code, nullWeeks: r.status === "no-plan" });
-      expect({ code: r.code, nullWeeks: r.phaseWeeks === null }).toEqual({ code: r.code, nullWeeks: plan === null });
-    }
-  });
-
-  it("otherwise phaseWeeks equals activeWeeks/plannedWeeks of the current phase of the plan (paused rows too)", async () => {
-    const rows = (await fetchPortfolio()).filter((r) => r.status !== "no-plan");
-    expect(rows.some((r) => r.status === "paused")).toBe(true);
-    expect(rows.length).toBeGreaterThanOrEqual(5);
-    for (const r of rows) {
-      const current = await currentPhaseOf(r.code);
-      expect({ code: r.code, weeks: r.phaseWeeks }).toEqual({
-        code: r.code,
-        weeks: { active: current!.activeWeeks, planned: current!.plannedWeeks },
-      });
-    }
-  });
-
-  it("phaseWeeks has exactly the keys active and planned, as non-negative integers (planned > 0)", async () => {
-    for (const r of await fetchPortfolio()) {
-      if (r.phaseWeeks === null) continue;
-      expect(Object.keys(r.phaseWeeks).sort()).toEqual(["active", "planned"]);
-      expect(Number.isInteger(r.phaseWeeks.active) && r.phaseWeeks.active >= 0).toBe(true);
-      expect(Number.isInteger(r.phaseWeeks.planned) && r.phaseWeeks.planned > 0).toBe(true);
-    }
-  });
-
-  it("sample values per project come from lib/timing.ts", async () => {
-    const byCode = Object.fromEntries((await fetchPortfolio()).map((r) => [r.code, r.phaseWeeks]));
-    expect(byCode).toMatchObject({
-      "PRY-EJ-001": { active: 4, planned: 5 },
-      "PRY-EJ-002": null,
-      "PRY-EJ-003": { active: 30, planned: 36 },
-      "PRY-EJ-004": { active: 1, planned: 3 },
-      "PRY-EJ-005": { active: 9, planned: 8 },
-      "PRY-EJ-006": { active: 5, planned: 6 },
-      "PRY-EJ-007": null,
+  it("maps a project to the front contract (camelCase, exact keys) and exposes as_of as asOf", async () => {
+    const api = apiProject({
+      code: "PRY-2026-014",
+      name: "Test house",
+      phase: 3,
+      status: "amber",
+      next_milestone: { name: "Design review", date: "2026-10-28" },
+      owner_id: "Ana Test",
+      blocker: "Waiting for survey",
+      days_since_update: 4,
+      phase_weeks: { active: 4, planned: 5 },
     });
+    const result = await fetchPortfolio(requestReturning({ as_of: "2026-10-24", projects: [api] }));
+    expect(result.asOf).toBe("2026-10-24");
+    expect(result.rows).toEqual([
+      {
+        code: "PRY-2026-014",
+        name: "Test house",
+        phase: 3,
+        status: "amber",
+        nextMilestone: { name: "Design review", date: "2026-10-28" },
+        owner: "Ana Test",
+        blocker: "Waiting for survey",
+        daysSinceUpdate: 4,
+        phaseWeeks: { active: 4, planned: 5 },
+      },
+    ]);
+    expect(Object.keys(result.rows[0]).sort()).toEqual(
+      ["blocker", "code", "daysSinceUpdate", "name", "nextMilestone", "owner", "phase", "phaseWeeks", "status"],
+    );
   });
 
-  it("mutating phaseWeeks of a result does not affect the next result (independent copies)", async () => {
-    const first = await fetchPortfolio();
-    const target = first.find((r) => r.phaseWeeks !== null)!;
-    target.phaseWeeks!.active = 999;
-    const second = await fetchPortfolio();
-    expect(second.find((r) => r.code === target.code)!.phaseWeeks!.active).not.toBe(999);
+  it.each([
+    ["no_plan", "no-plan"],
+    ["paused", "paused"],
+    ["green", "green"],
+    ["amber", "amber"],
+    ["red", "red"],
+    ["unknown", "unknown"],
+  ])("status %s becomes %s", async (apiStatus, expected) => {
+    const result = await fetchPortfolio(requestReturning({ as_of: TODAY, projects: [apiProject({ status: apiStatus })] }));
+    expect(result.rows[0].status).toBe(expected);
+  });
+
+  it("an unrecognised status degrades to unknown instead of breaking the table", async () => {
+    const result = await fetchPortfolio(requestReturning({ as_of: TODAY, projects: [apiProject({ status: "mystery" })] }));
+    expect(result.rows[0].status).toBe("unknown");
+  });
+
+  it("a milestone with a null date keeps its name and a null date; no milestone stays null", async () => {
+    const result = await fetchPortfolio(
+      requestReturning({
+        as_of: TODAY,
+        projects: [
+          apiProject({ code: "A", next_milestone: { name: "Kick-off", date: null } }),
+          apiProject({ code: "B", next_milestone: null }),
+        ],
+      }),
+    );
+    expect(result.rows[0].nextMilestone).toEqual({ name: "Kick-off", date: null });
+    expect(result.rows[1].nextMilestone).toBeNull();
+  });
+
+  it.each([
+    ["owner_name wins over owner_id", "Ana Real", "user-1", "Ana Real"],
+    ["owner_id when there is no owner_name", null, "Ana Test", "Ana Test"],
+    ["«Sin responsable» when neither exists", null, null, "Sin responsable"],
+    ["«Sin responsable» when both are blank", "  ", "", "Sin responsable"],
+  ])("owner: %s", async (_label, ownerName, ownerId, expected) => {
+    const result = await fetchPortfolio(
+      requestReturning({ as_of: TODAY, projects: [apiProject({ owner_name: ownerName, owner_id: ownerId })] }),
+    );
+    expect(result.rows[0].owner).toBe(expected);
+  });
+
+  it("phaseWeeks maps active/planned and may be null in any status", async () => {
+    const result = await fetchPortfolio(
+      requestReturning({
+        as_of: TODAY,
+        projects: [
+          apiProject({ code: "A", phase: 2, status: "green", phase_weeks: { active: 1, planned: 3 } }),
+          apiProject({ code: "B", phase: 2, status: "unknown", phase_weeks: null }),
+          apiProject({ code: "C", phase: 0, status: "no_plan", phase_weeks: null }),
+        ],
+      }),
+    );
+    expect(result.rows.map((r) => r.phaseWeeks)).toEqual([{ active: 1, planned: 3 }, null, null]);
+  });
+
+  it("keeps the API order and an empty portfolio is valid", async () => {
+    const some = await fetchPortfolio(
+      requestReturning({ as_of: TODAY, projects: [apiProject({ code: "PRY-2026-002" }), apiProject({ code: "PRY-2026-001" })] }),
+    );
+    expect(some.rows.map((r) => r.code)).toEqual(["PRY-2026-002", "PRY-2026-001"]);
+    expect((await fetchPortfolio(requestReturning({ as_of: TODAY, projects: [] }))).rows).toEqual([]);
+  });
+
+  it("propagates API errors so the view can show them", async () => {
+    const failure = new ApiError(0, "network_error", "No se pudo conectar con el servidor.");
+    await expect(fetchPortfolio(jest.fn().mockRejectedValue(failure))).rejects.toBe(failure);
+  });
+
+  it("the default request goes through lib/api (global fetch, GET /api/portfolio)", async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ as_of: TODAY, projects: [apiProject()] }),
+    });
+    const original = globalThis.fetch;
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    try {
+      const result = await fetchPortfolio();
+      expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/portfolio$/);
+      expect(result.rows[0].status).toBe("no-plan");
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+});
+
+describe("«Sin calcular» (status unknown, RGB-13)", () => {
+  it("has the label «Sin calcular» and is listed in STATUS_LABEL", () => {
+    expect(STATUS_LABEL.unknown).toBe("Sin calcular");
+  });
+
+  it("is not at risk", () => {
+    expect(summarizePortfolio([row({ status: "unknown" })], TODAY).atRisk).toBe(0);
+  });
+
+  it("filters by unknown", () => {
+    const rows = [row({ code: "A", status: "unknown" }), row({ code: "B", status: "green" })];
+    expect(filterPortfolio(rows, { status: "unknown", owner: ALL_FILTER }).map((r) => r.code)).toEqual(["A"]);
+  });
+
+  it("a milestone without a date does not count in «Hitos en 7 días» and does not break the summary", () => {
+    const rows = [row({ nextMilestone: { name: "Kick-off", date: null } })];
+    expect(summarizePortfolio(rows, TODAY).milestonesIn7Days).toBe(0);
+  });
+});
+
+// RGB-13: the sample rows are now fixtures; this guards that they stay valid inputs for the component tests.
+describe("sample fixtures", () => {
+  it("cover every status except unknown, with unique codes and valid phases", () => {
+    expect(new Set(SAMPLE_ROWS.map((r) => r.status))).toEqual(new Set(["green", "amber", "red", "paused", "no-plan"]));
+    expect(new Set(SAMPLE_ROWS.map((r) => r.code)).size).toBe(SAMPLE_ROWS.length);
+    for (const r of SAMPLE_ROWS) expect(PHASES.map((p) => p.id)).toContain(r.phase);
+  });
+
+  it("round-trip through the API shape and fetchPortfolio", async () => {
+    const result = await fetchPortfolio(requestReturning(toApiPortfolio(SAMPLE_ROWS)));
+    expect(result.rows).toEqual(SAMPLE_ROWS);
+    expect(result.asOf).toBe(SAMPLE_AS_OF);
   });
 });
 

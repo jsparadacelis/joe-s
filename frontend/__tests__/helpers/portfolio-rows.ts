@@ -1,4 +1,4 @@
-import type { PortfolioRow } from "@/lib/portfolio";
+import type { Portfolio, PortfolioRow } from "@/lib/portfolio";
 
 /** Fictitious rows shared by the portfolio component tests. Reference date: 2026-10-24. */
 export const TODAY = "2026-10-24";
@@ -79,3 +79,6 @@ export const ROWS: PortfolioRow[] = [
     phaseWeeks: null,
   }),
 ];
+
+/** What `fetchPortfolio` resolves with (RGB-13): rows plus the `as_of` reference date. */
+export const portfolioOf = (rows: PortfolioRow[], asOf = TODAY): Portfolio => ({ asOf, rows });

@@ -286,8 +286,9 @@ describe("fetchTimingPlan for every portfolio project", () => {
   });
 
   it("cartera and plans agree for all rows: plan iff phase > 0, active pause iff paused", async () => {
-    const { fetchPortfolio } = await import("@/lib/portfolio");
-    for (const row of await fetchPortfolio()) {
+    // RGB-13: the portfolio is real now; the sample plans still back PRY-EJ-00N, so they are checked against the fixtures.
+    const { SAMPLE_ROWS } = await import("../helpers/portfolio-sample");
+    for (const row of SAMPLE_ROWS) {
       const plan = await fetchTimingPlan(row.code);
       expect(plan === null).toBe(row.phase === 0);
       if (plan) {
