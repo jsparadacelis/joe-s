@@ -15,8 +15,13 @@ from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
 from backend.app.opportunity.application.create_opportunity import CreateOpportunity
 from backend.app.opportunity.application.plan_settings import PlanSettingsService
+from backend.app.opportunity.application.scoring import ScoringService, ScoringSettingsService
 from backend.app.opportunity.infrastructure.postgres_opportunity import PostgresOpportunities
 from backend.app.opportunity.infrastructure.postgres_plan_settings import PostgresPlanSettings
+from backend.app.opportunity.infrastructure.postgres_scoring import (
+    PostgresScorings,
+    PostgresScoringSettings,
+)
 from backend.app.portfolio.application.queries import PortfolioQueries
 from backend.app.portfolio.infrastructure.postgres_projects import PostgresProjects
 from backend.app.shared.config import Settings
@@ -118,5 +123,39 @@ def pause_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> 
     def open_unit(context: RequestContext) -> Iterator[PauseService]:
         with study_transaction(settings.database_url, context) as conn:
             yield PauseService(PostgresPauses(conn), PostgresAuditLog(conn))
+
+    return open_unit
+
+
+ScoringUnitOfWork = Callable[[RequestContext], AbstractContextManager[ScoringService]]
+
+
+def scoring_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> ScoringUnitOfWork:
+    """Composition root for scoring: the frozen row and its audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[ScoringService]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield ScoringService(
+                PostgresScorings(conn), PostgresScoringSettings(conn), PostgresAuditLog(conn)
+            )
+
+    return open_unit
+
+
+ScoringSettingsUnitOfWork = Callable[
+    [RequestContext], AbstractContextManager[ScoringSettingsService]
+]
+
+
+def scoring_settings_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ScoringSettingsUnitOfWork:
+    """Composition root for the scoring settings: one transaction per request."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[ScoringSettingsService]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield ScoringSettingsService(PostgresScoringSettings(conn), PostgresAuditLog(conn))
 
     return open_unit
