@@ -6,7 +6,16 @@ jest.mock("@/components/settings/PlanSettingsEditor", () => ({
   PlanSettingsEditor: () => <div data-testid="plan-settings-editor" />,
 }));
 
+jest.mock("@/components/settings/ScoringSettingsEditor", () => ({
+  ScoringSettingsEditor: () => <div data-testid="scoring-settings-editor" />,
+}));
+
 describe("page /settings", () => {
+  it("renders the scoring settings editor (RGB-14)", () => {
+    render(<SettingsPage />);
+    expect(screen.getByTestId("scoring-settings-editor")).toBeInTheDocument();
+  });
+
   it("renders the PageHead with title and description", () => {
     render(<SettingsPage />);
     expect(screen.getByRole("heading", { level: 1, name: "Ajustes y equipo" })).toBeInTheDocument();
