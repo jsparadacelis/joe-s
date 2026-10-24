@@ -42,12 +42,14 @@ describe("PortfolioTable structure", () => {
     expect(screen.getByRole("table", { name: "Proyectos de la cartera" })).toBeInTheDocument();
   });
 
-  it("has the seven columns in order", () => {
+  // RGB-23: «Semanas de la fase» is inserted between «Fase» and «Semáforo» (eight columns now).
+  it("has the eight columns in order", () => {
     render(<PortfolioTable rows={ROWS} />);
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual([
       "Proyecto",
       "Fase",
+      "Semanas de la fase",
       "Semáforo",
       "Próximo hito",
       "Responsable",
@@ -205,6 +207,152 @@ describe("PortfolioTable row navigation", () => {
   });
 
   it("no accessibility violations", async () => {
+    const { container } = render(
+      <main>
+        <PortfolioTable rows={ROWS} />
+      </main>,
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe("PortfolioTable phase weeks (RGB-23)", () => {
+  const fill = (bar: HTMLElement) => bar.firstElementChild as HTMLElement;
+  const barOf = (code: string) => within(rowOf(code)).getByRole("progressbar");
+
+  it("shows «{active} / {plan} sem.» in the row", () => {
+    render(<PortfolioTable rows={[makeRow({ phaseWeeks: { active: 4, planned: 5 }, status: "amber" })]} />);
+    expect(within(rowOf("PRY-EJ-901")).getByText("4 / 5 sem.")).toBeInTheDocument();
+  });
+
+  it("the cell sits between «Fase» and «Semáforo»", () => {
+    render(<PortfolioTable rows={[makeRow({ phase: 3, phaseWeeks: { active: 4, planned: 5 }, status: "amber" })]} />);
+    const cells = within(rowOf("PRY-EJ-901")).getAllByRole("cell");
+    expect(cells[1]).toHaveTextContent("3. Anteproyecto");
+    expect(cells[2]).toHaveTextContent("4 / 5 sem.");
+    expect(cells[3]).toHaveTextContent("Atención");
+  });
+
+  it("the progress bar is named «{active} de {plan} semanas activas, {percent} % del plan»", () => {
+    render(<PortfolioTable rows={[makeRow({ phaseWeeks: { active: 4, planned: 5 }, status: "amber" })]} />);
+    expect(barOf("PRY-EJ-901")).toHaveAccessibleName("4 de 5 semanas activas, 80 % del plan");
+  });
+
+  it("exposes min 0, max 100, now and a text value with the percent", () => {
+    render(<PortfolioTable rows={[makeRow({ phaseWeeks: { active: 4, planned: 5 }, status: "amber" })]} />);
+    const bar = barOf("PRY-EJ-901");
+    expect(bar).toHaveAttribute("aria-valuemin", "0");
+    expect(bar).toHaveAttribute("aria-valuemax", "100");
+    expect(bar).toHaveAttribute("aria-valuenow", "80");
+    expect(bar).toHaveAttribute("aria-valuetext", "80 % del plan");
+    expect(fill(bar).style.width).toBe("80%");
+  });
+
+  it("over the plan (113 %): valuenow is capped at 100, valuetext keeps the real percent, fill is capped", () => {
+    render(<PortfolioTable rows={ROWS} />);
+    const bar = barOf("PRY-EJ-903");
+    expect(within(rowOf("PRY-EJ-903")).getByText("9 / 8 sem.")).toBeInTheDocument();
+    expect(bar).toHaveAttribute("aria-valuenow", "100");
+    expect(bar).toHaveAttribute("aria-valuetext", "113 % del plan");
+    expect(bar).toHaveAccessibleName("9 de 8 semanas activas, 113 % del plan");
+    expect(fill(bar).style.width).toBe("100%");
+  });
+
+  it.each([
+    [{ active: 1, planned: 3 }, "green", "bg-ok"],
+    [{ active: 4, planned: 5 }, "amber", "bg-warn"],
+    [{ active: 5, planned: 5 }, "amber", "bg-warn"],
+    [{ active: 9, planned: 8 }, "red", "bg-bad"],
+  ] as const)("consumption %j is coloured %s with the %s token, never a loose colour", (phaseWeeks, status, token) => {
+    render(<PortfolioTable rows={[makeRow({ status, phaseWeeks })]} />);
+    const classes = fill(barOf("PRY-EJ-901")).className;
+    expect(classes).toContain(token);
+    expect(classes).not.toMatch(/#|rgb|\[/);
+    expect(classes.match(/\bbg-(ok|warn|bad|off)\b/g)).toEqual([token]);
+  });
+
+  it("the colour comes from the consumption, not from the row status chip", () => {
+    // Inconsistent on purpose: the bar must follow consumptionTrafficLight(active, plan).
+    render(<PortfolioTable rows={[makeRow({ status: "green", phaseWeeks: { active: 9, planned: 8 } })]} />);
+    expect(fill(barOf("PRY-EJ-901"))).toHaveClass("bg-bad");
+  });
+
+  it("the information is also text, not only colour: weeks text and percent in the name", () => {
+    render(<PortfolioTable rows={ROWS.filter((r) => r.phaseWeeks)} />);
+    for (const r of ROWS.filter((x) => x.phaseWeeks)) {
+      const row = within(rowOf(r.code));
+      expect(row.getByText(`${r.phaseWeeks!.active} / ${r.phaseWeeks!.planned} sem.`)).toBeInTheDocument();
+      expect(row.getByRole("progressbar").getAttribute("aria-valuetext")).toMatch(/^\d+ % del plan$/);
+    }
+  });
+
+  describe("paused (clock stopped)", () => {
+    const pausedRow = () => makeRow({ code: "PRY-EJ-904", status: "paused", phaseWeeks: { active: 30, planned: 36 } });
+
+    it("shows the frozen weeks and the text «Reloj parado»", () => {
+      render(<PortfolioTable rows={[pausedRow()]} />);
+      const row = within(rowOf("PRY-EJ-904"));
+      expect(row.getByText("30 / 36 sem.")).toBeInTheDocument();
+      expect(row.getByText("Reloj parado")).toBeInTheDocument();
+    });
+
+    it("the bar is not coloured as progress: neutral token only, no ok/warn/bad", () => {
+      render(<PortfolioTable rows={[pausedRow()]} />);
+      const classes = fill(barOf("PRY-EJ-904")).className;
+      expect(classes).toContain("bg-off");
+      expect(classes).not.toMatch(/\bbg-(ok|warn|bad)\b/);
+    });
+
+    it("the bar says it is stopped in its accessible name and keeps the frozen percent", () => {
+      render(<PortfolioTable rows={[pausedRow()]} />);
+      const bar = barOf("PRY-EJ-904");
+      expect(bar).toHaveAccessibleName("30 de 36 semanas activas, reloj parado");
+      expect(bar).toHaveAttribute("aria-valuenow", "83");
+      expect(bar).toHaveAttribute("aria-valuetext", "83 % del plan");
+    });
+
+    it("«Reloj parado» appears only on paused rows", () => {
+      render(<PortfolioTable rows={ROWS} />);
+      expect(screen.getAllByText("Reloj parado")).toHaveLength(1);
+      expect(within(rowOf("PRY-EJ-904")).getByText("Reloj parado")).toBeInTheDocument();
+    });
+  });
+
+  describe("opportunities (no plan)", () => {
+    it("show «Sin plan hasta promover», no progress bar and no weeks text", () => {
+      render(<PortfolioTable rows={ROWS} />);
+      const row = within(rowOf("PRY-EJ-905"));
+      expect(row.getByText("Sin plan hasta promover")).toBeInTheDocument();
+      expect(row.queryByRole("progressbar")).not.toBeInTheDocument();
+      expect(row.queryByText(/sem\./)).not.toBeInTheDocument();
+      expect(row.queryByText("Reloj parado")).not.toBeInTheDocument();
+    });
+
+    it("rows with a plan never show «Sin plan hasta promover»", () => {
+      render(<PortfolioTable rows={ROWS} />);
+      expect(screen.getAllByText("Sin plan hasta promover")).toHaveLength(1);
+      expect(screen.getAllByRole("progressbar")).toHaveLength(ROWS.length - 1);
+    });
+  });
+
+  it("the row still has a single link and the bar adds no tab stop", async () => {
+    render(<PortfolioTable rows={ROWS} />);
+    for (const r of ROWS) expect(within(rowOf(r.code)).getAllByRole("link")).toHaveLength(1);
+    await userEvent.tab();
+    for (const r of ROWS) {
+      await userEvent.tab();
+      expect(screen.getByRole("link", { name: new RegExp(r.code) })).toHaveFocus();
+    }
+  });
+
+  it("the scroll region still wraps the table", () => {
+    render(<PortfolioTable rows={ROWS} />);
+    const region = screen.getByRole("region", { name: "Tabla de la cartera" });
+    expect(region).toHaveClass("overflow-x-auto");
+    expect(region).toContainElement(screen.getAllByRole("progressbar")[0]);
+  });
+
+  it("no accessibility violations with bars, paused and no-plan rows", async () => {
     const { container } = render(
       <main>
         <PortfolioTable rows={ROWS} />

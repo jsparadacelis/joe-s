@@ -2,8 +2,8 @@ import Link from "next/link";
 import { StatusChip, type StatusTone } from "@/components/ui/StatusChip";
 import { Table, type TableColumn } from "@/components/ui/Table";
 import { PHASES } from "@/lib/phases";
-import { STATUS_LABEL, isStale, type PortfolioRow, type PortfolioStatus } from "@/lib/portfolio";
-import { formatDate } from "@/lib/timing";
+import { STATUS_LABEL, isStale, phaseWeeksProgress, type PortfolioRow, type PortfolioStatus } from "@/lib/portfolio";
+import { formatDate, type TrafficLight } from "@/lib/timing";
 
 export type PortfolioTableProps = {
   rows: readonly PortfolioRow[];
@@ -22,6 +22,36 @@ function daysText(days: number): string {
   return days === 1 ? "1 día" : `${days} días`;
 }
 
+const BAR_COLOR: Record<TrafficLight, string> = { green: "bg-ok", amber: "bg-warn", red: "bg-bad" };
+
+function PhaseWeeksCell({ row }: { row: PortfolioRow }) {
+  const progress = phaseWeeksProgress(row);
+  if (!row.phaseWeeks || !progress) return <span className="text-muted">Sin plan hasta promover</span>;
+  const { active, planned } = row.phaseWeeks;
+  const { percent, trafficLight } = progress;
+  const paused = row.status === "paused";
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="tabular-nums">{`${active} / ${planned} sem.`}</span>
+      <div
+        role="progressbar"
+        aria-label={`${active} de ${planned} semanas activas, ${paused ? "reloj parado" : `${percent} % del plan`}`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.min(percent, 100)}
+        aria-valuetext={`${percent} % del plan`}
+        className="h-2 w-28 overflow-hidden rounded-full bg-surface-2"
+      >
+        <div
+          className={`h-full rounded-full ${paused ? "bg-off" : BAR_COLOR[trafficLight]}`}
+          style={{ width: `${Math.min(percent, 100)}%` }}
+        />
+      </div>
+      {paused && <span className="text-xs text-muted">Reloj parado</span>}
+    </div>
+  );
+}
+
 const COLUMNS: readonly TableColumn<PortfolioRow>[] = [
   {
     key: "project",
@@ -37,6 +67,7 @@ const COLUMNS: readonly TableColumn<PortfolioRow>[] = [
     ),
   },
   { key: "phase", header: "Fase", render: (row) => `${row.phase}. ${PHASES[row.phase].name}` },
+  { key: "phaseWeeks", header: "Semanas de la fase", render: (row) => <PhaseWeeksCell row={row} /> },
   {
     key: "status",
     header: "Semáforo",

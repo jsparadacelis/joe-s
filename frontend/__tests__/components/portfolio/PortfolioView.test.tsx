@@ -101,6 +101,33 @@ describe("PortfolioView states", () => {
   });
 });
 
+describe("PortfolioView phase weeks (RGB-23)", () => {
+  it("loaded: shows the «Semanas de la fase» column with the weeks of each project", async () => {
+    await loaded();
+    expect(screen.getByRole("columnheader", { name: "Semanas de la fase" })).toBeInTheDocument();
+    expect(screen.getByText("2 / 5 sem.")).toBeInTheDocument();
+    expect(screen.getByText("9 / 8 sem.")).toBeInTheDocument();
+    expect(screen.getByText("Reloj parado")).toBeInTheDocument();
+    expect(screen.getByText("Sin plan hasta promover")).toBeInTheDocument();
+    expect(screen.getAllByRole("progressbar")).toHaveLength(ROWS.length - 1);
+  });
+
+  it("filtering keeps the column; the summary does not change", async () => {
+    const { user } = await loaded();
+    await user.selectOptions(status(), "Plan superado");
+    expect(screen.getByRole("columnheader", { name: "Semanas de la fase" })).toBeInTheDocument();
+    expect(screen.getAllByRole("progressbar")).toHaveLength(1);
+    expect(screen.getByText("9 / 8 sem.")).toBeInTheDocument();
+    expect(summaryValue("Proyectos activos")).toBe("5");
+    expect(summaryValue("En riesgo")).toBe("2");
+  });
+
+  it("with the new column: no accessibility violations", async () => {
+    const { container } = await loaded();
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
 describe("PortfolioView loaded", () => {
   it("shows summary, filters and one table row per project", async () => {
     await loaded();

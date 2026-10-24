@@ -4,6 +4,9 @@ import type { PortfolioRow } from "@/lib/portfolio";
 export const TODAY = "2026-10-24";
 
 export function makeRow(extra: Partial<PortfolioRow> = {}): PortfolioRow {
+  // RGB-23: `phaseWeeks` is a required field. It is `null` if and only if the status is `no-plan`,
+  // so a `no-plan` row built without an explicit value gets `null` (keeps the pre-RGB-23 tests valid).
+  const phaseWeeks = extra.status === "no-plan" ? null : { active: 2, planned: 5 };
   return {
     code: "PRY-EJ-901",
     name: "Test project (ejemplo)",
@@ -13,6 +16,7 @@ export function makeRow(extra: Partial<PortfolioRow> = {}): PortfolioRow {
     owner: "Ana Test",
     blocker: null,
     daysSinceUpdate: 1,
+    phaseWeeks,
     ...extra,
   };
 }
@@ -30,6 +34,7 @@ export const ROWS: PortfolioRow[] = [
     nextMilestone: { name: "Design review", date: "2026-10-26" },
     owner: "Ana Test",
     daysSinceUpdate: 1,
+    phaseWeeks: { active: 2, planned: 5 }, // 40 %
   }),
   makeRow({
     code: "PRY-EJ-902",
@@ -40,6 +45,7 @@ export const ROWS: PortfolioRow[] = [
     owner: "Ana Test",
     blocker: "Waiting for the permit office",
     daysSinceUpdate: 8,
+    phaseWeeks: { active: 5, planned: 6 }, // 83 %
   }),
   makeRow({
     code: "PRY-EJ-903",
@@ -49,6 +55,7 @@ export const ROWS: PortfolioRow[] = [
     nextMilestone: { name: "Site handover", date: "2026-10-31" },
     owner: "Beto Test",
     daysSinceUpdate: 3,
+    phaseWeeks: { active: 9, planned: 8 }, // 113 %
   }),
   makeRow({
     code: "PRY-EJ-904",
@@ -59,6 +66,7 @@ export const ROWS: PortfolioRow[] = [
     owner: "Beto Test",
     blocker: "Client decision pending",
     daysSinceUpdate: 9,
+    phaseWeeks: { active: 2, planned: 3 }, // frozen, 67 %
   }),
   makeRow({
     code: "PRY-EJ-905",
@@ -68,5 +76,6 @@ export const ROWS: PortfolioRow[] = [
     nextMilestone: null,
     owner: "Carla Test",
     daysSinceUpdate: 0,
+    phaseWeeks: null,
   }),
 ];
