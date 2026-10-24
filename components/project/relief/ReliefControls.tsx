@@ -20,6 +20,9 @@ export type ReliefControlsProps = {
   onView: () => void;
 };
 
+/** Generous on purpose: a pasted reference with surrounding spaces is trimmed before validating (20 characters). */
+const REFERENCE_INPUT_MAX_LENGTH = 40;
+
 const CONTROL = "rounded-base border border-hair bg-surface px-2.5 py-1.5 text-s text-ink";
 
 const marginLabel = (m: Margin) => (m === 0 ? "Solo la parcela" : `Parcela + ${m} m`);
@@ -54,10 +57,11 @@ export function ReliefControls({
           <input
             id="relief-reference"
             type="text"
-            maxLength={20}
+            maxLength={REFERENCE_INPUT_MAX_LENGTH}
             autoComplete="off"
             spellCheck={false}
             aria-describedby={errorId}
+            aria-invalid={errorId !== undefined}
             className={`${CONTROL} tabular-nums`}
             value={reference}
             onChange={(e) => onReference(e.target.value)}

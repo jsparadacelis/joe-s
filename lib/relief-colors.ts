@@ -17,7 +17,7 @@ function read(computedStyle: CSSStyleDeclaration, token: string): string {
 /** Reads background, accent and border from the document. In environments without styles (tests) returns empty strings. */
 export function readSceneColors(root: Element = document.documentElement): SceneColors {
   const computedStyle = getComputedStyle(root);
-  return { background: read(computedStyle, "--surface-2"), accent: read(computedStyle, "--point"), border: read(computedStyle, "--line") };
+  return { background: read(computedStyle, "--surface-2"), accent: read(computedStyle, "--point"), border: read(computedStyle, "--relief-clip") };
 }
 
 /** Reads the height ramp from the `--relief-*` tokens. */

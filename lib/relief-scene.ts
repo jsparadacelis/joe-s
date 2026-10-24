@@ -22,6 +22,7 @@ import {
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { Exaggeration, Relief } from "@/lib/relief";
+import { PLOT_FILL_OPACITY, subdivideTriangles, type Triangle } from "@/lib/relief-plot-fill";
 import { heightAt } from "@/lib/relief-readings";
 import { readHeightRamp, type SceneColors } from "@/lib/relief-colors";
 
@@ -192,12 +193,14 @@ export function mountScene(
       if (perimeter.length < 3) return;
       const outline = perimeter.map(([x, y]) => new Vector2(x, -y));
       const faces = ShapeUtils.triangulateShape(outline, []);
+      // Subdivide to the terrain mesh resolution so the fill follows the terrain without gaps.
+      const triangles = subdivideTriangles(
+        faces.map((face): Triangle => [perimeter[face[0]], perimeter[face[1]], perimeter[face[2]]]),
+        Math.max(x1 - x0, y1 - y0) / MESH_DIVISIONS,
+      );
       const fill: number[] = [];
-      for (const face of faces) {
-        for (const index of face) {
-          const [x, y] = perimeter[index];
-          fill.push(x, yAt(x, y, 0.5), -y);
-        }
+      for (const triangle of triangles) {
+        for (const [x, y] of triangle) fill.push(x, yAt(x, y, 0.5), -y);
       }
       const accent = color(colors.accent, GREY_ACCENT);
       const plotGeometry = new BufferGeometry();
@@ -206,7 +209,13 @@ export function mountScene(
       content.add(
         new Mesh(
           plotGeometry,
-          new MeshStandardMaterial({ color: accent, transparent: true, opacity: 0.45, side: DoubleSide, depthWrite: false }),
+          new MeshStandardMaterial({ color: accent, transparent: true, opacity: PLOT_FILL_OPACITY,
+            side: DoubleSide,
+            depthWrite: false,
+            polygonOffset: true,
+            polygonOffsetFactor: -2,
+            polygonOffsetUnits: -2,
+          }),
         ),
       );
       const border: Vector3[] = [];

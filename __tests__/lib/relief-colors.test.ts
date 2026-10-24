@@ -6,7 +6,7 @@ describe("scene colours (CSS tokens)", () => {
   it("reads background, accent and border from the tokens, without surplus whitespace", () => {
     document.documentElement.style.setProperty("--surface-2", " tone-background ");
     document.documentElement.style.setProperty("--point", "tone-accent");
-    document.documentElement.style.setProperty("--line", "tone-border");
+    document.documentElement.style.setProperty("--relief-clip", "tone-border");
     expect(readSceneColors()).toEqual({ background: "tone-background", accent: "tone-accent", border: "tone-border" });
   });
 

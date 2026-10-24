@@ -100,12 +100,14 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
   const readings = useMemo(() => (relief ? calculateReadings(relief) : null), [relief]);
 
   const viewRelief = () => {
-    if (!isValidCadastralReference(reference)) {
+    const trimmed = reference.trim();
+    setReference(trimmed);
+    if (!isValidCadastralReference(trimmed)) {
       setReferenceError(true);
       return;
     }
     setReferenceError(false);
-    void query({ reference: reference.trim(), margin, maxSide });
+    void query({ reference: trimmed, margin, maxSide });
   };
 
   // With a relief shown, changing the margin or the side asks the service again.

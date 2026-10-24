@@ -159,3 +159,22 @@ Con `getContext('webgl'|'webgl2')` devolviendo `null` (script de inicio), claro 
 `residential-*.png` (parcela residencial con relieve), `rural-clipped-*.png` (rústica 200 × 200 recortada con los dos avisos), `exaggeration-x3-*.png` (rústica ×3), `invalid-reference-*.png`, `no-webgl-*.png`, `focus-canvas-*.png` (foco de teclado en el lienzo tras girar con la flecha), `focus-control-*.png` (foco en un botón del visor).
 
 Defectos visuales: hallazgos 1 (agujeros en el relleno), 2 (borde sur recortado por el lienzo) y 3 (poco contraste de la rampa y del relleno en el modo oscuro). Sin solapes, sin lecturas cortadas ni controles desbordados; la escena nunca queda vacía.
+
+## Corrección tras el Tester
+
+Estado: `lint`, `typecheck`, `test` (45 suites, 827 tests) y `build` en verde. Los pantallazos los regenera el Tester.
+
+### Cambios
+- **Hallazgo 1 (relleno con huecos).** Nuevo módulo puro `lib/relief-plot-fill.ts`: `subdivideTriangles` parte los triángulos del relleno (bisección por la arista más larga) hasta que ninguna arista supera el paso de la malla del terreno (`lado de la ventana / MESH_DIVISIONS`); la unión no cambia, así que el contorno es exacto, y cada vértice se eleva a la altura del terreno + 0,5 m. Además el material usa `polygonOffset` (factor/unidades -2) para evitar z-fighting. El borde de la parcela sigue dibujándose con la línea de acento.
+- **Hallazgo 3 (contraste de la rampa y del relleno).** `app/globals.css`: rampa `--relief-*` nueva, más oscura en claro (`#4a5d45`, `#6f7d58`, `#8f8a5e`, `#a8895a`: 5,9 a 2,7:1 frente al fondo) y verdosa y más oscura en oscuro (`#35553f`…`#557b5b`: 1,7 a 2,9:1). El relleno sube de opacidad 0,45 a 0,6 (`PLOT_FILL_OPACITY`, compartida entre la escena y el test). Temas oscuro por sistema y por `data-theme` idénticos.
+- **Hallazgo 4 (borde del recorte).** Token nuevo `--relief-clip` (claro `#6b6a66`, 4,5:1; oscuro `#8c8b87`, 4,1:1 frente a `surface-2`); `readSceneColors` lo lee en lugar de `--line`.
+- **Hallazgos 6 y 7.** El valor se recorta (`trim`) antes de validar y se reescribe recortado en el campo; `maxLength` pasa de 20 a 40 para que un pegado con espacios no se trunque (la validación sigue exigiendo 20 caracteres tras recortar). El campo lleva `aria-invalid` (verdadero cuando hay error) junto con `aria-describedby`.
+
+### Tests
+- Nuevos: `__tests__/lib/relief-plot-fill.test.ts` (área conservada, aristas máximas, caja contenedora, entrada sin mutar, límite no positivo), `__tests__/lib/relief-contrast.test.ts` (borde del recorte y contorno >= 3:1; cada tono de la rampa >= 1,5:1 frente al fondo; relleno al 60 % >= 1,2:1 sobre cada tono, en claro, oscuro y oscuro por sistema), `__tests__/components/project/relief/ReliefViewerInput.test.tsx` (pegado con espacios y `aria-invalid`).
+- Test existente modificado: `__tests__/lib/relief-colors.test.ts` fijaba `--line` como origen del borde; ahora fija `--relief-clip` (cambio de comportamiento justificado por el hallazgo 4). Ningún otro test del Escritor se tocó.
+
+### Pendientes (fuera de esta corrección)
+- Hallazgo 2: encuadre inicial en un lienzo ancho y bajo recorta el borde sur.
+- Hallazgo 5: no hay manejo de `webglcontextlost`.
+- El contraste del relleno sobre los tonos altos de la rampa en oscuro es modesto (>= 1,3:1 en luminancia; se distingue sobre todo por el tono rosado y la línea de acento).
