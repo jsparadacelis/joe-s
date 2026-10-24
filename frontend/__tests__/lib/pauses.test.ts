@@ -138,9 +138,14 @@ describe("validatePause (same messages as the contract)", () => {
     expect(validatePause({ ...ok, expectedResumption: "2026-02-30" }, TODAY).expectedResumption).toBe(
       "El campo «Fecha prevista de reanudación» no es válido: no es una fecha existente.",
     );
-    expect(validatePause({ ...ok, expectedResumption: "hoy" }, TODAY).expectedResumption).toBe(
-      "El campo «Fecha prevista de reanudación» no es válido: no es una fecha existente.",
-    );
+  });
+
+  it("rejects a date that is not written yyyy-mm-dd, with the API's wording", () => {
+    for (const text of ["hoy", "2026-1-5", "05/11/2026"]) {
+      expect(validatePause({ ...ok, expectedResumption: text }, TODAY).expectedResumption).toBe(
+        "El campo «Fecha prevista de reanudación» no es válido: debe ser una fecha con formato aaaa-mm-dd.",
+      );
+    }
   });
 
   it("rejects a date before today", () => {

@@ -143,6 +143,7 @@ export function validatePause(draft: PauseDraft, today: string): PauseErrors {
 
   const date = draft.expectedResumption.trim();
   if (date === "") errors.expectedResumption = required("expectedResumption");
+  else if (!ISO_DATE_PATTERN.test(date)) errors.expectedResumption = invalid("expectedResumption", "debe ser una fecha con formato aaaa-mm-dd");
   else if (!isIsoDate(date)) errors.expectedResumption = invalid("expectedResumption", "no es una fecha existente");
   else if (date < today) errors.expectedResumption = invalid("expectedResumption", "no puede ser anterior a hoy");
   return errors;
