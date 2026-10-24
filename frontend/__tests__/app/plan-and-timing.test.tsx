@@ -74,7 +74,23 @@ describe("/projects/[code]/plan-and-timing", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004"])("%s: no accessibility violations", async (c) => {
+  // RGB-11 fix F1: portfolio projects 005..007 are reachable from the tabs.
+  it.each(["PRY-EJ-005", "PRY-EJ-006"])("%s (past phase 0): shows its plan with seven bars", async (c) => {
+    mockPathname.mockReturnValue(`/projects/${c}/plan-and-timing`);
+    render(await page(c));
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getAllByRole("progressbar")).toHaveLength(7);
+    expect(screen.queryByText("Sin plan hasta promover")).not.toBeInTheDocument();
+  });
+
+  it("PRY-EJ-007 (phase 0): empty state «Sin plan hasta promover», not a 404", async () => {
+    mockPathname.mockReturnValue("/projects/PRY-EJ-007/plan-and-timing");
+    render(await page("PRY-EJ-007"));
+    expect(screen.getByText("Sin plan hasta promover")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004", "PRY-EJ-005", "PRY-EJ-006", "PRY-EJ-007"])("%s: no accessibility violations", async (c) => {
     const { container } = render(<main>{await page(c)}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -104,6 +120,16 @@ describe("/projects/[code]/layout", () => {
     render(await layout("PRY-EJ-002"));
     expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/projects/PRY-EJ-002/phase/0");
     expect(screen.getByRole("link", { name: "Plan y tiempos" })).toBeInTheDocument();
+  });
+
+  it.each([
+    ["PRY-EJ-005", 5],
+    ["PRY-EJ-006", 4],
+    ["PRY-EJ-007", 0],
+  ])("%s resolves (no 404) and its phase tab points to phase %i", async (code, f) => {
+    render(await layout(code));
+    expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", `/projects/${code}/phase/${f}`);
+    expect(screen.getByText("Contenido hijo")).toBeInTheDocument();
   });
 
   it("returns 404 if the project does not exist", async () => {
