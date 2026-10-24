@@ -64,10 +64,16 @@ function parseBudget(text: string): { value: number } | { reason: string } {
   if (!BUDGET_PATTERN.test(text)) return { reason: "debe ser un número" };
   const normalized = text.replace(",", ".");
   const decimals = normalized.split(".")[1];
-  if (decimals !== undefined && decimals.length > 2) return { reason: "admite como máximo 2 decimales" };
   const value = Number(normalized);
+  // Same order as the server: the ceiling is checked before the decimals.
   if (value > MAX_BUDGET) return { reason: "no puede superar 1.000.000.000 €" };
+  if (decimals !== undefined && decimals.length > 2) return { reason: "admite como máximo 2 decimales" };
   return { value };
+}
+
+/** The server rejects NUL and lone surrogates (Postgres text cannot hold them). */
+function isStorable(text: string): boolean {
+  return !text.includes("\u0000") && !/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(text);
 }
 
 /** True for a real calendar date written as yyyy-mm-dd (2027-02-29 is not). */
@@ -84,16 +90,21 @@ function validateField(field: OpportunityField, raw: string): string | undefined
   if (text === "") return REQUIRED_FIELDS.includes(field) ? required(field) : undefined;
 
   const max = MAX_LENGTH[field];
-  if (max !== undefined && text.length > max) return invalid(field, `debe tener como máximo ${max} caracteres`);
+  if (max !== undefined || field === "project_type") {
+    if (!isStorable(text)) return invalid(field, "contiene caracteres no permitidos");
+  }
+  // The server counts characters (code points), not UTF-16 units.
+  if (max !== undefined && [...text].length > max) return invalid(field, `no puede superar los ${max} caracteres`);
   if (field === "project_type" && !(PROJECT_TYPES as readonly string[]).includes(text)) {
-    return invalid(field, "elige una de las tipologías disponibles");
+    return invalid(field, "no es una tipología admitida");
   }
   if (field === "estimated_budget") {
     const parsed = parseBudget(text);
     return "reason" in parsed ? invalid(field, parsed.reason) : undefined;
   }
-  if ((field === "deadline" || field === "decision_date") && !isIsoDate(text)) {
-    return invalid(field, "debe ser una fecha con formato aaaa-mm-dd");
+  if (field === "deadline" || field === "decision_date") {
+    if (!ISO_DATE_PATTERN.test(text)) return invalid(field, "debe ser una fecha con formato aaaa-mm-dd");
+    if (!isIsoDate(text)) return invalid(field, "no es una fecha existente");
   }
   return undefined;
 }

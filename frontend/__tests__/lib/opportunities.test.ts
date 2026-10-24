@@ -89,7 +89,7 @@ describe("validateOpportunity · limits", () => {
   ] as const)("%s accepts %i characters and rejects one more", (field, max) => {
     expect(validateOpportunity(draft({ [field]: "a".repeat(max) }))[field]).toBeUndefined();
     expect(validateOpportunity(draft({ [field]: "a".repeat(max + 1) }))[field]).toBe(
-      `El campo «${FIELD_LABELS[field]}» no es válido: debe tener como máximo ${max} caracteres.`,
+      `El campo «${FIELD_LABELS[field]}» no es válido: no puede superar los ${max} caracteres.`,
     );
   });
 
@@ -100,7 +100,7 @@ describe("validateOpportunity · limits", () => {
   it("project_type must be one of the six known typologies", () => {
     for (const type of PROJECT_TYPES) expect(validateOpportunity(draft({ project_type: type })).project_type).toBeUndefined();
     expect(validateOpportunity(draft({ project_type: "castle" })).project_type).toBe(
-      "El campo «Tipología» no es válido: elige una de las tipologías disponibles.",
+      "El campo «Tipología» no es válido: no es una tipología admitida.",
     );
   });
 
@@ -113,6 +113,7 @@ describe("validateOpportunity · limits", () => {
     ["-1", "no puede ser negativo"],
     ["1000000000.01", "no puede superar 1.000.000.000 €"],
     ["1000000001", "no puede superar 1.000.000.000 €"],
+    ["1000000000.001", "no puede superar 1.000.000.000 €"],
     ["1.234", "admite como máximo 2 decimales"],
     ["abc", "debe ser un número"],
     ["12 000", "debe ser un número"],
@@ -130,11 +131,37 @@ describe("validateOpportunity · limits", () => {
 
   it.each(["deadline", "decision_date"] as const)("%s accepts real ISO dates and rejects the rest", (field) => {
     expect(validateOpportunity(draft({ [field]: "2028-02-29" }))[field]).toBeUndefined();
-    const invalid = `El campo «${FIELD_LABELS[field]}» no es válido: debe ser una fecha con formato aaaa-mm-dd.`;
-    for (const text of ["2027-02-29", "2026-13-01", "31/12/2026", "2026-1-1", "hoy", "2026-12-31T10:00"]) {
-      expect(validateOpportunity(draft({ [field]: text }))[field]).toBe(invalid);
+    const prefix = `El campo «${FIELD_LABELS[field]}» no es válido:`;
+    for (const text of ["31/12/2026", "2026-1-1", "hoy", "2026-12-31T10:00"]) {
+      expect(validateOpportunity(draft({ [field]: text }))[field]).toBe(`${prefix} debe ser una fecha con formato aaaa-mm-dd.`);
+    }
+    for (const text of ["2027-02-29", "2026-13-01", "0000-01-01"]) {
+      expect(validateOpportunity(draft({ [field]: text }))[field]).toBe(`${prefix} no es una fecha existente.`);
     }
   });
+
+  it("rejects a lone surrogate like the server but accepts a valid pair", () => {
+    expect(validateOpportunity(draft({ name: "a\uD83Cb" })).name).toBe(
+      "El campo «Nombre» no es válido: contiene caracteres no permitidos.",
+    );
+    expect(validateOpportunity(draft({ name: "a\uD83C\uDFE0b" })).name).toBeUndefined();
+  });
+
+  it("length counts characters (code points) like the server, not UTF-16 units", () => {
+    expect(validateOpportunity(draft({ name: "🏠".repeat(120) })).name).toBeUndefined();
+    expect(validateOpportunity(draft({ name: "🏠".repeat(121) })).name).toBe(
+      "El campo «Nombre» no es válido: no puede superar los 120 caracteres.",
+    );
+  });
+
+  it.each(["name", "client", "location", "owner", "source"] as const)(
+    "%s rejects a NUL character like the server",
+    (field) => {
+      expect(validateOpportunity(draft({ [field]: "ab\u0000cd" }))[field]).toBe(
+        `El campo «${FIELD_LABELS[field]}» no es válido: contiene caracteres no permitidos.`,
+      );
+    },
+  );
 });
 
 describe("toOpportunityPayload", () => {
