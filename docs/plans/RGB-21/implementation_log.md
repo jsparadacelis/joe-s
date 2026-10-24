@@ -4,7 +4,7 @@ Pausas con motivo, fecha prevista y reanudación (full-stack). Contrato: [contra
 
 ## Cómo se hizo (con honestidad)
 
-- **Ningún frente usó subagentes anidados.** El frente back y el frente front trabajaron en paralelo, cada uno en su rama y en una sola sesión, y los roles (Escritor de tests, Desarrollador, Tester) se hicieron en secuencia dentro de esa sesión. Los tests se escribieron antes del código (rojo, verde), pero sin agentes separados. El Juez no ha corrido todavía sobre la rama integrada.
+- **Ningún frente usó subagentes anidados.** El frente back y el frente front trabajaron en paralelo, cada uno en su rama y en una sola sesión, y los roles (Escritor de tests, Desarrollador, Tester) se hicieron en secuencia dentro de esa sesión. Los tests se escribieron antes del código (rojo, verde), pero sin agentes separados. El Juez (agente independiente) revisó la rama integrada y la aprobó sin bloqueantes; ejecutó él mismo `ruff`, `pytest backend` (658) y el front (1345).
 - El front se probó solo contra un servidor falso; la integración es la primera vez que los dos lados se ven.
 
 ## Frente back (`feat/RGB-21-back`)
@@ -63,6 +63,14 @@ Migraciones aplicadas a la base local; uvicorn con `DEV_ROLE=project_director` (
 - Dato heredado `projects.paused = true` sin fila en `pauses`: se muestra «En pausa» sin fecha, y no se puede reanudar (`not_paused`).
 - Cartera: «Proyectos activos» cuenta los proyectos en pausa; decidir si deben contarse aparte.
 - Sin pantalla para ver las pausas desde la cartera más allá del chip; el historial vive en «Plan y tiempos».
+
+## Seguimientos del Juez
+
+- Capturas del formulario con el campo de fecha nativo en formato EE. UU. (`11/09/2026` se lee como 11 de septiembre en español, es el 9 de noviembre): regenerarlas con Chromium en `--lang=es-ES`. No es un fallo de la app.
+- `integration-form-error-server-422-*` muestra una fecha válida junto a «no es una fecha existente» porque el cuerpo se alteró a mano para provocar el 422 del servidor.
+- **Aviso diario:** forma parte del alcance y del prompt de RGB-21 en Notion, aunque no de sus criterios. Queda fuera por falta de canal de avisos y de planificador: hay que crear una tarea aparte (canal + planificador) o reabrir el alcance.
+- `portfolio/application/queries.py` importa `timing.domain.pause.days_past`: acoplamiento entre contextos declarado; llevarlo a `shared` si crece.
+- «Proyectos activos» de la cartera cuenta también los proyectos en pausa; pausa que cruza fases con RGB-20/22.
 
 ## Qué hay que desplegar (acciones de la persona usuaria)
 

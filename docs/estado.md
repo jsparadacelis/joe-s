@@ -121,3 +121,9 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - Semanas planificadas de un proyecto real «Sin calcular» hasta RGB-16; unificar el `Pause` de ejemplo (`lib/timing.ts`) con `ProjectPause`.
 - Permisos por rol real (RGB-2 y RGB-4): hoy el rol sale del contexto de desarrollo.
 - «Proyectos activos» de la cartera cuenta también los proyectos en pausa (decisión de producto).
+
+## Pendientes de RGB-21 (pausas)
+
+- Aviso diario al director de proyecto cuando una pausa pasa su fecha prevista: sin canal de avisos ni planificador; tarea aparte. Hoy solo existe el indicador «Vencida».
+- Ruta para aprobar el entregable de salida de la fase 0 (para promover por la API sin SQL); unificar `Pause` de ejemplo y `ProjectPause`; pausa que cruza fases (RGB-20/22); «Proyectos activos» cuenta los proyectos en pausa.
+- Desplegar: migración 007 en Supabase y backend en Cloud Run (acciones del usuario).
