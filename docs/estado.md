@@ -23,7 +23,7 @@ Actualizado: 2026-10-23 (tras RGB-9, RGB-15, RGB-29 y RGB-34). Fuente de verdad 
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 | Reordenado del repo (PR #23) y URLs en inglés (PR #24) | `frontend/` y `backend/` separados (Dockerfile y dependencias de Python dentro de `backend/`), URLs de página en inglés (`/projects`, `/portfolio`, `/to-promote`, `/settings`, `/weekly-report`, `plan-and-timing`, `phase`, `#content`). `main` protegida con el ruleset `main-rule`: todo por PR y checks `front`, `backend` y `Vercel` en verde | — |
 | Infra desplegada | API en Cloud Run (`https://rgb-api-368607571687.us-central1.run.app`, pública, con CORS para `https://joe-s.vercel.app` y `http://localhost:3000`), base en Supabase, front en Vercel (*Root Directory* `frontend`). Verificado el 2026-10-24: `/api/health`, `/api/settings/plan` y `/api/plan` responden. Falta `NEXT_PUBLIC_API_URL` en Vercel | [despliegue](despliegue.md) |
-| **Conexión front–API** (en pausa) | Plan escrito: cliente HTTP tipado, ajustes del plan en `/settings` y, después, botones de promoción. El Escritor de tests se detuvo a medias; sin código ni PR | [plan](plans/connect-api-settings/plan.md) · [log](plans/connect-api-settings/implementation_log.md) |
+| **Conexión front–API**, paso 1 · Ajustes del plan | Cliente HTTP (`lib/api.ts`) y pantalla `/settings` con las plantillas de semanas y los factores de escala conectados a la API, con topes en el cliente, errores accesibles y foco gestionado; 957 tests; 15 pantallazos. `NEXT_PUBLIC_API_URL` fijada en Vercel. Siguiente: botones de promoción | [plan](plans/connect-api-settings/plan.md) · [log](plans/connect-api-settings/implementation_log.md) |
 
 ## Decisiones
 
@@ -55,7 +55,7 @@ El PR incluye pantallazos. La tarea pasa a «En revisión» y una persona la pas
 
 ## Siguiente trabajo de front
 
-**Conexión con la API (en pausa):** la API de `main` solo ofrece promoción, `GET /api/plan` y los ajustes del plan; no hay lecturas de proyectos, entregables, tiempos, datos técnicos ni relieve, así que esas capas siguen con datos de ejemplo hasta que el backend las publique. Lo primero que se conecta son los ajustes del plan (`/settings`); ver [plan](plans/connect-api-settings/plan.md) y su [log](plans/connect-api-settings/implementation_log.md).
+**Conexión con la API (paso 1 hecho):** la API de `main` solo ofrece promoción, `GET /api/plan` y los ajustes del plan; no hay lecturas de proyectos, entregables, tiempos, datos técnicos ni relieve, así que esas capas siguen con datos de ejemplo hasta que el backend las publique. Lo primero que se conecta son los ajustes del plan (`/settings`); ver [plan](plans/connect-api-settings/plan.md) y su [log](plans/connect-api-settings/implementation_log.md).
 
 Con RGB-6, 10, 22, 29 y 34 hechas, la única tarea de front que queda es RGB-23 (semanas de la fase y pausas en la cartera), que necesita la cartera (RGB-11, full-stack, sin hacer). El resto de pendientes del front son seguimientos de las tareas ya hechas y la conexión de las capas de datos de ejemplo (`lib/projects.ts`, `lib/timing.ts`, `lib/technical-data.ts`, `lib/relief.ts`) con la API real cuando existan los servicios.
 
@@ -69,3 +69,9 @@ Con RGB-6, 10, 22, 29 y 34 hechas, la única tarea de front que queda es RGB-23 
 - Rampa del tema oscuro con poco rango de luminancia (ampliar hasta un tono arena, manteniendo los umbrales de `frontend/__tests__/lib/relief-contrast.test.ts`); relleno más tenue o solo contorno cuando la parcela cubre la ventana; ×3 apenas se distingue de ×2 en la rústica con encuadre cenital.
 - Encuadre inicial que recorta el borde sur en lienzos anchos y bajos; escuchar `webglcontextlost` y avisar; los colores de la escena no siguen un cambio de tema en caliente.
 - Las URLs pasaron a inglés (decisión del usuario, 2026-10-24): `/proyectos`→`/projects`, `/cartera`→`/portfolio`, `/por-promover`→`/to-promote`, `/ajustes`→`/settings`, `/reporte-semanal`→`/weekly-report`, `plan-y-tiempos`→`plan-and-timing`, `fase`→`phase` y el ancla `#contenido`→`#content`. Los códigos de ejemplo (`PRY-EJ-00N`) siguen igual. Los planes antiguos de `docs/plans/` citan las URLs en español.
+
+## Pendientes de la conexión con la API (ajustes del plan)
+
+- Aviso de validación que persiste al volver al valor guardado; respuesta 200 mal formada que deja «Cargando…» sin «Reintentar»; etiquetas de dos líneas que desalinean los campos; `UNEXPECTED_MESSAGE` duplicado.
+- Backend: alinear topes (520 semanas, factor ≥ 0,1) y mensajes con el front, y devolver 422 (no 500 sin CORS) cuando un valor no cabe en la base; `dev.sh` no siembra el estudio ficticio de desarrollo.
+- Scroll horizontal a 360 px por las migas del layout.
