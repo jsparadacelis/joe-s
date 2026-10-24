@@ -25,7 +25,7 @@ Conectado a la API real: ajustes del plan en `/settings` (PR #27); alta de oport
 | Responsable: hoy solo un id | Columna «Responsable» con nombre | RGB-2 (usuarios) y RGB-4 (roles); el id lo guarda RGB-13 | Hasta entonces, `owner_name` nulo |
 | Tipología y escala | Plan y semáforo calculado en servidor | RGB-13 guarda la tipología; **RGB-16** elige tipología y escala desde el scoring, confirma el plan como línea base y crea la ficha | El análisis previo atribuía todo a RGB-16; el alta de la tipología es de RGB-13 |
 | Próximo hito, semáforo y riesgo | Columnas de hito y estado | **RGB-17** · Ficha (bloques «Tiempo»: plan confirmado, próximo hito y fecha; «Estado»: semáforo; «Riesgo») | La ficha es la fuente del hito: apunta a que manda el hito de la ficha frente a `internal_milestones` **(por verificar con el PRD)** |
-| Pausas | «En pausa», fecha prevista, reloj parado | **RGB-21** (full-stack, depende de RGB-20); su criterio: «la cartera muestra “en pausa” y la fecha prevista» | Sin tabla de pausas en el modelo actual |
+| ~~Pausas~~ | ~~«En pausa», fecha prevista, reloj parado~~ | **Resuelto por RGB-21** (migración 007, `POST .../pause`, `.../resume`, `GET .../pauses` y `pause` en `GET /api/portfolio`) | La cartera muestra «En pausa» y la fecha prevista. Pendiente solo desplegarlo en Cloud Run/Supabase; el reloj activo con pausas reales llega con RGB-22 |
 | Bloqueo del proyecto | Columna «Bloqueo» | **Sin tarea clara**: candidatos RGB-39 (riesgos, incidencias y decisiones) o RGB-37 (trámite municipal) **(por verificar con el PRD)** | Decidir antes de añadir columna o migración |
 | Última actualización de la ficha | «Días sin actualizar», fichas desactualizadas | **Sin tarea clara**; encaja con RGB-17 (ficha) **(por verificar)** | Hoy `updated_at` solo cambia al promover |
 | Autenticación y permisos | Quién puede cambiar ajustes, promover o pausar | RGB-2 y RGB-4 | La API de Cloud Run es pública sin auth: cualquiera puede cambiar los ajustes del plan |
@@ -35,7 +35,7 @@ Conectado a la API real: ajustes del plan en `/settings` (PR #27); alta de oport
 ## Orden recomendado
 
 1. **RGB-13** (alta de oportunidad): primera escritura en `projects`, desbloquea una cartera con datos reales mínimos (oportunidades en fase 0).
-2. **RGB-21** (pausas): desbloquea «en pausa» y el semáforo por consumo, y con ello RGB-23 y el reporte semanal (RGB-42).
+2. ~~**RGB-21** (pausas)~~ (hecha): desbloquea «en pausa» y el semáforo por consumo, y con ello RGB-23 y el reporte semanal (RGB-42).
 3. **RGB-14, RGB-16 y RGB-17** (scoring, plan propuesto y ficha): tipología, escala, hito y semáforo en servidor.
 4. **RGB-2 y RGB-4** (autenticación y roles): nombres de responsable y permisos; imprescindibles antes de exponer la API a más personas.
 5. RGB-11 (parte back) entra cuando 1 y 2 estén; mientras tanto puede dar `unknown` en lo que falte, no un valor inventado.

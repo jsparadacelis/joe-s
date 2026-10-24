@@ -60,6 +60,11 @@ function sampleFields(phase: PhaseId): Field[] {
 
 // ---- Public functions ----
 
+/** True for the fictitious `PRY-EJ-00N` projects: they live in the front end, not in the API. */
+export function isSampleProject(code: string): boolean {
+  return PROJECTS.some((p) => p.code === code);
+}
+
 interface ApiProject {
   code: string;
   name: string;

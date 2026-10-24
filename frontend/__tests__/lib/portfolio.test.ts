@@ -31,6 +31,8 @@ function row(extra: Partial<PortfolioRow> = {}): PortfolioRow {
     daysSinceUpdate: 1,
     // RGB-23: required field; null if and only if the status is no-plan.
     phaseWeeks: extra.status === "no-plan" ? null : { active: 1, planned: 5 },
+    // RGB-21: required field; null unless a test gives the open pause.
+    pause: null,
     ...extra,
   };
 }
@@ -227,10 +229,11 @@ describe("fetchPortfolio (API)", () => {
         blocker: "Waiting for survey",
         daysSinceUpdate: 4,
         phaseWeeks: { active: 4, planned: 5 },
+        pause: null,
       },
     ]);
     expect(Object.keys(result.rows[0]).sort()).toEqual(
-      ["blocker", "code", "daysSinceUpdate", "name", "nextMilestone", "owner", "phase", "phaseWeeks", "status"],
+      ["blocker", "code", "daysSinceUpdate", "name", "nextMilestone", "owner", "pause", "phase", "phaseWeeks", "status"],
     );
   });
 

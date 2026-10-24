@@ -22,6 +22,8 @@ from backend.app.portfolio.infrastructure.postgres_projects import PostgresProje
 from backend.app.shared.config import Settings
 from backend.app.shared.db import study_transaction
 from backend.app.study.domain.context import Qualification, RequestContext, Role
+from backend.app.timing.application.pause_service import PauseService
+from backend.app.timing.infrastructure.postgres_pauses import PostgresPauses
 
 
 @lru_cache
@@ -102,5 +104,19 @@ def plan_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> P
     def open_unit(context: RequestContext) -> Iterator[PlanSettingsService]:
         with study_transaction(settings.database_url, context) as conn:
             yield PlanSettingsService(PostgresPlanSettings(conn), PostgresAuditLog(conn))
+
+    return open_unit
+
+
+PauseUnitOfWork = Callable[[RequestContext], AbstractContextManager[PauseService]]
+
+
+def pause_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> PauseUnitOfWork:
+    """Composition root for pausing and resuming: row, flag and audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[PauseService]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield PauseService(PostgresPauses(conn), PostgresAuditLog(conn))
 
     return open_unit

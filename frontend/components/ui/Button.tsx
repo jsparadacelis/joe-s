@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 
 export type ButtonVariant = "default" | "primary" | "point";
 export type ButtonSize = "md" | "sm";
@@ -7,6 +7,8 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> 
   variant?: ButtonVariant;
   size?: ButtonSize;
   type?: "button" | "submit" | "reset";
+  /** React 19 passes `ref` as a prop; it reaches the <button> through the rest props. */
+  ref?: Ref<HTMLButtonElement>;
 };
 
 const VARIANTS: Record<ButtonVariant, string> = {

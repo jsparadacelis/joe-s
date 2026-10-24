@@ -18,6 +18,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: null,
     daysSinceUpdate: 2,
     phaseWeeks: { active: 4, planned: 5 },
+    pause: null,
   },
   {
     code: "PRY-EJ-002",
@@ -29,6 +30,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: null,
     daysSinceUpdate: 0,
     phaseWeeks: null,
+    pause: null,
   },
   {
     code: "PRY-EJ-003",
@@ -40,6 +42,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: "Espera de la licencia de primera ocupación",
     daysSinceUpdate: 9,
     phaseWeeks: { active: 30, planned: 36 },
+    pause: { reason: "authority-wait", expectedResumption: "2026-11-09", overdue: false, daysOverdue: 0 },
   },
   {
     code: "PRY-EJ-004",
@@ -51,6 +54,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: "Falta el levantamiento topográfico",
     daysSinceUpdate: 5,
     phaseWeeks: { active: 1, planned: 3 },
+    pause: null,
   },
   {
     code: "PRY-EJ-005",
@@ -62,6 +66,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: null,
     daysSinceUpdate: 12,
     phaseWeeks: { active: 9, planned: 8 },
+    pause: null,
   },
   {
     code: "PRY-EJ-006",
@@ -73,6 +78,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: null,
     daysSinceUpdate: 1,
     phaseWeeks: { active: 5, planned: 6 },
+    pause: null,
   },
   {
     code: "PRY-EJ-007",
@@ -84,6 +90,7 @@ export const SAMPLE_ROWS: readonly PortfolioRow[] = [
     blocker: null,
     daysSinceUpdate: 3,
     phaseWeeks: null,
+    pause: null,
   },
 ];
 
@@ -99,6 +106,8 @@ export interface ApiPortfolioProject {
   blocker: string | null;
   days_since_update: number;
   phase_weeks: { active: number; planned: number } | null;
+  /** RGB-21 additive field. */
+  pause: { reason: string; expected_resumption: string; overdue: boolean; days_overdue: number } | null;
 }
 
 /** Builds an API portfolio project; defaults to a freshly created opportunity. */
@@ -114,6 +123,7 @@ export function apiProject(extra: Partial<ApiPortfolioProject> = {}): ApiPortfol
     blocker: null,
     days_since_update: 0,
     phase_weeks: null,
+    pause: null,
     ...extra,
   };
 }
@@ -134,6 +144,12 @@ export function toApiPortfolio(rows: readonly PortfolioRow[], asOf = SAMPLE_AS_O
         blocker: row.blocker,
         days_since_update: row.daysSinceUpdate,
         phase_weeks: row.phaseWeeks,
+        pause: row.pause && {
+          reason: row.pause.reason.replace("-", "_"),
+          expected_resumption: row.pause.expectedResumption,
+          overdue: row.pause.overdue,
+          days_overdue: row.pause.daysOverdue,
+        },
       }),
     ),
   };
