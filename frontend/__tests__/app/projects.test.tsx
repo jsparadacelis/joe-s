@@ -25,6 +25,10 @@ describe("/projects", () => {
     expect(screen.getByRole("link", { name: /PRY-EJ-002/ })).toHaveAttribute("href", "/projects/PRY-EJ-002/phase/0");
     expect(screen.getByRole("link", { name: /PRY-EJ-003/ })).toHaveAttribute("href", "/projects/PRY-EJ-003/phase/6");
     expect(screen.getByRole("link", { name: /PRY-EJ-004/ })).toHaveAttribute("href", "/projects/PRY-EJ-004/phase/2");
+    // RGB-11 fix F1: the three projects that the portfolio also links to.
+    expect(screen.getByRole("link", { name: /PRY-EJ-005/ })).toHaveAttribute("href", "/projects/PRY-EJ-005/phase/5");
+    expect(screen.getByRole("link", { name: /PRY-EJ-006/ })).toHaveAttribute("href", "/projects/PRY-EJ-006/phase/4");
+    expect(screen.getByRole("link", { name: /PRY-EJ-007/ })).toHaveAttribute("href", "/projects/PRY-EJ-007/phase/0");
   });
 
   it("states that they are sample projects", async () => {
@@ -113,6 +117,43 @@ describe("/projects/[code]/phase/[phase]", () => {
       expect(await axe(container)).toHaveNoViolations();
       unmount();
     }
+  });
+});
+
+// RGB-11 fix F1: every portfolio link (/projects/{code}/phase/{current phase}) must resolve, never 404.
+describe("portfolio links resolve to the project's current phase", () => {
+  it.each([
+    ["PRY-EJ-005", "5"],
+    ["PRY-EJ-006", "4"],
+    ["PRY-EJ-007", "0"],
+  ])("%s phase %s renders with a single h1", async (code, f) => {
+    render(await phase(code, f));
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("navigation", { name: "Fases del proyecto" })).toBeInTheDocument();
+  });
+
+  it.each(["PRY-EJ-005", "PRY-EJ-006", "PRY-EJ-007"])("/projects/%s redirects to its current phase", async (code) => {
+    const target = { "PRY-EJ-005": 5, "PRY-EJ-006": 4, "PRY-EJ-007": 0 }[code];
+    await expect(ProjectPage({ params: Promise.resolve({ code }) })).rejects.toThrow(
+      `/projects/${code}/phase/${target}`,
+    );
+  });
+
+  it("every code returned by fetchPortfolio resolves on its row's phase page", async () => {
+    const { fetchPortfolio } = await import("@/lib/portfolio");
+    for (const row of await fetchPortfolio()) {
+      const { unmount } = render(await phase(row.code, String(row.phase)));
+      unmount();
+    }
+  });
+
+  it.each([
+    ["PRY-EJ-005", "5"],
+    ["PRY-EJ-006", "4"],
+    ["PRY-EJ-007", "0"],
+  ])("%s phase %s: no accessibility violations", async (code, f) => {
+    const { container } = render(<main>{await phase(code, f)}</main>);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });
 

@@ -14,6 +14,8 @@ export type TableProps<Row> = {
   getRowKey: (row: Row) => string;
   /** Text when there are no rows. */
   emptyMessage?: string;
+  /** Extra classes for each body row (e.g. `relative` for stretched links). */
+  rowClassName?: (row: Row) => string;
 };
 
 export function Table<Row>({
@@ -22,6 +24,7 @@ export function Table<Row>({
   rows,
   getRowKey,
   emptyMessage = "No hay registros para mostrar.",
+  rowClassName,
 }: TableProps<Row>) {
   return (
     <table className="w-full border-collapse text-m">
@@ -48,7 +51,7 @@ export function Table<Row>({
           </tr>
         ) : (
           rows.map((row) => (
-            <tr key={getRowKey(row)}>
+            <tr key={getRowKey(row)} className={rowClassName?.(row)}>
               {columns.map((column) => (
                 <td key={column.key} className="border-b border-hair px-3.5 py-[11px] align-middle">
                   {column.render(row)}

@@ -140,6 +140,30 @@ const PLANS: readonly TimingPlan[] = [
     calendarWeeks: 3,
     deviationWeeks: 0,
   },
+  {
+    code: "PRY-EJ-005",
+    currentPhase: 5,
+    phases: samplePhases([2, 3, 5, 6, 9, 0, 0], [0, 0, 0, 0, 0, 0, 0]),
+    pauses: [],
+    activePause: null,
+    totalActiveWeeks: 25,
+    totalPlannedWeeks: 64,
+    totalPausedWeeks: 0,
+    calendarWeeks: 25,
+    deviationWeeks: 1,
+  },
+  {
+    code: "PRY-EJ-006",
+    currentPhase: 4,
+    phases: samplePhases([2, 3, 5, 5, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]),
+    pauses: [],
+    activePause: null,
+    totalActiveWeeks: 15,
+    totalPlannedWeeks: 64,
+    totalPausedWeeks: 0,
+    calendarWeeks: 15,
+    deviationWeeks: -1,
+  },
 ];
 
 // ---- Public function (same signature as the API client) ----

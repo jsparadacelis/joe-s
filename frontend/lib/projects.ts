@@ -34,6 +34,9 @@ const PROJECTS: readonly Project[] = [
   { code: "PRY-EJ-002", name: "Reforma de local comercial (ejemplo)", currentPhase: 0 },
   { code: "PRY-EJ-003", name: "Edificio de oficinas (ejemplo)", currentPhase: 6 },
   { code: "PRY-EJ-004", name: "Local comercial (ejemplo)", currentPhase: 2 },
+  { code: "PRY-EJ-005", name: "Rehabilitación de fachada (ejemplo)", currentPhase: 5 },
+  { code: "PRY-EJ-006", name: "Nave logística (ejemplo)", currentPhase: 4 },
+  { code: "PRY-EJ-007", name: "Residencia de mayores (ejemplo)", currentPhase: 0 },
 ];
 
 /** Cadastral reference (fictitious) from each project's sheet. */

@@ -264,3 +264,36 @@ describe("fetchTimingPlan · PRY-EJ-004 (RGB-29)", () => {
     else expect(p.pauses.every((x) => x.to !== null)).toBe(true);
   });
 });
+
+// RGB-11 fix F1: the project tabs link every portfolio project to «Plan y tiempos».
+// Decision (simplest, consistent with the sample data): projects past phase 0 get a sample plan,
+// phase 0 projects have none (null → «Sin plan hasta promover»).
+describe("fetchTimingPlan for every portfolio project", () => {
+  it.each([
+    ["PRY-EJ-005", 5],
+    ["PRY-EJ-006", 4],
+  ] as const)("%s has a plan in its current phase %i", async (code, phase) => {
+    const plan = await fetchTimingPlan(code);
+    expect(plan).not.toBeNull();
+    expect(plan?.code).toBe(code);
+    expect(plan?.currentPhase).toBe(phase);
+    expect(plan?.phases).toHaveLength(7);
+    expect(plan?.activePause).toBeNull();
+  });
+
+  it("PRY-EJ-007 (phase 0) has no plan: null", async () => {
+    expect(await fetchTimingPlan("PRY-EJ-007")).toBeNull();
+  });
+
+  it("cartera and plans agree for all rows: plan iff phase > 0, active pause iff paused", async () => {
+    const { fetchPortfolio } = await import("@/lib/portfolio");
+    for (const row of await fetchPortfolio()) {
+      const plan = await fetchTimingPlan(row.code);
+      expect(plan === null).toBe(row.phase === 0);
+      if (plan) {
+        expect(plan.currentPhase).toBe(row.phase);
+        expect(plan.activePause !== null).toBe(row.status === "paused");
+      }
+    }
+  });
+});
