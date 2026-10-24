@@ -54,6 +54,12 @@ Faltaron `frontend/__tests__/components/settings/PlanSettingsEditor.test.tsx` y 
 - Juez (1.ª vez): **rechazado** por el foco perdido tras un error del servidor (422, 500 o red). Corregido (`restoreFocus` en el `catch`, 3 tests). Prettier no aplica (el repo no lo usa).
 - Estado final: 957 tests, lint, typecheck y build en verde.
 
+## Cierre (2026-10-24)
+
+- PR #27 mergeado (`d5213ea`). Deploy de producción `READY`.
+- Producción: `https://joe-s.vercel.app/settings` responde 200, un chunk del build lleva incrustada la URL de Cloud Run y la API responde 200 con `access-control-allow-origin: https://joe-s.vercel.app` (solo lectura).
+- Aviso: la API no tiene autenticación, así que cualquiera con la URL puede cambiar los ajustes del plan hasta que llegue RGB-2.
+
 ## Observaciones del entorno local
 
 - `dev.sh` no siembra el estudio ficticio de desarrollo (`00000000-0000-0000-0000-00000000e001`); sin él todo `PUT` falla por la clave foránea. Hay que insertarlo a mano.
