@@ -1,4 +1,6 @@
+import { ApiError } from "@/lib/api";
 import { PHASES, type PhaseId } from "@/lib/phases";
+import { apiProject } from "../helpers/portfolio-sample";
 import { listProjects, fetchDeliverable, fetchProject } from "@/lib/projects";
 
 const IDS: PhaseId[] = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -42,9 +44,78 @@ describe("fetchProject", () => {
     expect(p!.name).toContain("(ejemplo)");
   });
 
-  it("returns null if it does not exist", async () => {
-    expect(await fetchProject("PRY-NO-EXISTE")).toBeNull();
-    expect(await fetchProject("")).toBeNull();
+  // RGB-13: a code that is not a sample project is asked to the API; 404 means «does not exist».
+  it("returns null if the API answers 404 project_not_found", async () => {
+    const request = jest.fn().mockRejectedValue(new ApiError(404, "project_not_found", "No existe el proyecto PRY-NO-EXISTE."));
+    expect(await fetchProject("PRY-NO-EXISTE", request)).toBeNull();
+    expect(request).toHaveBeenCalledWith("/api/projects/PRY-NO-EXISTE");
+  });
+
+  it("returns null for an empty code without calling the API", async () => {
+    const request = jest.fn();
+    expect(await fetchProject("", request)).toBeNull();
+    expect(request).not.toHaveBeenCalled();
+  });
+});
+
+describe("real projects from the API (RGB-13)", () => {
+  const created = { code: "PRY-2026-001", name: "Test opportunity", current_phase: 0 };
+
+  it("fetchProject reads GET /api/projects/{code} and maps current_phase to currentPhase", async () => {
+    const request = jest.fn().mockResolvedValue(created);
+    expect(await fetchProject("PRY-2026-001", request)).toEqual({
+      code: "PRY-2026-001",
+      name: "Test opportunity",
+      currentPhase: 0,
+    });
+    expect(request).toHaveBeenCalledWith("/api/projects/PRY-2026-001");
+  });
+
+  it("the code is encoded in the path", async () => {
+    const request = jest.fn().mockRejectedValue(new ApiError(404, "project_not_found", "x"));
+    await fetchProject("a/b?c", request);
+    expect(request).toHaveBeenCalledWith("/api/projects/a%2Fb%3Fc");
+  });
+
+  it("sample projects (PRY-EJ-00N) are served locally: the API is not called", async () => {
+    const request = jest.fn();
+    expect(await fetchProject("PRY-EJ-001", request)).toMatchObject({ code: "PRY-EJ-001", currentPhase: 3 });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("errors other than 404 are not hidden as «not found»", async () => {
+    const failure = new ApiError(0, "network_error", "No se pudo conectar con el servidor.");
+    await expect(fetchProject("PRY-2026-001", jest.fn().mockRejectedValue(failure))).rejects.toBe(failure);
+    const server = new ApiError(500, "unexpected_error", "Ocurrió un error inesperado.");
+    await expect(fetchProject("PRY-2026-001", jest.fn().mockRejectedValue(server))).rejects.toBe(server);
+  });
+
+  it("a 404 with another code is not «not found» either", async () => {
+    const failure = new ApiError(404, "unexpected_error", "Ocurrió un error inesperado.");
+    await expect(fetchProject("PRY-2026-001", jest.fn().mockRejectedValue(failure))).rejects.toBe(failure);
+  });
+
+  it("listProjects returns the real projects of the portfolio followed by the samples", async () => {
+    const request = jest.fn().mockResolvedValue({
+      as_of: "2026-10-24",
+      projects: [apiProject({ code: "PRY-2026-001", name: "Test opportunity", phase: 0 })],
+    });
+    const list = await listProjects(request);
+    expect(request).toHaveBeenCalledWith("/api/portfolio");
+    expect(list[0]).toEqual({ code: "PRY-2026-001", name: "Test opportunity", currentPhase: 0 });
+    expect(list.slice(1).map((p) => p.code)).toEqual([
+      "PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004", "PRY-EJ-005", "PRY-EJ-006", "PRY-EJ-007",
+    ]);
+  });
+
+  it("listProjects keeps the samples when the API fails (the screens for samples must not break)", async () => {
+    const list = await listProjects(jest.fn().mockRejectedValue(new ApiError(0, "network_error", "x")));
+    expect(list).toHaveLength(7);
+  });
+
+  it("the deliverable of a real project is empty but well-formed and never frozen", async () => {
+    const e = await fetchDeliverable("PRY-2026-001", 0);
+    expect(e).toEqual({ phase: 0, frozenVersion: null, fields: [] });
   });
 });
 

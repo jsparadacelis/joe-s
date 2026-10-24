@@ -191,3 +191,26 @@ describe("default request", () => {
     expect(String(fetch.mock.calls[0][0])).toMatch(/\/api\/health$/);
   });
 });
+
+// RGB-13: validation errors of the API carry the offending field: { detail: { code, message, field } }.
+describe("createApiClient · error field (RGB-13)", () => {
+  it("exposes detail.field on the ApiError when it is a string", async () => {
+    const { client } = clientWith(
+      jsonResponse(422, { detail: { code: "required_field", message: "El campo «Nombre» es obligatorio.", field: "name" } }),
+    );
+    const error = await failureOf(client.request("/api/opportunities", { method: "POST", body: {} }));
+    expect(error).toMatchObject({ status: 422, code: "required_field", field: "name" });
+    expect(error.message).toBe("El campo «Nombre» es obligatorio.");
+  });
+
+  it("field is undefined when the detail has none or it is not a string", async () => {
+    const without = await failureOf(
+      clientWith(jsonResponse(404, { detail: { code: "project_not_found", message: "No existe el proyecto X." } })).client.request("/x"),
+    );
+    expect(without.field).toBeUndefined();
+    const wrong = await failureOf(
+      clientWith(jsonResponse(422, { detail: { code: "invalid_field", message: "Mensaje", field: 3 } })).client.request("/x"),
+    );
+    expect(wrong.field).toBeUndefined();
+  });
+});
