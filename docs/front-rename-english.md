@@ -34,8 +34,10 @@ Regla del repo (`CLAUDE.md`): el código va en inglés; solo se queda en españo
 | `HistorialPausas` | `PauseHistory` |
 | `ResumenTiempos` | `TimingSummary` |
 | `TablaTiempos` | `TimingTable` |
-| `app/proyectos/[codigo]/fase/[fase]` | `app/proyectos/[code]/fase/[phase]` (la URL no cambia) |
-| `app/proyectos/[codigo]` | `app/proyectos/[code]` |
+| `app/proyectos/[codigo]/fase/[fase]` | `app/projects/[code]/phase/[phase]` (URL en inglés desde 2026-10-24) |
+| `app/proyectos/[codigo]` | `app/projects/[code]` |
+| `app/{cartera,por-promover,ajustes,reporte-semanal}` | `app/{portfolio,to-promote,settings,weekly-report}` |
+| `app/proyectos/[code]/plan-y-tiempos` | `app/projects/[code]/plan-and-timing` |
 | `__tests__/` | mismos nombres traducidos (`relieve-arquitectura` pasa a `relief-architecture`, `reconsultar-grupos` a `requery-groups`, `helpers/relieve-plano` a `helpers/relief-plane`) |
 | CSS `--relieve-bajo/-medio-bajo/-medio-alto/-alto` | `--relief-low/-mid-low/-mid-high/-high` |
 

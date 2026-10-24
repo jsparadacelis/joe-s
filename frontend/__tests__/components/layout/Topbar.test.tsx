@@ -7,7 +7,7 @@ jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 describe("Topbar", () => {
   it("shows the breadcrumbs with the current section", () => {
-    mockPathname.mockReturnValue("/reporte-semanal");
+    mockPathname.mockReturnValue("/weekly-report");
     render(<Topbar />);
     expect(screen.getByRole("navigation", { name: "Migas de pan" })).toBeInTheDocument();
     expect(screen.getByText("Reporte semanal")).toHaveAttribute("aria-current", "page");
@@ -21,7 +21,7 @@ describe("Topbar", () => {
   });
 
   it("has no accessibility violations", async () => {
-    mockPathname.mockReturnValue("/cartera");
+    mockPathname.mockReturnValue("/portfolio");
     const { container } = render(<Topbar />);
     expect(await axe(container)).toHaveNoViolations();
   });

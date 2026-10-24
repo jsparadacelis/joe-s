@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import PortfolioPage from "@/app/cartera/page";
-import ToPromotePage from "@/app/por-promover/page";
-import WeeklyReportPage from "@/app/reporte-semanal/page";
-import SettingsPage from "@/app/ajustes/page";
+import PortfolioPage from "@/app/portfolio/page";
+import ToPromotePage from "@/app/to-promote/page";
+import WeeklyReportPage from "@/app/weekly-report/page";
+import SettingsPage from "@/app/settings/page";
 
 const pages = [
   ["Cartera", PortfolioPage],

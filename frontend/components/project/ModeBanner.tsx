@@ -19,7 +19,7 @@ export function ModeBanner({ code, currentPhase, viewedPhase }: ModeBannerProps)
     <Notice tone={mode === "read-only" ? "info" : "warn"}>
       <div className="flex items-center justify-between gap-4">
         <span>{message}</span>
-        <Link href={`/proyectos/${code}/fase/${currentPhase}`} className="font-medium underline">
+        <Link href={`/projects/${code}/phase/${currentPhase}`} className="font-medium underline">
           Volver a la fase actual
         </Link>
       </div>

@@ -28,7 +28,7 @@ describe("PhaseTimeline", () => {
   it("shows 8 links with each phase's href, in order", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     expect(links().map((l) => l.getAttribute("href"))).toEqual(
-      PHASES.map((f) => `/proyectos/PRY-EJ-001/fase/${f.id}`),
+      PHASES.map((f) => `/projects/PRY-EJ-001/phase/${f.id}`),
     );
   });
 
@@ -42,7 +42,7 @@ describe("PhaseTimeline", () => {
 
   it("uses the received code in the hrefs", () => {
     render(<PhaseTimeline code="PRY-EJ-002" currentPhase={0} viewedPhase={0} />);
-    for (const l of links()) expect(l.getAttribute("href")).toMatch(/^\/proyectos\/PRY-EJ-002\/fase\/[0-7]$/);
+    for (const l of links()) expect(l.getAttribute("href")).toMatch(/^\/projects\/PRY-EJ-002\/phase\/[0-7]$/);
   });
 
   it("indicates with accessible text hecha / actual / vista according to the current phase", () => {
@@ -62,14 +62,14 @@ describe("PhaseTimeline", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={5} />);
     const current = links().filter((l) => l.getAttribute("aria-current") === "page");
     expect(current).toHaveLength(1);
-    expect(current[0]).toHaveAttribute("href", "/proyectos/PRY-EJ-001/fase/5");
+    expect(current[0]).toHaveAttribute("href", "/projects/PRY-EJ-001/phase/5");
     expect(document.querySelectorAll("[aria-current]")).toHaveLength(1);
   });
 
   it("aria-current=page on the current phase when it is the one being viewed", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     const current = links().filter((l) => l.hasAttribute("aria-current"));
-    expect(current.map((l) => l.getAttribute("href"))).toEqual(["/proyectos/PRY-EJ-001/fase/3"]);
+    expect(current.map((l) => l.getAttribute("href"))).toEqual(["/projects/PRY-EJ-001/phase/3"]);
   });
 
   it("aria-current changes when the phase on screen changes", () => {

@@ -8,7 +8,7 @@ jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 describe("Sidebar", () => {
   it("lists all the navigation items", () => {
-    mockPathname.mockReturnValue("/cartera");
+    mockPathname.mockReturnValue("/portfolio");
     render(<Sidebar />);
     const nav = screen.getByRole("navigation", { name: "Principal" });
     expect(nav).toBeInTheDocument();
@@ -16,14 +16,14 @@ describe("Sidebar", () => {
   });
 
   it("marks only the active item with aria-current=page", () => {
-    mockPathname.mockReturnValue("/por-promover");
+    mockPathname.mockReturnValue("/to-promote");
     render(<Sidebar />);
     expect(screen.getByRole("link", { name: "Por promover" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Cartera" })).not.toHaveAttribute("aria-current");
   });
 
   it("has no accessibility violations", async () => {
-    mockPathname.mockReturnValue("/ajustes");
+    mockPathname.mockReturnValue("/settings");
     const { container } = render(<Sidebar />);
     expect(await axe(container)).toHaveNoViolations();
   });
