@@ -6,9 +6,19 @@ Front en Vercel, backend en Google Cloud Run (capa gratuita, región de EE. UU.)
 
 ## 1. Base de datos (Supabase)
 
-1. Crea el proyecto (región UE).
-2. Copia la cadena de **conexión directa** (puerto 5432) para migrar y la del **pooler en modo sesión** para la API. El modo transacción también sirve para la API, porque `SET LOCAL ROLE` y `set_config(..., true)` viven dentro de la transacción.
-3. La migración `002_multiestudio.sql` crea el rol `rgb_app` y hace `GRANT rgb_app TO current_user`. Pruébala contra Supabase antes de desplegar.
+1. Crea el proyecto (región UE). Guarda la contraseña de la base de datos; si lleva símbolos (`@`, `/`, `:`, `#`, espacios) rompe la URL, así que usa una de solo letras y números.
+2. Copia la cadena del **pooler en modo sesión** (*Project Settings → Database → Connection string → Session pooler*, puerto 5432, usuario `postgres.<ID-del-proyecto>`). Sirve tanto para migrar como para la API. No uses la conexión directa (`db.<ID>.supabase.co`): en el plan gratuito solo responde por IPv6, que muchas redes y Cloud Run no tienen. El modo transacción también sirve para la API, porque `SET LOCAL ROLE` y `set_config(..., true)` viven dentro de la transacción.
+3. Aplica las migraciones desde tu máquina, con la contraseña por entrada interactiva (zsh; en bash, `read -rs -p "Contraseña: " PW`):
+
+   ```bash
+   python3 -m venv .venv-back && .venv-back/bin/pip install -r requirements.txt
+   read -rs "PW?Contraseña: "; echo
+   DATABASE_URL="postgresql://postgres.<ID>:${PW}@<host-del-pooler>:5432/postgres" \
+     .venv-back/bin/python -m backend.app.shared.migrate; unset PW
+   ```
+
+   Salida esperada: `Migraciones aplicadas: 001_baseline.sql, 002_multiestudio.sql`. Probado contra Supabase (2026-10-24): `002_multiestudio.sql` (rol `rgb_app` y `GRANT`) se aplica sin problemas. Ejecútalo en una terminal normal: dentro de Claude Code, `!` no da entrada interactiva y la contraseña llega vacía.
+4. Plan gratuito: Supabase **pausa el proyecto tras una semana sin actividad**. Reactívalo desde el panel o programa un ping que haga una consulta (`/api/health` no toca la base).
 
 ## 2. Backend (Cloud Run)
 
@@ -51,7 +61,7 @@ gcloud run jobs deploy rgb-migrar \
 gcloud run jobs execute rgb-migrar --region $REGION --wait
 ```
 
-Usa en el secreto la conexión directa si el pooler da problemas con DDL.
+El secreto `database-url` apunta al pooler en modo sesión, el mismo que se usó para migrar a mano.
 
 ### Notas
 
