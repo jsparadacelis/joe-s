@@ -1,6 +1,6 @@
 """Portfolio reads on real Postgres, isolated by RLS."""
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import psycopg
 import pytest
@@ -71,3 +71,40 @@ def test_a_code_of_another_study_is_not_found(url):
 def test_unknown_code_is_none(url):
     with study_transaction(url, a_context(STUDY_A)) as conn:
         assert PostgresProjects(conn).find("PRY-2099-001") is None
+
+
+def _open_pause(admin, reason, expected, resumed_on=None):
+    admin.execute(
+        "INSERT INTO pauses (study_id, project_id, phase, reason, started_on, "
+        "expected_resumption, resumed_on, opened_by, closed_by) "
+        "SELECT study_id, id, 3, %s, '2026-09-01', %s, %s, 'x', "
+        "CASE WHEN %s::date IS NULL THEN NULL ELSE 'x' END "
+        "FROM projects WHERE code = 'PRY-2026-002' AND study_id = %s",
+        (reason, expected, resumed_on, resumed_on, STUDY_A),
+    )
+
+
+def test_exposes_the_open_pause_only(url):
+    with psycopg.connect(url, autocommit=True) as admin:
+        _open_pause(admin, "other", "2026-09-10", "2026-09-05")
+        _open_pause(admin, "client_wait", "2026-10-20")
+
+    with study_transaction(url, a_context(STUDY_A)) as conn:
+        records = {r.code: r for r in PostgresProjects(conn).list_projects()}
+        found = PostgresProjects(conn).find("PRY-2026-002")
+
+    assert records["PRY-2026-002"].pause_reason == "client_wait"
+    assert records["PRY-2026-002"].pause_expected_resumption == date(2026, 10, 20)
+    assert records["PRY-2026-001"].pause_reason is None
+    assert len(records) == 2  # the join never duplicates a project
+    assert found.pause_reason == "client_wait"
+
+
+def test_another_studio_does_not_see_the_pause(url):
+    with psycopg.connect(url, autocommit=True) as admin:
+        _open_pause(admin, "client_wait", "2026-10-20")
+
+    with study_transaction(url, a_context(STUDY_B)) as conn:
+        records = PostgresProjects(conn).list_projects()
+
+    assert [r.pause_reason for r in records] == [None]

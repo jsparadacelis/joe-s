@@ -35,6 +35,17 @@ def _iso(value: Any) -> str | None:
     return None if value is None else value.isoformat()
 
 
+def _pause_json(pause: Any) -> dict[str, Any] | None:
+    if pause is None:
+        return None
+    return {
+        "reason": pause.reason,
+        "expected_resumption": pause.expected_resumption.isoformat(),
+        "overdue": pause.overdue,
+        "days_overdue": pause.days_overdue,
+    }
+
+
 @router.post("/opportunities", status_code=201)
 def create_opportunity(body: OpportunityInput, context: Context, open_unit: CreateUnit) -> dict:
     try:
@@ -83,6 +94,7 @@ def get_portfolio(context: Context, open_unit: ReadUnit) -> dict:
                 "blocker": None,
                 "days_since_update": entry.days_since_update,
                 "phase_weeks": None,
+                "pause": _pause_json(entry.pause),
             }
             for entry in portfolio.entries
         ],

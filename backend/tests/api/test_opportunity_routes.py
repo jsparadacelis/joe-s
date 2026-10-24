@@ -23,6 +23,7 @@ from backend.app.opportunity.domain.opportunity import Opportunity
 from backend.app.portfolio.application.queries import (
     Portfolio,
     PortfolioEntry,
+    PortfolioPause,
     PortfolioQueries,
     ProjectSummary,
 )
@@ -175,6 +176,7 @@ class TestPortfolio:
                     "blocker": None,
                     "days_since_update": 2,
                     "phase_weeks": None,
+                    "pause": None,
                 },
                 {
                     "code": "PRY-2026-002",
@@ -187,8 +189,41 @@ class TestPortfolio:
                     "blocker": None,
                     "days_since_update": 0,
                     "phase_weeks": None,
+                    "pause": None,
                 },
             ],
+        }
+
+    def test_a_paused_project_carries_its_open_pause(self, client, queries):
+        queries.portfolio.return_value = Portfolio(
+            as_of=date(2026, 10, 24),
+            entries=[
+                PortfolioEntry(
+                    code="PRY-2026-003",
+                    name="Paused (sample)",
+                    phase=2,
+                    status="paused",
+                    next_milestone=None,
+                    owner_id=None,
+                    days_since_update=0,
+                    pause=PortfolioPause(
+                        reason="authority_wait",
+                        expected_resumption=date(2026, 10, 20),
+                        overdue=True,
+                        days_overdue=4,
+                    ),
+                )
+            ],
+        )
+
+        project = client.get("/api/portfolio").json()["projects"][0]
+
+        assert project["status"] == "paused"
+        assert project["pause"] == {
+            "reason": "authority_wait",
+            "expected_resumption": "2026-10-20",
+            "overdue": True,
+            "days_overdue": 4,
         }
 
     def test_empty_portfolio(self, client, queries):

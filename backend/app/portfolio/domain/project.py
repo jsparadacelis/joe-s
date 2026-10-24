@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 
 @dataclass(frozen=True)
@@ -16,6 +16,9 @@ class ProjectRecord:
     next_milestone: str | None
     responsible_id: str | None
     updated_at: datetime
+    # The project's open pause, if it has a row in `pauses`.
+    pause_reason: str | None = None
+    pause_expected_resumption: date | None = None
 
 
 def status_of(record: ProjectRecord) -> str:
