@@ -178,3 +178,27 @@ Estado: `lint`, `typecheck`, `test` (45 suites, 827 tests) y `build` en verde. L
 - Hallazgo 2: encuadre inicial en un lienzo ancho y bajo recorta el borde sur.
 - Hallazgo 5: no hay manejo de `webglcontextlost`.
 - El contraste del relleno sobre los tonos altos de la rampa en oscuro es modesto (>= 1,3:1 en luminancia; se distingue sobre todo por el tono rosado y la línea de acento).
+
+### Reverificación del Tester tras `f3f92e9`
+
+Fecha: 2026-10-24. Mismo método (build real, Chromium con WebGL por software, es-ES, 1440 px, claro y oscuro).
+
+**Comandos.** `lint` y `typecheck` en verde; `test` 45 suites, 827 tests, dos pasadas (42,2 s y 41,0 s) sin inestables; `build` en verde. `three` sigue en un solo chunk diferido (`static/chunks/1m7xsumeumuc8.js`, el único con `WebGLRenderer`); ningún `page_client-reference-manifest` lo lista; no se pide al cargar la fase 3 y se pide una vez al pulsar «Ver relieve».
+
+| Hallazgo | Estado | Evidencia |
+|---|---|---|
+| 1. Terreno asoma por el relleno | Resuelto | En residencial y rústica recortada (claro y oscuro) el relleno cubre la parcela sin huecos (`rural-fill-detail-*.png`, `residential-*.png`, `rural-clipped-*.png`); antes había manchas del terreno dentro de la parcela. |
+| 3. Rampa y relleno poco contrastados | Parcial | Rampa contra el fondo `surface-2`: claro 5,93 / 3,67 / 2,92 / 2,73 (antes 3,55 a 1,09); oscuro 1,70 / 2,03 / 2,45 / 2,94 (antes 2,22 a 7,68, pero con el problema de relleno). La parcela ahora destaca en ambos temas a simple vista (tono rosado/pardo frente a verde y oliva). Siguen bajos los contrastes de luminancia relleno al 60 % contra rampa: claro 1,37-2,07; oscuro 1,31-1,88 (el relleno más claro que el terreno en oscuro). La línea de acento contra la rampa: claro 1,58-3,44; oscuro 1,63-2,83. Se distinguen por matiz, no por luminancia (ver hallazgo nuevo A). |
+| 4. Borde del recorte | Resuelto | `--relief-clip` contra el fondo: 4,50 claro / 4,15 oscuro (antes 1,98 / 1,93); la línea gris se ve en ambas capturas de la residencial. Contra el terreno 1,2-2,4 (es una línea de apoyo, además de «Vista» en texto). |
+| 6. Pegado con espacios | Resuelto | `maxLength` 40 y recorte al validar: `"  REF"`, `"REF   "`, `"  REF  "` y con tabulador/salto se aceptan, el campo queda recortado y se consulta; 20 caracteres con espacios y 2 de más (22 útiles) se rechazan con el aviso. |
+| 7. `aria-invalid` | Resuelto | `false` al inicio; `true` con referencia inválida (y `aria-describedby` al aviso); vuelve a `false` tras un envío válido. Nota: sigue `true` mientras se corrige el texto hasta el siguiente envío (diseño actual, Info). |
+
+**Liberación de WebGL con el relleno nuevo (cifras idénticas a la primera vuelta).** Máximo vivo simultáneo 1; 5 ciclos de navegación: 0 vivos y 0 canvas al salir en los 5 (creados 6); 5 veces «ver relieve y salir en el acto»: 0 vivos al salir (creados 11); Atrás/Adelante: 0; 3 reemplazos + 10 cambios de lado: 1 vivo, 25 creados, 24 eventos `webglcontextlost`; consola sin errores ni avisos. El relleno vive en el mismo grupo que se recorre con `traverse` al liberar y al cambiar la exageración, de modo que su geometría y su material se liberan con el resto (no se puede leer `renderer.info.memory` desde fuera del módulo; lo cubren los tests de `relief-scene` y la ausencia de contextos vivos).
+
+**axe** (claro y oscuro): 0 violaciones en inicial, con relieve y sin WebGL. Foco de 2 px sin cambios.
+
+**Pantallazos regenerados** (`docs/plans/RGB-34/screenshots/`, claro y oscuro): `residential`, `rural-clipped`, `exaggeration-x3`, `invalid-reference`, `no-webgl`, `focus-canvas`, `focus-control`, y nuevos `rural-fill-detail` (lienzo de la rústica recortada ×3, relleno sin huecos) y `aria-invalid` (campo inválido con el foco puesto).
+
+**Hallazgos nuevos.**
+- A. **Baja (visual).** Con opacidad 0,6 el relleno oculta casi por completo la rampa de alturas dentro de la parcela: en la rústica recortada (donde la parcela ocupa toda la ventana) el terreno se ve de un solo tono pardo (claro) o rosa pálido (oscuro) y el relieve se lee solo por el sombreado y las lecturas; en oscuro con ×3 el sombreado es muy tenue. Propuesta: bajar la opacidad (~0,35-0,45) o dibujar solo el contorno y un relleno más tenue cuando la parcela cubre la ventana.
+- B. **Info.** Pendientes de antes: 2 (encuadre que recorta el borde sur) y 5 (pérdida de contexto WebGL sin aviso).
