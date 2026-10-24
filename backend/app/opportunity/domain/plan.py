@@ -11,6 +11,8 @@ from typing import Any
 from backend.app.opportunity.domain.errors import InvalidFactor, InvalidWeeks
 
 PLANNED_PHASES = 7  # phases 1 to 7 (phase 0 has no plan yet)
+MAX_WEEKS = 520
+MIN_FACTOR = Decimal("0.1")
 MAX_FACTOR = Decimal("10")
 
 
@@ -79,7 +81,7 @@ def validate_weeks(weeks: Sequence[Any]) -> tuple[int, ...]:
     valid = (
         isinstance(weeks, (list, tuple))
         and len(weeks) == PLANNED_PHASES
-        and all(type(w) is int and w >= 1 for w in weeks)
+        and all(type(w) is int and 1 <= w <= MAX_WEEKS for w in weeks)
     )
     if not valid:
         raise InvalidWeeks()
@@ -91,6 +93,6 @@ def validate_factor(value: Any) -> Decimal:
         factor = Decimal(str(value))
     except InvalidOperation:
         raise InvalidFactor() from None
-    if not factor.is_finite() or factor <= 0 or factor > MAX_FACTOR:
+    if not factor.is_finite() or not MIN_FACTOR <= factor <= MAX_FACTOR:
         raise InvalidFactor()
     return factor

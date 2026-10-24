@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from decimal import Decimal
 from unittest.mock import create_autospec
 
 import pytest
@@ -99,7 +98,7 @@ class TestSettings:
         response = client.put("/api/settings/plan/scale-factors/large", json={"factor": "1.5"})
 
         assert response.status_code == 204
-        assert service.update_scale_factor.call_args.args[1:] == (Scale.LARGE, Decimal("1.5"))
+        assert service.update_scale_factor.call_args.args[1:] == (Scale.LARGE, "1.5")
 
     def test_invalid_factor_is_422(self, client, service):
         service.update_scale_factor.side_effect = InvalidFactor()
