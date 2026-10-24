@@ -1,8 +1,8 @@
 /**
- * Datos técnicos del inmueble (RGB-29).
- * Las firmas exportadas son el contrato con la API: cuando existan RGB-24, RGB-27 y
- * RGB-28 se sustituye el bloque «DATOS DE EJEMPLO» por el cliente de la API sin tocar
- * los componentes. El front nunca llama a servicios externos.
+ * Technical data of the property (RGB-29).
+ * The exported signatures are the contract with the API: once RGB-24, RGB-27 and
+ * RGB-28 exist the "SAMPLE DATA" block is replaced by the API client without touching
+ * the components. The front end never calls external services.
  */
 
 export type DataGroupId = "plot" | "conditions" | "planning";
@@ -24,7 +24,7 @@ export interface DatumDefinition {
   options?: readonly string[];
 }
 
-/** `original` null: dato manual (no viene de ninguna consulta). */
+/** `original` null: manual datum (does not come from any query). */
 export interface TechnicalDatum {
   id: string;
   value: string;
@@ -34,7 +34,7 @@ export interface TechnicalDatum {
 
 export interface TechnicalData {
   cadastralReference: string;
-  /** Fecha ISO yyyy-mm-dd. */
+  /** ISO date yyyy-mm-dd. */
   queriedOn: string | null;
   data: TechnicalDatum[];
 }
@@ -50,7 +50,7 @@ const USES = [
   "Sanidad y beneficencia", "Cultural", "Deportivo", "Religioso", "Espectáculos", "Edificio singular", "Suelo sin edificar",
 ] as const;
 const ZONES = ["α3", "A2", "A3", "A4", "B2", "B3", "B4", "C1", "C2", "C3", "C4", "D1", "D2", "D3", "E1"] as const;
-// «< 0,04 g» y de 0,04 g a 0,24 g en pasos de 0,01.
+// «< 0,04 g» and from 0,04 g to 0,24 g in steps of 0,01.
 const ACCELERATIONS = [
   "< 0,04 g",
   ...Array.from({ length: 21 }, (_, i) => `0,${String(4 + i).padStart(2, "0")} g`),
@@ -88,7 +88,7 @@ export const DEFINITIONS: readonly DatumDefinition[] = [
   { id: "calcArea", group: "planning", label: "Superficie de cálculo", type: "list", origin: "Manual", options: ["Catastral", "Polígono", "Topográfico"] },
 ];
 
-// ---- Funciones puras ----
+// ---- Pure functions ----
 
 export function isEdited(d: TechnicalDatum): boolean {
   return d.original !== null && d.value !== d.original;
@@ -116,15 +116,15 @@ export function isValidCadastralReference(ref: string): boolean {
 
 const GROUP_BY_ID = new Map(DEFINITIONS.map((d) => [d.id, d.group]));
 
-/** Manual = del grupo Planeamiento; un id desconocido se considera manual si no tiene original. */
+/** Manual = from the Planning group; an unknown id is considered manual if it has no original. */
 function isManual(d: TechnicalDatum): boolean {
   const group = GROUP_BY_ID.get(d.id);
   return group ? group === "planning" : d.original === null;
 }
 
 /**
- * Datos de origen nuevos (sin verificar); los manuales (planeamiento) del estado actual se conservan.
- * Los de parcela y condiciones son de origen aunque se hayan introducido a mano tras un fallo de la consulta.
+ * New origin data (unverified); the manual ones (planning) of the current state are kept.
+ * Plot and conditions data are origin data even if entered by hand after a query failure.
  */
 export function requery(current: TechnicalDatum[], incoming: TechnicalDatum[]): TechnicalDatum[] {
   const previousById = new Map(current.map((d) => [d.id, d]));
@@ -134,7 +134,7 @@ export function requery(current: TechnicalDatum[], incoming: TechnicalDatum[]): 
   });
 }
 
-// ---- DATOS DE EJEMPLO (ficticios; sustituible por el cliente de la API) ----
+// ---- SAMPLE DATA (fictitious; replaceable by the API client) ----
 
 type Values = Readonly<Record<string, string>>;
 
@@ -169,7 +169,7 @@ function copyOf(d: TechnicalData): TechnicalData {
   return { ...d, data: d.data.map((x) => ({ ...x })) };
 }
 
-// ---- Funciones públicas (mismas firmas que el cliente de la API) ----
+// ---- Public functions (same signatures as the API client) ----
 
 export async function fetchTechnicalData(cadastralReference: string): Promise<TechnicalData> {
   const ref = cadastralReference.trim();
@@ -184,7 +184,7 @@ export async function fetchTechnicalData(cadastralReference: string): Promise<Te
 export async function fetchSavedTechnicalData(code: string): Promise<TechnicalData | null> {
   if (code !== "PRY-EJ-001") return null;
   const data = build(RESIDENTIAL, SAMPLE_PLANNING, true);
-  // Dos datos de origen corregidos a mano, conservando su valor original.
+  // Two origin data corrected by hand, keeping their original value.
   const edit = (id: string, value: string) => {
     const d = data.find((x) => x.id === id);
     if (d) d.value = value;

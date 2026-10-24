@@ -1,6 +1,6 @@
 import type { Point, Relief } from "@/lib/relief";
 
-/** Lecturas de la parcela visible. La pendiente se expresa en %. */
+/** Readings of the visible plot. The slope is expressed in %. */
 export interface Readings {
   surface: number;
   minHeight: number;
@@ -9,15 +9,15 @@ export interface Readings {
   meanSlope: number;
 }
 
-/** Divisiones por eje del muestreo (61 × 61 puntos) y paso de las diferencias centrales, en m. */
+/** Divisions per axis of the sampling (61 × 61 points) and step of the central differences, in m. */
 const DIVISIONS = 60;
 const GRADIENT_STEP = 2;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 /**
- * Altura del terreno en (x, y) por interpolación bilineal. Fila 0 = norte.
- * Fuera de la ventana se sujeta al borde.
+ * Terrain height at (x, y) by bilinear interpolation. Row 0 = north.
+ * Outside the window it is clamped to the edge.
  */
 export function heightAt(
   relief: Pick<Relief, "viewWindow" | "columns" | "rows" | "heights">,
@@ -39,7 +39,7 @@ export function heightAt(
   return (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + d * fu) * fv;
 }
 
-/** Área del polígono (fórmula del área de Gauss); siempre >= 0. */
+/** Polygon area (shoelace formula); always >= 0. */
 export function polygonArea(polygon: readonly Point[]): number {
   let sum = 0;
   for (let i = 0; i < polygon.length; i++) {
@@ -50,7 +50,7 @@ export function polygonArea(polygon: readonly Point[]): number {
   return Math.abs(sum) / 2;
 }
 
-/** Punto dentro del polígono (regla par-impar). */
+/** Point inside the polygon (even-odd rule). */
 export function pointInPolygon(polygon: readonly Point[], x: number, y: number): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -61,7 +61,7 @@ export function pointInPolygon(polygon: readonly Point[], x: number, y: number):
   return inside;
 }
 
-/** Lecturas dentro del perímetro recortado; `null` si no hay muestras dentro. */
+/** Readings inside the clipped perimeter; `null` if there are no samples inside. */
 export function calculateReadings(relief: Relief): Readings | null {
   const [x0, y0, x1, y1] = relief.viewWindow;
   let minHeight = Infinity;

@@ -12,7 +12,7 @@ function walk(dir: string): string[] {
   });
 }
 
-// Sufijos que NO son color para cada prefijo (tamaños, alineación, lados, estilos).
+// Suffixes that are NOT a colour for each prefix (sizes, alignment, sides, styles).
 const NON_COLOR: Record<string, RegExp> = {
   text: /^(xs|s|m|l|xl|2xl|left|right|center|wrap|nowrap|balance)$/,
   border: /^([xytblrse]|collapse|solid|dashed|\d+)$/,
@@ -21,12 +21,12 @@ const NON_COLOR: Record<string, RegExp> = {
   ring: /^(\d+)$/,
 };
 
-it("el tema define sus colores y anula la paleta por defecto de Tailwind", () => {
+it("the theme defines its colours and overrides Tailwind's default palette", () => {
   expect(css).toMatch(/--color-\*:\s*initial;/);
   expect(tokens.size).toBeGreaterThan(10);
 });
 
-it("los componentes solo usan clases de color definidas por los tokens", () => {
+it("components only use colour classes defined by the tokens", () => {
   const offenders: string[] = [];
   for (const file of ["app", "components"].flatMap((d) => walk(join(root, d)))) {
     const src = readFileSync(file, "utf8");

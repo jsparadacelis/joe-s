@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export type PageHeadProps = {
   title: string;
   description?: string;
-  /** Acciones de la sección (p. ej. botones). */
+  /** Section actions (e.g. buttons). */
   actions?: ReactNode;
 };
 

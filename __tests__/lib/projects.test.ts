@@ -3,8 +3,8 @@ import { listProjects, fetchDeliverable, fetchProject } from "@/lib/projects";
 
 const IDS: PhaseId[] = [0, 1, 2, 3, 4, 5, 6, 7];
 
-describe("listarProyectos", () => {
-  it("devuelve los cuatro proyectos de ejemplo con su fase actual", async () => {
+describe("listProjects", () => {
+  it("returns the four sample projects with their current phase", async () => {
     const ps = await listProjects();
     expect(ps.map((p) => [p.code, p.currentPhase])).toEqual(
       expect.arrayContaining([
@@ -17,35 +17,35 @@ describe("listarProyectos", () => {
     expect(ps).toHaveLength(4);
   });
 
-  it("los datos son ficticios: «(ejemplo)» en el nombre y códigos PRY-EJ-NNN", async () => {
+  it("the data is fictitious: «(ejemplo)» in the name and PRY-EJ-NNN codes", async () => {
     for (const p of await listProjects()) {
       expect(p.name).toContain("(ejemplo)");
       expect(p.code).toMatch(/^PRY-EJ-\d{3}$/);
     }
   });
 
-  it("los códigos son únicos y la fase actual es válida", async () => {
+  it("codes are unique and the current phase is valid", async () => {
     const ps = await listProjects();
     expect(new Set(ps.map((p) => p.code)).size).toBe(ps.length);
     for (const p of ps) expect(IDS).toContain(p.currentPhase);
   });
 });
 
-describe("obtenerProyecto", () => {
-  it("devuelve el proyecto existente", async () => {
+describe("fetchProject", () => {
+  it("returns the existing project", async () => {
     const p = await fetchProject("PRY-EJ-001");
     expect(p).toMatchObject({ code: "PRY-EJ-001", currentPhase: 3 });
     expect(p!.name).toContain("(ejemplo)");
   });
 
-  it("devuelve null si no existe", async () => {
+  it("returns null if it does not exist", async () => {
     expect(await fetchProject("PRY-NO-EXISTE")).toBeNull();
     expect(await fetchProject("")).toBeNull();
   });
 });
 
 describe("PRY-EJ-004 (RGB-29)", () => {
-  it("es el local comercial de ejemplo, en la fase 2", async () => {
+  it("is the sample commercial premises, in phase 2", async () => {
     expect(await fetchProject("PRY-EJ-004")).toEqual({
       code: "PRY-EJ-004",
       name: "Local comercial (ejemplo)",
@@ -53,7 +53,7 @@ describe("PRY-EJ-004 (RGB-29)", () => {
     });
   });
 
-  it("el entregable de la fase 2 tiene campos y no está congelado", async () => {
+  it("the phase 2 deliverable has fields and is not frozen", async () => {
     const e = await fetchDeliverable("PRY-EJ-004", 2);
     expect(e.phase).toBe(2);
     expect(e.frozenVersion).toBeNull();
@@ -61,13 +61,13 @@ describe("PRY-EJ-004 (RGB-29)", () => {
     for (const c of e.fields) expect(c.label.length).toBeGreaterThan(0);
   });
 
-  it("la fase 1 de PRY-EJ-004 está congelada", async () => {
+  it("phase 1 of PRY-EJ-004 is frozen", async () => {
     expect((await fetchDeliverable("PRY-EJ-004", 1)).frozenVersion).toEqual(expect.any(String));
   });
 });
 
-describe("obtenerEntregable", () => {
-  it.each(IDS)("la fase %i del proyecto 001 tiene campos bien formados", async (phase) => {
+describe("fetchDeliverable", () => {
+  it.each(IDS)("phase %i of project 001 has well-formed fields", async (phase) => {
     const e = await fetchDeliverable("PRY-EJ-001", phase);
     expect(e.phase).toBe(phase);
     expect(e.fields.length).toBeGreaterThan(0);
@@ -81,7 +81,7 @@ describe("obtenerEntregable", () => {
   });
 
   it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004"])(
-    "%s: versionCongelada no nula antes de la actual y nula en la actual y siguientes",
+    "%s: frozenVersion non-null before the current one and null on the current and later ones",
     async (code) => {
       const { currentPhase } = (await fetchProject(code))!;
       for (const phase of IDS) {
@@ -96,13 +96,13 @@ describe("obtenerEntregable", () => {
     },
   );
 
-  it("el proyecto en fase 0 no tiene ninguna versión congelada", async () => {
+  it("the project in phase 0 has no frozen version", async () => {
     for (const phase of IDS) {
       expect((await fetchDeliverable("PRY-EJ-002", phase)).frozenVersion).toBeNull();
     }
   });
 
-  it("los valores no parecen datos reales (sin correos ni teléfonos)", async () => {
+  it("the values do not look like real data (no emails or phone numbers)", async () => {
     for (const p of await listProjects()) {
       for (const phase of IDS) {
         for (const c of (await fetchDeliverable(p.code, phase)).fields) {
@@ -113,7 +113,7 @@ describe("obtenerEntregable", () => {
     }
   });
 
-  it("hay una definición de fase para cada entregable (coherencia con FASES)", async () => {
+  it("there is a phase definition for each deliverable (consistency with PHASES)", async () => {
     expect(PHASES).toHaveLength(8);
     const e = await fetchDeliverable("PRY-EJ-003", 7);
     expect(e.phase).toBe(PHASES[7].id);

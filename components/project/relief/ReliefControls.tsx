@@ -48,11 +48,11 @@ export function ReliefControls({
     <form onSubmit={submit} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex min-w-[260px] flex-col gap-1">
-          <label htmlFor="relieve-referencia" className="text-s font-medium">
+          <label htmlFor="relief-reference" className="text-s font-medium">
             Referencia catastral
           </label>
           <input
-            id="relieve-referencia"
+            id="relief-reference"
             type="text"
             maxLength={20}
             autoComplete="off"
@@ -70,11 +70,11 @@ export function ReliefControls({
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
-          <label htmlFor="relieve-recorte" className="text-s font-medium">
+          <label htmlFor="relief-margin" className="text-s font-medium">
             Recorte
           </label>
           <select
-            id="relieve-recorte"
+            id="relief-margin"
             className={CONTROL}
             value={margin}
             onChange={(e) => onMargin(Number(e.target.value) as Margin)}
@@ -87,11 +87,11 @@ export function ReliefControls({
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="relieve-lado" className="text-s font-medium">
+          <label htmlFor="relief-max-side" className="text-s font-medium">
             Lado máximo de la vista
           </label>
           <select
-            id="relieve-lado"
+            id="relief-max-side"
             className={CONTROL}
             value={maxSide}
             onChange={(e) => onMaxSide(Number(e.target.value) as MaxSide)}
@@ -104,11 +104,11 @@ export function ReliefControls({
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="relieve-exageracion" className="text-s font-medium">
+          <label htmlFor="relief-exaggeration" className="text-s font-medium">
             Exageración vertical
           </label>
           <select
-            id="relieve-exageracion"
+            id="relief-exaggeration"
             className={CONTROL}
             value={exaggeration}
             onChange={(e) => onExaggeration(Number(e.target.value) as Exaggeration)}

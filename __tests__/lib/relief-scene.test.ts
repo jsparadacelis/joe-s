@@ -2,7 +2,7 @@ import { MeshStandardMaterial } from "three";
 import { mountScene } from "@/lib/relief-scene";
 import { slopedPlane } from "../helpers/relief-plane";
 
-// jsdom no tiene WebGL: se sustituyen el renderer y los controles; la escena (mallas, líneas, luces) es real.
+// jsdom has no WebGL: the renderer and controls are replaced; the scene (meshes, lines, lights) is real.
 const renderer = {
   domElement: undefined as unknown as HTMLCanvasElement,
   setPixelRatio: jest.fn(),
@@ -47,8 +47,8 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
-describe("montarEscena", () => {
-  it("añade el lienzo, escucha el teclado y dibuja un fotograma", () => {
+describe("mountScene", () => {
+  it("adds the canvas, listens to the keyboard and draws a frame", () => {
     const host = document.createElement("div");
     mountScene(host, slopedPlane(), 2, COLORS);
     expect(host.contains(renderer.domElement)).toBe(true);
@@ -56,14 +56,14 @@ describe("montarEscena", () => {
     expect(renderer.render).toHaveBeenCalled();
   });
 
-  it("sin WebGL lanza Error y no deja el lienzo en el contenedor", () => {
+  it("without WebGL throws Error and leaves no canvas in the host", () => {
     failWebGL = true;
     const host = document.createElement("div");
     expect(() => mountScene(host, slopedPlane(), 2, COLORS)).toThrow(Error);
     expect(host.childElementCount).toBe(0);
   });
 
-  it("liberar() libera todo exactamente una vez, aunque se llame varias", () => {
+  it("release() frees everything exactly once, even if called several times", () => {
     const dispose = jest.spyOn(MeshStandardMaterial.prototype, "dispose");
     const host = document.createElement("div");
     const scene = mountScene(host, slopedPlane(), 2, COLORS);
@@ -74,11 +74,11 @@ describe("montarEscena", () => {
     expect(controls.dispose).toHaveBeenCalledTimes(1);
     expect(renderer.dispose).toHaveBeenCalledTimes(1);
     expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
-    expect(dispose).toHaveBeenCalled(); // terreno + parcela
+    expect(dispose).toHaveBeenCalled(); // terrain + plot
     expect(host.contains(renderer.domElement)).toBe(false);
   });
 
-  it("actualizarExageracion reconstruye la geometría liberando la anterior", () => {
+  it("updateExaggeration rebuilds the geometry releasing the previous one", () => {
     const dispose = jest.spyOn(MeshStandardMaterial.prototype, "dispose");
     const scene = mountScene(document.createElement("div"), slopedPlane(), 2, COLORS);
     expect(dispose).not.toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe("montarEscena", () => {
     expect(dispose).toHaveBeenCalledTimes(4);
   });
 
-  it("acercar, alejar y reiniciar actualizan los controles; tras liberar, actualizarExageracion no hace nada", () => {
+  it("zoomIn, zoomOut and reset update the controls; after release, updateExaggeration does nothing", () => {
     const scene = mountScene(document.createElement("div"), slopedPlane(), 1, COLORS);
     controls.update.mockClear();
     scene.zoomIn();

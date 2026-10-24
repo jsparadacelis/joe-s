@@ -8,7 +8,7 @@ import type { Field, PhaseDeliverable } from "@/lib/projects";
 export type PhaseDeliverableFormProps = {
   deliverable: PhaseDeliverable;
   mode: PhaseMode;
-  /** La persistencia llega en tareas posteriores; por defecto no hace nada. */
+  /** Persistence arrives in later tasks; by default it does nothing. */
   onSave?: () => void;
 };
 
@@ -18,7 +18,7 @@ const CONTROL =
 function DeliverableField({ field, mode, baseId }: { field: Field; mode: PhaseMode; baseId: string }) {
   const id = `${baseId}-${field.id}`;
   const editable = mode === "edit";
-  // Los campos de fecha no respetan readOnly en el navegador: se deshabilitan.
+  // Date fields do not honour readOnly in the browser: they are disabled.
   const lock = editable
     ? {}
     : mode === "read-only" && field.type !== "date"

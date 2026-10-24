@@ -12,7 +12,7 @@ import {
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const isIsoDate = (s: string) => ISO.test(s) && !Number.isNaN(Date.parse(s)) && new Date(s).toISOString().startsWith(s);
 
-describe("porcentajeConsumo", () => {
+describe("consumptionPercent", () => {
   it.each([
     [0, 5, 0],
     [1, 5, 20],
@@ -25,29 +25,29 @@ describe("porcentajeConsumo", () => {
     [29, 36, 81],
     [30, 36, 83],
     [4, 3, 133],
-  ])("%i activas de %i de plan = %i %%", (active, plan, expected) => {
+  ])("%i active of %i planned = %i %%", (active, plan, expected) => {
     expect(consumptionPercent(active, plan)).toBe(expected);
   });
 
-  it("redondea al entero más cercano (0,5 sube)", () => {
-    expect(consumptionPercent(1, 8)).toBe(13); // 12,5
-    expect(consumptionPercent(1, 6)).toBe(17); // 16,67
-    expect(consumptionPercent(1, 7)).toBe(14); // 14,28
+  it("rounds to the nearest integer (0.5 goes up)", () => {
+    expect(consumptionPercent(1, 8)).toBe(13); // 12.5
+    expect(consumptionPercent(1, 6)).toBe(17); // 16.67
+    expect(consumptionPercent(1, 7)).toBe(14); // 14.28
   });
 
-  it("plan 0 o negativo devuelve 0 (sin dividir entre cero)", () => {
+  it("plan 0 or negative returns 0 (no division by zero)", () => {
     expect(consumptionPercent(3, 0)).toBe(0);
     expect(consumptionPercent(0, 0)).toBe(0);
     expect(consumptionPercent(3, -2)).toBe(0);
     expect(Number.isFinite(consumptionPercent(5, 0))).toBe(true);
   });
 
-  it("no limita por encima del 100 %", () => {
+  it("does not cap at 100 %", () => {
     expect(consumptionPercent(10, 2)).toBe(500);
   });
 });
 
-describe("semaforoConsumo: fronteras", () => {
+describe("consumptionTrafficLight: boundaries", () => {
   it.each<[string, number, number, TrafficLight]>([
     ["plan 5: 3 activas = 60 %", 3, 5, "green"],
     ["plan 5: 4 activas = 80 % exacto", 4, 5, "amber"],
@@ -67,7 +67,7 @@ describe("semaforoConsumo: fronteras", () => {
     ["plan 2: 1 activa = 50 %", 1, 2, "green"],
     ["plan 2: 2 activas = 100 %", 2, 2, "amber"],
     ["plan 2: 3 activas = 150 %", 3, 2, "red"],
-    ["fase futura: 0 activas con plan", 0, 6, "green"],
+    ["future phase: 0 active with plan", 0, 6, "green"],
     ["plan 0 sin activas", 0, 0, "green"],
     ["plan 0 con activas", 3, 0, "green"],
     ["plan negativo", 2, -1, "green"],
@@ -75,7 +75,7 @@ describe("semaforoConsumo: fronteras", () => {
     expect(consumptionTrafficLight(active, plan)).toBe(expected);
   });
 
-  it("79 % es verde, 80 % es ámbar y 101 % es rojo (plan 100 para ver el porcentaje exacto)", () => {
+  it("79 % is green, 80 % is amber and 101 % is red (plan 100 to see the exact percentage)", () => {
     expect(consumptionTrafficLight(79, 100)).toBe("green");
     expect(consumptionTrafficLight(80, 100)).toBe("amber");
     expect(consumptionTrafficLight(99, 100)).toBe("amber");
@@ -83,25 +83,25 @@ describe("semaforoConsumo: fronteras", () => {
     expect(consumptionTrafficLight(101, 100)).toBe("red");
   });
 
-  it("el rojo se decide con el valor real, no con el porcentaje redondeado (100,4 % sigue siendo rojo)", () => {
-    // 501/500 = 100,2 % redondea a 100 %, pero supera el plan
+  it("red is decided with the real value, not the rounded percentage (100.4 % is still red)", () => {
+    // 501/500 = 100.2 % rounds to 100 %, but exceeds the plan
     expect(consumptionPercent(501, 500)).toBe(100);
     expect(consumptionTrafficLight(501, 500)).toBe("red");
   });
 
-  it("el ámbar se decide con el valor real (79,6 % redondea a 80 % pero sigue en verde)", () => {
-    // 199/250 = 79,6 %
+  it("amber is decided with the real value (79.6 % rounds to 80 % but is still green)", () => {
+    // 199/250 = 79.6 %
     expect(consumptionPercent(199, 250)).toBe(80);
     expect(consumptionTrafficLight(199, 250)).toBe("green");
   });
 });
 
-describe("etiquetas", () => {
-  it("ETIQUETA_SEMAFORO tiene los textos exactos", () => {
+describe("labels", () => {
+  it("TRAFFIC_LIGHT_LABEL has the exact texts", () => {
     expect(TRAFFIC_LIGHT_LABEL).toEqual({ green: "En plazo", amber: "Atención", red: "Plan superado" });
   });
 
-  it("ETIQUETA_MOTIVO tiene los textos exactos", () => {
+  it("REASON_LABEL has the exact texts", () => {
     const expected: Record<PauseReason, string> = {
       "client-wait": "Espera del cliente",
       "authority-wait": "Espera de organismo",
@@ -112,8 +112,8 @@ describe("etiquetas", () => {
   });
 });
 
-describe("obtenerPlanTiempos", () => {
-  it("PRY-EJ-001: siete fases 1..7 en orden con plan, activas y pausa del plan de la tarea", async () => {
+describe("fetchTimingPlan", () => {
+  it("PRY-EJ-001: seven phases 1..7 in order with plan, active and pause from the task plan", async () => {
     const p = await fetchTimingPlan("PRY-EJ-001");
     expect(p).not.toBeNull();
     expect(p!.code).toBe("PRY-EJ-001");
@@ -124,7 +124,7 @@ describe("obtenerPlanTiempos", () => {
     expect(p!.phases.map((f) => f.pausedWeeks)).toEqual([0, 3, 1, 0, 0, 0, 0]);
   });
 
-  it("PRY-EJ-001: totales del servicio (11 activas, 64 de plan, 4 de pausa, 15 de calendario, +1 de desviación)", async () => {
+  it("PRY-EJ-001: service totals (11 active, 64 planned, 4 paused, 15 calendar, +1 deviation)", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-001"))!;
     expect(p.totalActiveWeeks).toBe(11);
     expect(p.totalPlannedWeeks).toBe(64);
@@ -133,22 +133,22 @@ describe("obtenerPlanTiempos", () => {
     expect(p.deviationWeeks).toBe(1);
   });
 
-  it("PRY-EJ-001: sin pausa activa y con 2 pausas en el historial", async () => {
+  it("PRY-EJ-001: no active pause and 2 pauses in the history", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-001"))!;
     expect(p.activePause).toBeNull();
     expect(p.pauses).toHaveLength(2);
   });
 
-  it("PRY-EJ-001: las semanas de las pausas del historial suman las de pausa", async () => {
+  it("PRY-EJ-001: the weeks of the history pauses add up to the paused weeks", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-001"))!;
     expect(p.pauses.reduce((s, x) => s + x.weeks, 0)).toBe(p.totalPausedWeeks);
   });
 
-  it("PRY-EJ-002 (fase 0) no tiene plan: null", async () => {
+  it("PRY-EJ-002 (phase 0) has no plan: null", async () => {
     expect(await fetchTimingPlan("PRY-EJ-002")).toBeNull();
   });
 
-  it("PRY-EJ-003: fase 6 con plan, activas y pausa del plan de la tarea", async () => {
+  it("PRY-EJ-003: phase 6 with plan, active and pause from the task plan", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-003"))!;
     expect(p).not.toBeNull();
     expect(p.code).toBe("PRY-EJ-003");
@@ -159,7 +159,7 @@ describe("obtenerPlanTiempos", () => {
     expect(p.phases.map((f) => f.pausedWeeks)).toEqual([0, 0, 0, 1, 0, 2, 0]);
   });
 
-  it("PRY-EJ-003: tiene pausa activa por espera de organismo con reanudación posterior al inicio", async () => {
+  it("PRY-EJ-003: has an active pause waiting for an authority with a resumption after the start", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-003"))!;
     expect(p.activePause).not.toBeNull();
     expect(p.activePause!.reason).toBe("authority-wait");
@@ -168,11 +168,11 @@ describe("obtenerPlanTiempos", () => {
     expect(p.activePause!.expectedResumption > p.activePause!.from).toBe(true);
   });
 
-  it.each(["PRY-NO-EXISTE", "", "pry-ej-001"])("código inexistente %j devuelve null", async (c) => {
+  it.each(["PRY-NO-EXISTE", "", "pry-ej-001"])("nonexistent code %j returns null", async (c) => {
     expect(await fetchTimingPlan(c)).toBeNull();
   });
 
-  it("devuelve copias: mutar el resultado no altera la siguiente consulta", async () => {
+  it("returns copies: mutating the result does not alter the next query", async () => {
     const a = (await fetchTimingPlan("PRY-EJ-001"))!;
     a.phases[0].activeWeeks = 999;
     a.pauses.pop();
@@ -184,10 +184,10 @@ describe("obtenerPlanTiempos", () => {
   });
 });
 
-describe("coherencia de los datos de ejemplo", () => {
+describe("consistency of the sample data", () => {
   const codes = ["PRY-EJ-001", "PRY-EJ-003", "PRY-EJ-004"];
 
-  it.each(codes)("%s: ids de fase únicos, ordenados y con nombre en FASES", async (c) => {
+  it.each(codes)("%s: unique, ordered phase ids with a name in PHASES", async (c) => {
     const p = (await fetchTimingPlan(c))!;
     const ids = p.phases.map((f) => f.phase);
     expect(new Set(ids).size).toBe(7);
@@ -196,7 +196,7 @@ describe("coherencia de los datos de ejemplo", () => {
     expect(ids).not.toContain(0);
   });
 
-  it.each(codes)("%s: semanas enteras y no negativas, plan positivo", async (c) => {
+  it.each(codes)("%s: whole, non-negative weeks, positive plan", async (c) => {
     const p = (await fetchTimingPlan(c))!;
     for (const f of p.phases) {
       expect(Number.isInteger(f.plannedWeeks) && f.plannedWeeks > 0).toBe(true);
@@ -205,7 +205,7 @@ describe("coherencia de los datos de ejemplo", () => {
     }
   });
 
-  it.each(codes)("%s: fechas ISO válidas y historial de más reciente a más antiguo", async (c) => {
+  it.each(codes)("%s: valid ISO dates and history from most recent to oldest", async (c) => {
     const p = (await fetchTimingPlan(c))!;
     for (const x of p.pauses) {
       expect(isIsoDate(x.from)).toBe(true);
@@ -221,15 +221,15 @@ describe("coherencia de los datos de ejemplo", () => {
     expect(froms).toEqual([...froms].sort().reverse());
   });
 
-  it.each(codes)("%s: datos ficticios (código PRY-EJ-NNN, sin correos ni teléfonos)", async (c) => {
+  it.each(codes)("%s: fictitious data (PRY-EJ-NNN code, no emails or phone numbers)", async (c) => {
     const p = (await fetchTimingPlan(c))!;
     expect(p.code).toMatch(/^PRY-EJ-\d{3}$/);
     expect(JSON.stringify(p)).not.toMatch(/@|\b\d{9}\b/);
   });
 });
 
-describe("obtenerPlanTiempos · PRY-EJ-004 (RGB-29)", () => {
-  it("tiene plan de siete fases 1..7 con la fase actual 2", async () => {
+describe("fetchTimingPlan · PRY-EJ-004 (RGB-29)", () => {
+  it("has a seven-phase plan 1..7 with current phase 2", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-004"))!;
     expect(p).not.toBeNull();
     expect(p.code).toBe("PRY-EJ-004");
@@ -238,7 +238,7 @@ describe("obtenerPlanTiempos · PRY-EJ-004 (RGB-29)", () => {
     expect(p.phases.map((f) => f.plannedWeeks)).toEqual([2, 3, 5, 6, 8, 36, 4]);
   });
 
-  it("solo hay semanas activas en las fases hasta la actual", async () => {
+  it("there are active weeks only in the phases up to the current one", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-004"))!;
     for (const f of p.phases.filter((x) => x.phase > p.currentPhase)) {
       expect(f.activeWeeks).toBe(0);
@@ -247,7 +247,7 @@ describe("obtenerPlanTiempos · PRY-EJ-004 (RGB-29)", () => {
     expect(p.phases[0].activeWeeks).toBeGreaterThan(0);
   });
 
-  it("los totales coinciden con la suma de las fases y el calendario es activas + pausa", async () => {
+  it("totals match the sum of the phases and the calendar is active + pause", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-004"))!;
     const sum = (k: "plannedWeeks" | "activeWeeks" | "pausedWeeks") => p.phases.reduce((a, f) => a + f[k], 0);
     expect(p.totalPlannedWeeks).toBe(sum("plannedWeeks"));
@@ -257,7 +257,7 @@ describe("obtenerPlanTiempos · PRY-EJ-004 (RGB-29)", () => {
     expect(Number.isInteger(p.deviationWeeks)).toBe(true);
   });
 
-  it("las semanas del historial de pausas suman las de pausa y no hay pausa activa inconsistente", async () => {
+  it("the weeks of the pause history add up to the paused ones and there is no inconsistent active pause", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-004"))!;
     expect(p.pauses.reduce((a, x) => a + x.weeks, 0)).toBe(p.totalPausedWeeks);
     if (p.activePause) expect(p.pauses.some((x) => x.to === null)).toBe(true);

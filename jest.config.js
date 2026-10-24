@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   coverageProvider: 'v8',
-  // axe sobre pantallas con muchos controles (RGB-29) tarda varios segundos con la CPU compartida.
+  // axe over screens with many controls (RGB-29) takes several seconds with a shared CPU.
   testTimeout: 20000,
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
@@ -24,7 +24,7 @@ const config = {
       },
     }],
   },
-  // three se publica como ESM: se transforma para poder probar la escena con un renderer falso.
+  // three is published as ESM: it is transformed so the scene can be tested with a fake renderer.
   transformIgnorePatterns: ['/node_modules/(?!three/)'],
   testMatch: [
     '**/__tests__/**/*.test.[jt]s?(x)',

@@ -4,9 +4,9 @@ import { polygonArea } from "@/lib/relief-readings";
 export type Margin = 0 | 10 | 25 | 50 | 100;
 export type MaxSide = 100 | 200 | 300 | 500;
 export type Exaggeration = 1 | 2 | 3;
-/** Metros en coordenadas locales (x este, y norte). */
+/** Metres in local coordinates (x east, y north). */
 export type Point = readonly [number, number];
-/** [x0, y0, x1, y1] en metros. */
+/** [x0, y0, x1, y1] in metres. */
 export type ViewWindow = readonly [number, number, number, number];
 
 export interface ReliefOptions {
@@ -17,19 +17,19 @@ export interface ReliefOptions {
 
 export interface Relief {
   reference: string;
-  /** La rejilla cubre exactamente la ventana. */
+  /** The grid covers exactly the window. */
   viewWindow: ViewWindow;
   columns: number;
   rows: number;
-  /** filas × columnas, fila 0 = norte (y máxima), orden de lectura. */
+  /** rows × columns, row 0 = north (maximum y), reading order. */
   heights: readonly number[];
-  /** Perímetro de la parcela recortado a la ventana. */
+  /** Plot perimeter clipped to the window. */
   perimeter: readonly Point[];
-  /** m² del perímetro completo (sin recortar). */
+  /** m² of the full (unclipped) perimeter. */
   polygonSurface: number;
-  /** La ventana se limitó al lado máximo. */
+  /** The window was limited to the maximum side. */
   clamped: boolean;
-  /** El perímetro quedó cortado por la ventana. */
+  /** The perimeter was cut by the window. */
   plotClipped: boolean;
   source: string;
 }
@@ -39,14 +39,14 @@ export const MAX_SIDES: readonly MaxSide[] = [100, 200, 300, 500];
 export const EXAGGERATIONS: readonly Exaggeration[] = [1, 2, 3];
 
 // ---------------------------------------------------------------------------
-// Capa de ejemplo, SUSTITUIBLE por el cliente de la API de relieve (RGB-33).
-// Todo lo que sigue hasta `obtenerRelieve` es ficticio y determinista: el
-// servicio real decidirá la ventana, pedirá el MDT del IGN solo de esa ventana
-// y devolverá la rejilla, el perímetro INSPIRE recortado y los indicadores.
-// El front nunca llama a servicios externos.
+// Sample layer, REPLACEABLE by the relief API client (RGB-33).
+// Everything that follows up to `fetchRelief` is fictitious and deterministic: the
+// real service will decide the window, request the IGN's MDT only for that window
+// and return the grid, the clipped INSPIRE perimeter and the indicators.
+// The front end never calls external services.
 // ---------------------------------------------------------------------------
 
-/** Polígono recortado a un rectángulo (Sutherland–Hodgman). No modifica la entrada. */
+/** Polygon clipped to a rectangle (Sutherland–Hodgman). Does not modify the input. */
 export function clipPolygon(polygon: readonly Point[], viewWindow: ViewWindow): Point[] {
   const [x0, y0, x1, y1] = viewWindow;
   const inside = [
@@ -82,8 +82,8 @@ export function clipPolygon(polygon: readonly Point[], viewWindow: ViewWindow): 
 }
 
 /**
- * Caja de la parcela + margen. Si una dimensión supera el lado máximo, se centra
- * en el centroide (media de vértices) con ese lado; `recortada` indica si alguna se limitó.
+ * Plot box + margin. If a dimension exceeds the maximum side, it is centred
+ * on the centroid (mean of vertices) with that side; `clamped` tells whether any was limited.
  */
 export function calculateViewWindow(
   perimeter: readonly Point[],
@@ -105,7 +105,7 @@ export function calculateViewWindow(
   return { viewWindow: [x0, y0, x1, y1], clamped: limitedX || limitedY };
 }
 
-/** Generador pseudoaleatorio determinista a partir de un texto (hash FNV-1a + mezcla). */
+/** Deterministic pseudo-random generator from a text (FNV-1a hash + mixing). */
 function random(seed: string): () => number {
   let h = 2166136261 >>> 0;
   for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
@@ -117,7 +117,7 @@ function random(seed: string): () => number {
   };
 }
 
-/** Paso de la rejilla simulada, en m (como el MDT de 5 m del IGN). */
+/** Step of the simulated grid, in m (like the IGN's 5 m MDT). */
 const GRID_STEP = 5;
 
 interface Terrain {
@@ -125,7 +125,7 @@ interface Terrain {
   height: (x: number, y: number) => number;
 }
 
-/** Parcela y terreno simulados: rústica (~8-10 ha) si la referencia es de 5 dígitos + «A»; si no, residencial. */
+/** Simulated plot and terrain: rural (~8-10 ha) if the reference is 5 digits + «A»; otherwise residential. */
 function simulateTerrain(reference: string): Terrain {
   const rnd = random(reference);
   const rural = /^\d{5}A/.test(reference);
@@ -159,8 +159,8 @@ function simulateTerrain(reference: string): Terrain {
 }
 
 /**
- * Relieve de una referencia catastral. Rechaza con Error si la referencia no es válida.
- * Sustituible por el cliente de la API (RGB-33) manteniendo esta firma.
+ * Relief for a cadastral reference. Rejects with Error if the reference is not valid.
+ * Replaceable by the API client (RGB-33) keeping this signature.
  */
 export async function fetchRelief({ reference, margin, maxSide }: ReliefOptions): Promise<Relief> {
   if (!isValidCadastralReference(reference)) {

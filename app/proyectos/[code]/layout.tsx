@@ -9,7 +9,7 @@ export default async function Layout({ params, children }: Props) {
   const { code } = await params;
   const project = await fetchProject(code);
   if (!project) notFound();
-  // Fragmento: el `main` del shell ya aplica el espaciado entre bloques.
+  // Fragment: the shell's `main` already applies the spacing between blocks.
   return (
     <>
       <ProjectTabs code={project.code} currentPhase={project.currentPhase} />

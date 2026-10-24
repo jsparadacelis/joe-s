@@ -14,7 +14,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/ajustes", label: "Ajustes y equipo", icon: Settings },
 ];
 
-/** Devuelve el ítem cuya ruta coincide con `pathname` (exacta o como prefijo de segmento). */
+/** Returns the item whose route matches `pathname` (exactly or as a segment prefix). */
 export function findNavItem(pathname: string): NavItem | undefined {
   return NAV_ITEMS.find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),

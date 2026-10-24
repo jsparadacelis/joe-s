@@ -7,12 +7,12 @@ export type TableColumn<Row> = {
 };
 
 export type TableProps<Row> = {
-  /** Descripción accesible de la tabla. */
+  /** Accessible description of the table. */
   caption: string;
   columns: readonly TableColumn<Row>[];
   rows: readonly Row[];
   getRowKey: (row: Row) => string;
-  /** Texto cuando no hay filas. */
+  /** Text when there are no rows. */
   emptyMessage?: string;
 };
 

@@ -3,9 +3,9 @@ export type PhaseId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export interface Phase {
   id: PhaseId;
   name: string;
-  /** Entregable de salida con el que se cierra la fase. */
+  /** Output deliverable that closes the phase. */
   deliverable: string;
-  /** Rol con autoridad para promover a la fase siguiente (PRD). */
+  /** Role with authority to promote to the next phase (PRD). */
   promoter: string;
 }
 
@@ -23,7 +23,7 @@ export const PHASES: readonly Phase[] = [
 export type PhaseState = "done" | "current" | "upcoming";
 export type PhaseMode = "edit" | "read-only" | "preview";
 
-/** Única fuente de verdad del estado de una fase respecto a la actual. */
+/** Single source of truth for the state of a phase relative to the current one. */
 export function phaseState(phase: PhaseId, current: PhaseId): PhaseState {
   if (phase < current) return "done";
   return phase === current ? "current" : "upcoming";
@@ -35,12 +35,12 @@ const MODE_BY_STATE: Record<PhaseState, PhaseMode> = {
   upcoming: "preview",
 };
 
-/** Única fuente de verdad del modo de pantalla de una fase. */
+/** Single source of truth for the screen mode of a phase. */
 export function phaseMode(phase: PhaseId, current: PhaseId): PhaseMode {
   return MODE_BY_STATE[phaseState(phase, current)];
 }
 
-/** Acepta solo "0".."7" exactos. */
+/** Accepts only exactly "0".."7". */
 export function parsePhaseId(raw: string): PhaseId | null {
   return /^[0-7]$/.test(raw) ? (Number(raw) as PhaseId) : null;
 }

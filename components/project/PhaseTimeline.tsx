@@ -4,7 +4,7 @@ import { PHASES, phaseState, type PhaseState, type PhaseId } from "@/lib/phases"
 export type PhaseTimelineProps = {
   code: string;
   currentPhase: PhaseId;
-  /** Fase que se está mostrando en pantalla. */
+  /** Phase being shown on screen. */
   viewedPhase: PhaseId;
 };
 

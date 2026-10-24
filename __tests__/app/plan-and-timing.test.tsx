@@ -20,36 +20,36 @@ const layout = (code: string) =>
 
 beforeEach(() => mockPathname.mockReturnValue("/proyectos/PRY-EJ-001/plan-y-tiempos"));
 
-describe("/proyectos/[codigo]/plan-y-tiempos", () => {
-  it("devuelve 404 si el proyecto no existe", async () => {
+describe("/proyectos/[code]/plan-y-tiempos", () => {
+  it("returns 404 if the project does not exist", async () => {
     await expect(page("NO-EXISTE")).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("PRY-EJ-001: resumen, tabla por fase e historial de pausas con un único h1", async () => {
+  it("PRY-EJ-001: summary, per-phase table and pause history with a single h1", async () => {
     render(await page("PRY-EJ-001"));
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    // resumen con los valores del servicio
+    // summary with the values from the service
     expect(screen.getByText(/11\s*\/\s*64\s*sem/)).toBeInTheDocument();
     expect(screen.getByText(/4\s*sem en pausa/)).toBeInTheDocument();
     expect(screen.getByText(/15\s*sem de calendario/)).toBeInTheDocument();
     expect(screen.getByText(/\+1\s*sem de desviación/)).toBeInTheDocument();
-    // tabla por fase: 7 barras y semáforos
+    // per-phase table: 7 bars and traffic lights
     expect(screen.getAllByRole("progressbar")).toHaveLength(7);
     expect(screen.getAllByText("Plan superado").length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText("Atención").length).toBeGreaterThanOrEqual(1);
-    // historial: dos tablas (fases e historial) y filas de pausa
+    // history: two tables (phases and history) and pause rows
     expect(screen.getAllByRole("table")).toHaveLength(2);
     expect(screen.getAllByText(/Espera|Decisión|Otra/).length).toBeGreaterThanOrEqual(2);
     expect(screen.queryByText("Sin pausas registradas")).not.toBeInTheDocument();
     expect(screen.queryByText("Sin plan hasta promover")).not.toBeInTheDocument();
   });
 
-  it("PRY-EJ-001 sin pausa activa: no hay aviso de pausa", async () => {
+  it("PRY-EJ-001 without an active pause: no pause notice", async () => {
     render(await page("PRY-EJ-001"));
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("PRY-EJ-003: muestra el aviso de pausa activa con su motivo", async () => {
+  it("PRY-EJ-003: shows the active-pause notice with its reason", async () => {
     mockPathname.mockReturnValue("/proyectos/PRY-EJ-003/plan-y-tiempos");
     render(await page("PRY-EJ-003"));
     expect(screen.getByRole("status")).toHaveTextContent("Espera de organismo");
@@ -57,7 +57,7 @@ describe("/proyectos/[codigo]/plan-y-tiempos", () => {
     expect(screen.getAllByRole("progressbar")).toHaveLength(7);
   });
 
-  it("PRY-EJ-004 (fase 2, RGB-29): muestra su plan con siete barras y un único h1", async () => {
+  it("PRY-EJ-004 (phase 2, RGB-29): shows its plan with seven bars and a single h1", async () => {
     mockPathname.mockReturnValue("/proyectos/PRY-EJ-004/plan-y-tiempos");
     render(await page("PRY-EJ-004"));
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
@@ -65,7 +65,7 @@ describe("/proyectos/[codigo]/plan-y-tiempos", () => {
     expect(screen.queryByText("Sin plan hasta promover")).not.toBeInTheDocument();
   });
 
-  it("PRY-EJ-002 (fase 0): estado vacío «Sin plan hasta promover», sin tabla ni barras", async () => {
+  it("PRY-EJ-002 (phase 0): empty state «Sin plan hasta promover», no table or bars", async () => {
     mockPathname.mockReturnValue("/proyectos/PRY-EJ-002/plan-y-tiempos");
     render(await page("PRY-EJ-002"));
     expect(screen.getByText("Sin plan hasta promover")).toBeInTheDocument();
@@ -74,14 +74,14 @@ describe("/proyectos/[codigo]/plan-y-tiempos", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004"])("%s: sin violaciones de accesibilidad", async (c) => {
+  it.each(["PRY-EJ-001", "PRY-EJ-002", "PRY-EJ-003", "PRY-EJ-004"])("%s: no accessibility violations", async (c) => {
     const { container } = render(<main>{await page(c)}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
 
-describe("/proyectos/[codigo]/layout", () => {
-  it("renderiza las pestañas del proyecto encima de children", async () => {
+describe("/proyectos/[code]/layout", () => {
+  it("renders the project tabs above children", async () => {
     mockPathname.mockReturnValue("/proyectos/PRY-EJ-001/fase/3");
     render(await layout("PRY-EJ-001"));
     const nav = screen.getByRole("navigation", { name: "Secciones del proyecto" });
@@ -91,7 +91,7 @@ describe("/proyectos/[codigo]/layout", () => {
     expect(nav.compareDocumentPosition(child) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("las pestañas apuntan a la fase actual del proyecto y a Plan y tiempos", async () => {
+  it("the tabs point to the project's current phase and to Plan y tiempos", async () => {
     render(await layout("PRY-EJ-003"));
     expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/proyectos/PRY-EJ-003/fase/6");
     expect(screen.getByRole("link", { name: "Plan y tiempos" })).toHaveAttribute(
@@ -100,17 +100,17 @@ describe("/proyectos/[codigo]/layout", () => {
     );
   });
 
-  it("incluso un proyecto en fase 0 muestra ambas pestañas", async () => {
+  it("even a project in phase 0 shows both tabs", async () => {
     render(await layout("PRY-EJ-002"));
     expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/proyectos/PRY-EJ-002/fase/0");
     expect(screen.getByRole("link", { name: "Plan y tiempos" })).toBeInTheDocument();
   });
 
-  it("devuelve 404 si el proyecto no existe", async () => {
+  it("returns 404 if the project does not exist", async () => {
     await expect(layout("NO-EXISTE")).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("sin violaciones de accesibilidad", async () => {
+  it("no accessibility violations", async () => {
     const { container } = render(<main>{await layout("PRY-EJ-001")}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });

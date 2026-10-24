@@ -27,7 +27,7 @@ export type TechnicalDataEditorProps = {
   cadastralReference: string;
   initial: TechnicalData | null;
   mode: PhaseMode;
-  /** Por defecto, el contrato de `lib/datos-tecnicos` (la consulta real va por la API del servidor). */
+  /** By default, the `lib/technical-data` contract (the real query goes through the server API). */
   query?: (cadastralReference: string) => Promise<TechnicalData>;
 };
 
@@ -40,7 +40,7 @@ function readableDate(iso: string): string {
   return `${d} ${MONTHS[m - 1]} ${a}`;
 }
 
-/** Plantilla vacía para la ruta manual: ningún dato tiene origen, así que nada se marca como editado. */
+/** Empty template for the manual path: no datum has an origin, so nothing is marked as edited. */
 function emptyData(): TechnicalDatum[] {
   return DEFINITIONS.map((d) => ({ id: d.id, value: "", original: null, verified: false }));
 }

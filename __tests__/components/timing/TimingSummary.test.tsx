@@ -30,8 +30,8 @@ function plan(extra: Partial<TimingPlan> = {}): TimingPlan {
 
 const text = () => document.body.textContent ?? "";
 
-describe("ResumenTiempos", () => {
-  it("muestra los valores del servicio tal cual", () => {
+describe("TimingSummary", () => {
+  it("shows the service values as they are", () => {
     render(<TimingSummary plan={plan()} />);
     expect(screen.getByText(/11\s*\/\s*64\s*sem/)).toBeInTheDocument();
     expect(screen.getByText(/4\s*sem en pausa/)).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe("ResumenTiempos", () => {
     expect(screen.getByText(/\+1\s*sem de desviación/)).toBeInTheDocument();
   });
 
-  it("no recalcula: con totales incoherentes con las filas muestra los totales dados", () => {
+  it("does not recalculate: with totals inconsistent with the rows it shows the given totals", () => {
     render(
       <TimingSummary
         plan={plan({
@@ -59,46 +59,46 @@ describe("ResumenTiempos", () => {
     expect(text()).not.toMatch(/15\s*sem de calendario/);
   });
 
-  it("desviación negativa muestra el signo menos (adelanto)", () => {
+  it("negative deviation shows the minus sign (ahead of plan)", () => {
     render(<TimingSummary plan={plan({ deviationWeeks: -2 })} />);
     expect(screen.getByText(/[-−]2\s*sem de desviación/)).toBeInTheDocument();
     expect(text()).not.toMatch(/\+[-−]?2\s*sem de desviación/);
   });
 
-  it("desviación cero se muestra como 0, sin signo más", () => {
+  it("zero deviation is shown as 0, without a plus sign", () => {
     render(<TimingSummary plan={plan({ deviationWeeks: 0 })} />);
     expect(screen.getByText(/(^|[^+\d-])0\s*sem de desviación/)).toBeInTheDocument();
     expect(text()).not.toMatch(/\+0\s*sem/);
   });
 
-  it("muestra la fase actual con su porcentaje de consumo y la etiqueta del semáforo (fase 3: 4/5 = 80 %, Atención)", () => {
+  it("shows the current phase with its consumption percentage and the traffic-light label (phase 3: 4/5 = 80 %, Atención)", () => {
     render(<TimingSummary plan={plan()} />);
     expect(text()).toMatch(/Anteproyecto/);
     expect(text()).toMatch(/80\s?%/);
     expect(screen.getByText("Atención")).toBeInTheDocument();
   });
 
-  it("fase actual por encima del plan: porcentaje real y «Plan superado»", () => {
+  it("current phase above the plan: real percentage and «Plan superado»", () => {
     const phases = plan().phases.map((f) => (f.phase === 3 ? { ...f, activeWeeks: 6 } : f));
     render(<TimingSummary plan={plan({ phases })} />);
     expect(text()).toMatch(/120\s?%/);
     expect(screen.getByText("Plan superado")).toBeInTheDocument();
   });
 
-  it("fase actual por debajo del 80 %: «En plazo»", () => {
+  it("current phase below 80 %: «En plazo»", () => {
     const phases = plan().phases.map((f) => (f.phase === 3 ? { ...f, activeWeeks: 1 } : f));
     render(<TimingSummary plan={plan({ phases })} />);
     expect(text()).toMatch(/20\s?%/);
     expect(screen.getByText("En plazo")).toBeInTheDocument();
   });
 
-  it("sin pausa activa no hay aviso", () => {
+  it("without an active pause there is no notice", () => {
     render(<TimingSummary plan={plan()} />);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("con pausa activa muestra un aviso (role status) con motivo y reanudación prevista", () => {
+  it("with an active pause it shows a notice (role status) with reason and expected resumption", () => {
     render(
       <TimingSummary
         plan={plan({
@@ -108,7 +108,7 @@ describe("ResumenTiempos", () => {
     );
     const notice = screen.getByRole("status");
     expect(notice).toHaveTextContent("Espera de organismo");
-    // El formato de la fecha no lo fija el plan: ISO, dd/mm/aaaa o «14 de diciembre de 2026».
+    // The plan does not fix the date format: ISO, dd/mm/aaaa or «14 de diciembre de 2026».
     expect(notice.textContent).toMatch(/2026-12-14|14\/12\/2026|14 de diciembre( de 2026)?/i);
     expect(notice).toHaveTextContent(/pausa/i);
   });
@@ -117,7 +117,7 @@ describe("ResumenTiempos", () => {
     ["client-wait", "Espera del cliente"],
     ["internal-decision", "Decisión interna"],
     ["other", "Otra"],
-  ] as const)("el aviso de pausa muestra la etiqueta en español del motivo %s", (reason, label) => {
+  ] as const)("the pause notice shows the Spanish label of reason %s", (reason, label) => {
     render(
       <TimingSummary
         plan={plan({ activePause: { from: "2026-09-01", reason, expectedResumption: "2026-12-14" } })}
@@ -130,7 +130,7 @@ describe("ResumenTiempos", () => {
   it.each([
     ["sin pausa", null],
     ["con pausa activa", { from: "2026-09-01", reason: "authority-wait", expectedResumption: "2026-12-14" }],
-  ] as const)("sin violaciones de accesibilidad %s", async (_n, activePause) => {
+  ] as const)("no accessibility violations %s", async (_n, activePause) => {
     const { container } = render(<TimingSummary plan={plan({ activePause: activePause as TimingPlan["activePause"] })} />);
     expect(await axe(container)).toHaveNoViolations();
   });

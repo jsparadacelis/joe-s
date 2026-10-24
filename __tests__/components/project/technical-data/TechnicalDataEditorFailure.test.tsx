@@ -4,8 +4,8 @@ import { TechnicalDataEditor } from "@/components/project/technical-data/Technic
 
 const REF = "1234567DG3413S0001AB";
 
-describe("DatosTecnicosEditor · fallo de la consulta (ruta manual)", () => {
-  it("avisa del fallo y permite introducir los datos manualmente, sin marcas de editado", async () => {
+describe("TechnicalDataEditor · query failure (manual path)", () => {
+  it("warns of the failure and allows entering the data manually, without edited marks", async () => {
     const query = jest.fn().mockRejectedValue(new Error("sin servicio"));
     const user = userEvent.setup();
     render(<TechnicalDataEditor cadastralReference={REF} initial={null} mode="edit" query={query} />);

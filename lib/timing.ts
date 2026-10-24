@@ -1,8 +1,8 @@
 /**
- * Contrato de tiempos de RGB-22 y capa de datos de EJEMPLO (ficticios).
- * El servicio de tiempos (RGB-20/21) calcula semanas activas, pausa, totales,
- * calendario y desviación; el front los muestra tal cual y solo deriva el
- * porcentaje de consumo y el semáforo (lógica de presentación).
+ * RGB-22 timing contract and SAMPLE (fictitious) data layer.
+ * The timing service (RGB-20/21) calculates active weeks, pause, totals,
+ * calendar and deviation; the front end shows them as they are and only derives the
+ * consumption percentage and the traffic light (presentation logic).
  */
 import type { PhaseId } from "@/lib/phases";
 
@@ -23,7 +23,7 @@ export interface PhaseTiming {
   pausedWeeks: number;
 }
 
-/** Fechas ISO yyyy-mm-dd. */
+/** ISO dates yyyy-mm-dd. */
 export interface Pause {
   from: string;
   to: string | null;
@@ -41,16 +41,16 @@ export interface ActivePause {
 export interface TimingPlan {
   code: string;
   currentPhase: PlannedPhase;
-  /** Siempre 7 entradas, fases 1..7 en orden. */
+  /** Always 7 entries, phases 1..7 in order. */
   phases: PhaseTiming[];
-  /** Historial, de más reciente a más antigua. */
+  /** History, from most recent to oldest. */
   pauses: Pause[];
   activePause: ActivePause | null;
   totalActiveWeeks: number;
   totalPlannedWeeks: number;
   totalPausedWeeks: number;
   calendarWeeks: number;
-  /** Activas frente a plan acumulado; positivo = retraso. */
+  /** Active against accumulated plan; positive = delay. */
   deviationWeeks: number;
 }
 
@@ -62,15 +62,15 @@ export const TRAFFIC_LIGHT_LABEL: Record<TrafficLight, string> = {
   red: "Plan superado",
 };
 
-/** Porcentaje entero de consumo (sin límite superior). Plan <= 0 devuelve 0. */
+/** Whole consumption percentage (no upper limit). Plan <= 0 returns 0. */
 export function consumptionPercent(active: number, plan: number): number {
   if (plan <= 0) return 0;
   return Math.round((active / plan) * 100);
 }
 
 /**
- * Única fuente de verdad del semáforo. Decide con el valor real (enteros, sin
- * redondeo): rojo si activas > plan; ámbar desde el 80 % (activas/plan >= 4/5).
+ * Single source of truth for the traffic light. Decides with the real value (integers, no
+ * rounding): red if active > plan; amber from 80 % (active/plan >= 4/5).
  */
 export function consumptionTrafficLight(active: number, plan: number): TrafficLight {
   if (plan <= 0) return "green";
@@ -78,13 +78,13 @@ export function consumptionTrafficLight(active: number, plan: number): TrafficLi
   return active * 5 >= plan * 4 ? "amber" : "green";
 }
 
-/** Fecha ISO yyyy-mm-dd a dd/mm/aaaa, sin pasar por Date (sin husos horarios). */
+/** ISO date yyyy-mm-dd to dd/mm/aaaa, without going through Date (no time zones). */
 export function formatDate(iso: string): string {
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
 }
 
-// ---- DATOS DE EJEMPLO (sustituible por el cliente de la API) ----
+// ---- SAMPLE DATA (replaceable by the API client) ----
 
 const PLANNED_WEEKS = [2, 3, 5, 6, 8, 36, 4] as const;
 
@@ -142,9 +142,9 @@ const PLANS: readonly TimingPlan[] = [
   },
 ];
 
-// ---- Función pública (misma firma que el cliente de la API) ----
+// ---- Public function (same signature as the API client) ----
 
-/** null: el proyecto no tiene plan (fase 0) o no existe. Devuelve copias. */
+/** null: the project has no plan (phase 0) or does not exist. Returns copies. */
 export async function fetchTimingPlan(code: string): Promise<TimingPlan | null> {
   const plan = PLANS.find((p) => p.code === code);
   if (!plan) return null;

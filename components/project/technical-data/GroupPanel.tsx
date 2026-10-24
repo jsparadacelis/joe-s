@@ -5,7 +5,7 @@ import { DatumRow, type DatumRowProps } from "./DatumRow";
 export type GroupPanelProps = {
   group: DataGroup;
   definitions: readonly DatumDefinition[];
-  /** Datos por id; cada fila recibe siempre la misma referencia mientras su dato no cambia. */
+  /** Data by id; each row always receives the same reference while its datum does not change. */
   data: ReadonlyMap<string, TechnicalDatum>;
   disabled: boolean;
   onValueChange: DatumRowProps["onValueChange"];

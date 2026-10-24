@@ -1,13 +1,13 @@
 import { NAV_ITEMS, findNavItem } from "@/lib/nav";
 
 describe("nav", () => {
-  it("define las cinco secciones del plan", () => {
+  it("defines the five sections of the plan", () => {
     expect(NAV_ITEMS.map((i) => i.href)).toEqual([
       "/cartera", "/proyectos", "/por-promover", "/reporte-semanal", "/ajustes",
     ]);
   });
 
-  it("encuentra el ítem por ruta exacta o subruta", () => {
+  it("finds the item by exact route or subroute", () => {
     expect(findNavItem("/proyectos")?.label).toBe("Proyectos");
     expect(findNavItem("/proyectos/abc")?.label).toBe("Proyectos");
     expect(findNavItem("/proyectosx")).toBeUndefined();

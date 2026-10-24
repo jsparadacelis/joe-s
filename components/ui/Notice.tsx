@@ -15,7 +15,7 @@ const TONES: Record<NoticeTone, string> = {
 };
 
 export function Notice({ tone = "info", children }: NoticeProps) {
-  // Los avisos de error interrumpen (alert); el resto se anuncia de forma cortés (status).
+  // Error notices interrupt (alert); the rest are announced politely (status).
   const role = tone === "bad" ? "alert" : "status";
   return (
     <div role={role} className={`rounded-base px-3 py-2.5 text-s ${TONES[tone]}`}>

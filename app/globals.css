@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Valores por tema. Los componentes nunca usan colores sueltos: solo los tokens de @theme. */
+/* Per-theme values. Components never use loose colours: only the @theme tokens. */
 :root {
   color-scheme: light;
   --bg: #f6f5f2;
@@ -28,10 +28,10 @@
   --side-active: #3a3b3e;
   --focus: #5e2a35;
   --focus-on-side: #ebeae6;
-  --relieve-bajo: #6f7f6a;
-  --relieve-medio-bajo: #a3a88a;
-  --relieve-medio-alto: #c9c1a4;
-  --relieve-alto: #e6e1d3;
+  --relief-low: #6f7f6a;
+  --relief-mid-low: #a3a88a;
+  --relief-mid-high: #c9c1a4;
+  --relief-high: #e6e1d3;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,10 +62,10 @@
     --side-active: #2a2b2f;
     --focus: #c78492;
     --focus-on-side: #ebeae6;
-    --relieve-bajo: #566352;
-    --relieve-medio-bajo: #7f846a;
-    --relieve-medio-alto: #a29b80;
-    --relieve-alto: #c4bfae;
+    --relief-low: #566352;
+    --relief-mid-low: #7f846a;
+    --relief-mid-high: #a29b80;
+    --relief-high: #c4bfae;
   }
 }
 
@@ -96,10 +96,10 @@
   --side-active: #2a2b2f;
   --focus: #c78492;
   --focus-on-side: #ebeae6;
-  --relieve-bajo: #566352;
-  --relieve-medio-bajo: #7f846a;
-  --relieve-medio-alto: #a29b80;
-  --relieve-alto: #c4bfae;
+  --relief-low: #566352;
+  --relief-mid-low: #7f846a;
+  --relief-mid-high: #a29b80;
+  --relief-high: #c4bfae;
 }
 
 @theme inline {

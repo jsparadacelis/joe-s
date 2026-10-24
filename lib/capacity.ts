@@ -1,7 +1,7 @@
 /**
- * Capacidad edificable del inmueble (RGB-29).
- * Función pura, sustituible por el servicio de cálculo del servidor (RGB-30)
- * sin tocar los componentes.
+ * Buildable capacity of the property (RGB-29).
+ * Pure function, replaceable by the server's calculation service (RGB-30)
+ * without touching the components.
  */
 import type { TechnicalDatum } from "@/lib/technical-data";
 
@@ -19,7 +19,7 @@ export interface Capacity {
 
 const FLOORS: Readonly<Record<string, number>> = { PB: 1, "PB+1": 2, "PB+2": 3, "PB+3": 4, "PB+4": 5, "PB+5": 6 };
 
-/** «1.240,5» pasa a 1240.5; vacío o no numérico pasa a null. */
+/** «1.240,5» becomes 1240.5; empty or non-numeric becomes null. */
 export function parseNumber(v: string): number | null {
   if (typeof v !== "string") return null;
   const n = parseFloat(v.replace(/\./g, "").replace(",", "."));
@@ -28,7 +28,7 @@ export function parseNumber(v: string): number | null {
 
 const formats = new Map<number, Intl.NumberFormat>();
 
-/** Formato es-ES; null se muestra como «—». */
+/** es-ES format; null is shown as «—». */
 export function formatNumber(n: number | null, decimals = 0): string {
   if (n === null) return "—";
   let f = formats.get(decimals);

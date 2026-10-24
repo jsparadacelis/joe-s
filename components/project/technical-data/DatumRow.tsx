@@ -18,8 +18,8 @@ const CONTROL =
 function DatumRowBase({ definition, datum, disabled, onValueChange, onVerify, onRestore }: DatumRowProps) {
   const { id, label, origin, unit, type, options } = definition;
   const edited = isEdited(datum);
-  const controlId = `dato-${id}`;
-  const originId = `dato-${id}-origen`;
+  const controlId = `datum-${id}`;
+  const originId = `datum-${id}-origin`;
   const border = datum.verified ? "border-ok" : edited ? "border-warn" : "border-hair";
 
   return (
@@ -91,5 +91,5 @@ function DatumRowBase({ definition, datum, disabled, onValueChange, onVerify, on
   );
 }
 
-/** Memoizada: al editar un dato solo se vuelve a pintar su fila. */
+/** Memoized: when a datum is edited only its row is repainted. */
 export const DatumRow = memo(DatumRowBase);

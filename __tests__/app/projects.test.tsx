@@ -18,7 +18,7 @@ const phase = (code: string, f: string) =>
   PhasePage({ params: Promise.resolve({ code, phase: f }) });
 
 describe("/proyectos", () => {
-  it("lista los proyectos de ejemplo con enlace a su fase actual", async () => {
+  it("lists the sample projects with a link to their current phase", async () => {
     render(await ProjectsPage());
     expect(screen.getByRole("heading", { level: 1, name: "Proyectos" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /PRY-EJ-001/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-001/fase/3");
@@ -27,19 +27,19 @@ describe("/proyectos", () => {
     expect(screen.getByRole("link", { name: /PRY-EJ-004/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-004/fase/2");
   });
 
-  it("indica que son proyectos de ejemplo", async () => {
+  it("states that they are sample projects", async () => {
     render(await ProjectsPage());
     expect(screen.getAllByText(/\(ejemplo\)/).length).toBeGreaterThanOrEqual(3);
   });
 
-  it("sin violaciones de accesibilidad", async () => {
+  it("no accessibility violations", async () => {
     const { container } = render(<main>{await ProjectsPage()}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
 
-describe("/proyectos/[codigo]", () => {
-  it("redirige a la fase actual del proyecto", async () => {
+describe("/proyectos/[code]", () => {
+  it("redirects to the project's current phase", async () => {
     await expect(ProjectPage({ params: Promise.resolve({ code: "PRY-EJ-001" }) })).rejects.toThrow(
       "/proyectos/PRY-EJ-001/fase/3",
     );
@@ -48,15 +48,15 @@ describe("/proyectos/[codigo]", () => {
     );
   });
 
-  it("devuelve 404 si el proyecto no existe", async () => {
+  it("returns 404 if the project does not exist", async () => {
     await expect(ProjectPage({ params: Promise.resolve({ code: "NO-EXISTE" }) })).rejects.toThrow(
       "NEXT_NOT_FOUND",
     );
   });
 });
 
-describe("/proyectos/[codigo]/fase/[fase]", () => {
-  it("fase actual: línea de fases, sin aviso y campos editables con Guardar", async () => {
+describe("/proyectos/[code]/fase/[phase]", () => {
+  it("current phase: phase timeline, no notice and editable fields with Guardar", async () => {
     render(await phase("PRY-EJ-001", "3"));
     expect(screen.getByRole("navigation", { name: "Fases del proyecto" })).toBeInTheDocument();
     expect(screen.getAllByRole("link").find((l) => l.getAttribute("aria-current") === "page")).toHaveAttribute(
@@ -71,7 +71,7 @@ describe("/proyectos/[codigo]/fase/[fase]", () => {
     for (const c of fields) expect(c).toBeEnabled();
   });
 
-  it("fase anterior: solo lectura, aviso de fase cerrada y volver a la actual", async () => {
+  it("previous phase: read-only, closed-phase notice and back to the current one", async () => {
     render(await phase("PRY-EJ-001", "1"));
     expect(screen.getByText(/Fase cerrada · versión congelada/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Volver a la fase actual" })).toHaveAttribute(
@@ -86,7 +86,7 @@ describe("/proyectos/[codigo]/fase/[fase]", () => {
     expect(within(nav).getAllByRole("link").filter((l) => l.hasAttribute("aria-current"))).toHaveLength(1);
   });
 
-  it("fase siguiente: vista previa, aviso y todo deshabilitado", async () => {
+  it("next phase: preview, notice and everything disabled", async () => {
     render(await phase("PRY-EJ-001", "5"));
     expect(screen.getByText("Vista previa: nada se guarda en esta fase")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Volver a la fase actual" })).toBeInTheDocument();
@@ -94,20 +94,20 @@ describe("/proyectos/[codigo]/fase/[fase]", () => {
     for (const c of screen.getAllByRole("textbox")) expect(c).toBeDisabled();
   });
 
-  it("muestra una sola cabecera de nivel 1", async () => {
+  it("shows a single level-1 heading", async () => {
     render(await phase("PRY-EJ-003", "6"));
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it.each(["8", "-1", "01", "abc", ""])("fase inválida %j devuelve 404", async (f) => {
+  it.each(["8", "-1", "01", "abc", ""])("invalid phase %j returns 404", async (f) => {
     await expect(phase("PRY-EJ-001", f)).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("proyecto inexistente devuelve 404", async () => {
+  it("nonexistent project returns 404", async () => {
     await expect(phase("NO-EXISTE", "0")).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("sin violaciones de accesibilidad en modo solo lectura y vista previa", async () => {
+  it("no accessibility violations in read-only and preview modes", async () => {
     for (const f of ["1", "5", "3"]) {
       const { container, unmount } = render(<main>{await phase("PRY-EJ-001", f)}</main>);
       expect(await axe(container)).toHaveNoViolations();
@@ -116,10 +116,10 @@ describe("/proyectos/[codigo]/fase/[fase]", () => {
   });
 });
 
-describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
+describe("/proyectos/[code]/fase/2 · technical data (RGB-29)", () => {
   const TITLE = "Datos técnicos del inmueble";
 
-  it("PRY-EJ-004 (fase actual): panel con la referencia prellenada y «Obtener datos técnicos»", async () => {
+  it("PRY-EJ-004 (current phase): panel with the prefilled reference and «Obtener datos técnicos»", async () => {
     render(await phase("PRY-EJ-004", "2"));
     expect(screen.getByRole("heading", { name: TITLE })).toBeInTheDocument();
     expect(screen.getByLabelText(/Referencia catastral/)).toHaveValue("1234567DG3413S0001AB");
@@ -128,13 +128,13 @@ describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it("PRY-EJ-004 sigue mostrando el entregable genérico, con «Guardar»", async () => {
+  it("PRY-EJ-004 still shows the generic deliverable, with «Guardar»", async () => {
     render(await phase("PRY-EJ-004", "2"));
     expect(screen.getByRole("button", { name: "Guardar" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: TITLE })).toBeInTheDocument();
   });
 
-  it("PRY-EJ-001 (fase hecha): solo lectura, con datos guardados visibles y deshabilitados", async () => {
+  it("PRY-EJ-001 (done phase): read-only, with saved data visible and disabled", async () => {
     render(await phase("PRY-EJ-001", "2"));
     expect(screen.getByRole("heading", { name: TITLE })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Parcela" })).toBeInTheDocument();
@@ -153,10 +153,10 @@ describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
     }
   });
 
-  it("PRY-EJ-002 (fase siguiente): vista previa con la consulta deshabilitada", async () => {
+  it("PRY-EJ-002 (next phase): preview with the query disabled", async () => {
     render(await phase("PRY-EJ-002", "2"));
     expect(screen.getByRole("heading", { name: TITLE })).toBeInTheDocument();
-    // El plan no fija si, sin datos, la vista previa muestra la entrada o un aviso: ambos valen, pero nunca consultable.
+    // The plan does not fix whether, without data, the preview shows the input or a notice: both are fine, but never queryable.
     const b = screen.queryByRole("button", { name: /Obtener datos técnicos/ });
     if (b) expect(b).toBeDisabled();
     else expect(screen.getByText("Sin datos técnicos registrados.")).toBeInTheDocument();
@@ -169,7 +169,7 @@ describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
     ["PRY-EJ-004", "3"],
     ["PRY-EJ-004", "1"],
     ["PRY-EJ-003", "6"],
-  ])("%s fase %s: no muestra el panel de datos técnicos", async (code, f) => {
+  ])("%s phase %s: does not show the technical data panel", async (code, f) => {
     render(await phase(code, f));
     expect(screen.queryByRole("heading", { name: TITLE })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Obtener datos técnicos/ })).not.toBeInTheDocument();
@@ -179,16 +179,16 @@ describe("/proyectos/[codigo]/fase/2 · datos técnicos (RGB-29)", () => {
     ["PRY-EJ-004", "2"],
     ["PRY-EJ-001", "2"],
     ["PRY-EJ-002", "2"],
-  ])("%s fase %s: sin violaciones de accesibilidad", async (code, f) => {
+  ])("%s phase %s: no accessibility violations", async (code, f) => {
     const { container } = render(<main>{await phase(code, f)}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
 
-describe("/proyectos/[codigo]/fase/3 · visor de relieve 3D (RGB-34)", () => {
+describe("/proyectos/[code]/fase/3 · 3D relief viewer (RGB-34)", () => {
   const TITLE = "Relieve 3D del terreno";
 
-  it("PRY-EJ-001 (fase actual): panel con la referencia de la ficha, bajo el entregable genérico", async () => {
+  it("PRY-EJ-001 (current phase): panel with the sheet's reference, below the generic deliverable", async () => {
     render(await phase("PRY-EJ-001", "3"));
     const panel = screen.getByRole("heading", { name: TITLE });
     expect(panel).toBeInTheDocument();
@@ -201,10 +201,10 @@ describe("/proyectos/[codigo]/fase/3 · visor de relieve 3D (RGB-34)", () => {
   });
 
   it.each([
-    ["PRY-EJ-002", "vista previa (fase actual 0)"],
-    ["PRY-EJ-004", "vista previa (fase actual 2)"],
-    ["PRY-EJ-003", "solo lectura (fase actual 6)"],
-  ])("%s fase 3, %s: el visor también está disponible (es consulta, no guarda nada)", async (code) => {
+    ["PRY-EJ-002", "preview (current phase 0)"],
+    ["PRY-EJ-004", "preview (current phase 2)"],
+    ["PRY-EJ-003", "read-only (current phase 6)"],
+  ])("%s phase 3, %s: the viewer is also available (it is a query, saves nothing)", async (code) => {
     render(await phase(code, "3"));
     expect(screen.getByRole("heading", { name: TITLE })).toBeInTheDocument();
     expect(screen.getByLabelText("Referencia catastral")).toBeEnabled();
@@ -212,7 +212,7 @@ describe("/proyectos/[codigo]/fase/3 · visor de relieve 3D (RGB-34)", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
-  it("PRY-EJ-002 fase 3: sin referencia en la ficha, el mensaje guía del visor", async () => {
+  it("PRY-EJ-002 phase 3: no reference on the sheet, the viewer's guide message", async () => {
     render(await phase("PRY-EJ-002", "3"));
     expect(screen.getByLabelText("Referencia catastral")).toHaveValue("");
     expect(
@@ -230,7 +230,7 @@ describe("/proyectos/[codigo]/fase/3 · visor de relieve 3D (RGB-34)", () => {
     ["PRY-EJ-001", "7"],
     ["PRY-EJ-004", "2"],
     ["PRY-EJ-003", "6"],
-  ])("%s fase %s: no muestra el visor de relieve", async (code, f) => {
+  ])("%s phase %s: does not show the relief viewer", async (code, f) => {
     render(await phase(code, f));
     expect(screen.queryByRole("heading", { name: TITLE })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ver relieve" })).not.toBeInTheDocument();
@@ -240,7 +240,7 @@ describe("/proyectos/[codigo]/fase/3 · visor de relieve 3D (RGB-34)", () => {
     ["PRY-EJ-001", "3"],
     ["PRY-EJ-002", "3"],
     ["PRY-EJ-003", "3"],
-  ])("%s fase %s: sin violaciones de accesibilidad", async (code, f) => {
+  ])("%s phase %s: no accessibility violations", async (code, f) => {
     const { container } = render(<main>{await phase(code, f)}</main>);
     expect(await axe(container)).toHaveNoViolations();
   });

@@ -11,8 +11,8 @@ const pages = [
   ["Ajustes y equipo", SettingsPage],
 ] as const;
 
-describe.each(pages)("página %s", (title, Page) => {
-  it("muestra su cabecera y un estado vacío", () => {
+describe.each(pages)("page %s", (title, Page) => {
+  it("shows its header and an empty state", () => {
     render(<Page />);
     expect(screen.getByRole("heading", { level: 1, name: title })).toBeInTheDocument();
     expect(screen.getByText(/aún no hay|no hay|nada configurado/i)).toBeInTheDocument();

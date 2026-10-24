@@ -3,8 +3,8 @@ import { DEFINITIONS, requery, type TechnicalDatum } from "@/lib/technical-data"
 const list = (value: string, original: string | null): TechnicalDatum[] =>
   DEFINITIONS.map((d) => ({ id: d.id, value, original, verified: false }));
 
-describe("reconsultar · manuales por grupo (regresión)", () => {
-  it("datos de parcela y condiciones sin original (ruta manual) se sustituyen; planeamiento se conserva", () => {
+describe("requery · manual data per group (regression)", () => {
+  it("plot and conditions data without original (manual path) are replaced; planning is kept", () => {
     const current = list("MANUAL", null);
     const incoming = DEFINITIONS.map((d) => ({
       id: d.id,

@@ -7,7 +7,7 @@ import { calculateReadings } from "@/lib/relief-readings";
 import type { ReliefOptions, Relief } from "@/lib/relief";
 import { slopedPlane } from "../../../helpers/relief-plane";
 
-// jsdom no tiene WebGL: la escena (único módulo que importa three) se sustituye por una falsa.
+// jsdom has no WebGL: the scene (the only module that imports three) is replaced by a fake one.
 jest.mock("@/lib/relief-scene", () => ({ mountScene: jest.fn() }));
 
 jest.setTimeout(20000);
@@ -50,7 +50,7 @@ beforeEach(() => {
   mount.mockImplementation((() => nextScene()) as unknown as typeof mountScene);
 });
 
-/** Escribe una referencia y pulsa «Ver relieve»; espera a que se monte la escena. */
+/** Types a reference and presses «Ver relieve»; waits for the scene to mount. */
 async function viewRelief(user: ReturnType<typeof userEvent.setup>, reference: string, expectedCalls = mount.mock.calls.length + 1) {
   const field = screen.getByLabelText("Referencia catastral");
   await user.clear(field);
@@ -59,13 +59,13 @@ async function viewRelief(user: ReturnType<typeof userEvent.setup>, reference: s
   await waitFor(() => expect(mount).toHaveBeenCalledTimes(expectedCalls));
 }
 
-/** Texto de la lectura cuya etiqueta es exactamente `etiqueta` (sirve para dl/dt/dd y para pares span/b). */
+/** Text of the reading whose label is exactly `label` (works for dl/dt/dd and for span/b pairs). */
 function readingValue(label: string): string {
   const el = screen.getByText(label);
   if (el.tagName === "DT" && el.nextElementSibling) return el.nextElementSibling.textContent ?? "";
   return (el.parentElement?.textContent ?? "").replace(label, "");
 }
-/** Números de un texto con formato es-ES (separador de miles opcional, coma decimal). */
+/** Numbers in a text with es-ES formatting (optional thousands separator, decimal comma). */
 function numbers(text: string): number[] {
   return (text.replace(/(\d)[.\s ](?=\d{3}(?!\d))/g, "$1").match(/\d+(?:,\d+)?/g) ?? []).map((n) =>
     parseFloat(n.replace(",", ".")),
@@ -73,15 +73,15 @@ function numbers(text: string): number[] {
 }
 const inLiveRegion = (el: HTMLElement) => el.closest('[aria-live], [role="alert"], [role="status"]') !== null;
 
-describe("VisorRelieve · estado inicial", () => {
-  it("muestra el campo con la referencia inicial y el botón «Ver relieve»", () => {
+describe("ReliefViewer · initial state", () => {
+  it("shows the field with the initial reference and the «Ver relieve» button", () => {
     render(<ReliefViewer initialReference={REF} fetcher={makeFetcher()} />);
     expect(screen.getByRole("heading", { name: "Relieve 3D del terreno" })).toBeInTheDocument();
     expect(screen.getByLabelText("Referencia catastral")).toHaveValue(REF);
     expect(screen.getByRole("button", { name: "Ver relieve" })).toBeEnabled();
   });
 
-  it("sin referencia: mensaje guía y nada consultado", () => {
+  it("without a reference: guide message and nothing queried", () => {
     const fetcher = makeFetcher();
     render(<ReliefViewer initialReference="" fetcher={fetcher} />);
     expect(screen.getByText(NO_REFERENCE_MESSAGE)).toBeInTheDocument();
@@ -89,14 +89,14 @@ describe("VisorRelieve · estado inicial", () => {
     expect(mount).not.toHaveBeenCalled();
   });
 
-  it("valores por defecto: Parcela + 25 m, 200 m y ×2", () => {
+  it("default values: Parcela + 25 m, 200 m and ×2", () => {
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     expect(screen.getByLabelText("Recorte")).toHaveDisplayValue("Parcela + 25 m");
     expect(screen.getByLabelText("Lado máximo de la vista")).toHaveDisplayValue("200 m");
     expect(screen.getByLabelText("Exageración vertical")).toHaveDisplayValue("×2");
   });
 
-  it("opciones de cada selector tal como el plan", () => {
+  it("options of each selector as in the plan", () => {
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     const texts = (name: string) =>
       within(screen.getByLabelText(name)).getAllByRole("option").map((o) => o.textContent);
@@ -111,7 +111,7 @@ describe("VisorRelieve · estado inicial", () => {
     expect(texts("Exageración vertical")).toEqual(["×1 (real)", "×2", "×3"]);
   });
 
-  it("atajos «Probar con»: la de la ficha, la rústica grande y una residencial", async () => {
+  it("«Probar con» shortcuts: the sheet's, the large rural one and a residential one", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference={REF} fetcher={makeFetcher()} />);
     expect(screen.getByText(/Probar con/)).toBeInTheDocument();
@@ -130,8 +130,8 @@ describe("VisorRelieve · estado inicial", () => {
   });
 });
 
-describe("VisorRelieve · validación y consulta", () => {
-  it("referencia inválida: aviso en región viva y no se consulta", async () => {
+describe("ReliefViewer · validation and query", () => {
+  it("invalid reference: notice in a live region and no query", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
     render(<ReliefViewer initialReference="" fetcher={fetcher} />);
@@ -143,7 +143,7 @@ describe("VisorRelieve · validación y consulta", () => {
     expect(mount).not.toHaveBeenCalled();
   });
 
-  it("consulta válida: «Cargando el visor 3D…» y luego una sola escena con contenedor, relieve y exageración", async () => {
+  it("valid query: «Cargando el visor 3D…» and then a single scene with host, relief and exaggeration", async () => {
     const user = userEvent.setup();
     let resolveFetch!: (r: Relief) => void;
     const fetcher = jest.fn(() => new Promise<Relief>((res) => (resolveFetch = res)));
@@ -168,7 +168,7 @@ describe("VisorRelieve · validación y consulta", () => {
     expect(colors).toEqual({ background: expect.any(String), accent: expect.any(String), border: expect.any(String) });
   });
 
-  it("el lienzo es una imagen accesible, enfocable y con ayuda de teclado", async () => {
+  it("the canvas is an accessible, focusable image with keyboard help", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
@@ -177,7 +177,7 @@ describe("VisorRelieve · validación y consulta", () => {
     expect(screen.getByText(/Usa las flechas para girar; los botones \+ y − acercan y alejan/)).toBeInTheDocument();
   });
 
-  it("error de la consulta: aviso en región viva, sin escena y sin romper los controles", async () => {
+  it("query error: notice in a live region, no scene and controls not broken", async () => {
     const user = userEvent.setup();
     const fetcher = jest.fn().mockRejectedValue(new Error("Servicio no disponible"));
     const { container } = render(<ReliefViewer initialReference="" fetcher={fetcher} />);
@@ -193,8 +193,8 @@ describe("VisorRelieve · validación y consulta", () => {
   });
 });
 
-describe("VisorRelieve · lecturas y avisos", () => {
-  it("lecturas dentro de la parcela visible, coherentes con calcularLecturas", async () => {
+describe("ReliefViewer · readings and notices", () => {
+  it("readings inside the visible plot, consistent with calculateReadings", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
@@ -214,17 +214,17 @@ describe("VisorRelieve · lecturas y avisos", () => {
     expect(readingValue("Relieve")).toMatch(/×2/);
   });
 
-  it("avisos fijos: orientativo y la fuente; sin avisos de recorte cuando no corresponden", async () => {
+  it("fixed notices: indicative and the source; no clipping notices when they do not apply", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     expect(screen.getByText(/Orientativo: no sustituye un levantamiento topográfico\./)).toBeInTheDocument();
-    expect(screen.getByText(/Fuente de prueba \(ficticia\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Test source \(fictitious\)/)).toBeInTheDocument();
     expect(screen.queryByText("Parcela mayor que la ventana: se muestra centrada en su centroide.")).not.toBeInTheDocument();
     expect(screen.queryByText("El borde se corta en el límite de la vista.")).not.toBeInTheDocument();
   });
 
-  it("recortada: avisa de que la parcela se muestra centrada en su centroide", async () => {
+  it("clamped: warns that the plot is shown centred on its centroid", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher({ clamped: true })} />);
     await viewRelief(user, RURAL);
@@ -232,7 +232,7 @@ describe("VisorRelieve · lecturas y avisos", () => {
     expect(screen.queryByText("El borde se corta en el límite de la vista.")).not.toBeInTheDocument();
   });
 
-  it("parcelaCortada: avisa de que el borde se corta en el límite de la vista", async () => {
+  it("plotClipped: warns that the border is cut at the limit of the view", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher({ plotClipped: true })} />);
     await viewRelief(user, RURAL);
@@ -240,7 +240,7 @@ describe("VisorRelieve · lecturas y avisos", () => {
     expect(screen.queryByText("Parcela mayor que la ventana: se muestra centrada en su centroide.")).not.toBeInTheDocument();
   });
 
-  it("sigue mostrando el aviso orientativo con ambos avisos de recorte", async () => {
+  it("still shows the indicative notice with both clipping notices", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher({ clamped: true, plotClipped: true })} />);
     await viewRelief(user, RURAL);
@@ -250,8 +250,8 @@ describe("VisorRelieve · lecturas y avisos", () => {
   });
 });
 
-describe("VisorRelieve · controles con relieve mostrado", () => {
-  it("cambiar «Recorte» vuelve a consultar con las nuevas opciones y libera la escena anterior antes de montar otra", async () => {
+describe("ReliefViewer · controls with a relief shown", () => {
+  it("changing «Recorte» queries again with the new options and releases the previous scene before mounting another", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
     render(<ReliefViewer initialReference="" fetcher={fetcher} />);
@@ -264,7 +264,7 @@ describe("VisorRelieve · controles con relieve mostrado", () => {
     expect(scenes[1].release).not.toHaveBeenCalled();
   });
 
-  it("cambiar «Lado máximo de la vista» vuelve a consultar y libera la anterior", async () => {
+  it("changing «Lado máximo de la vista» queries again and releases the previous one", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
     render(<ReliefViewer initialReference="" fetcher={fetcher} />);
@@ -275,7 +275,7 @@ describe("VisorRelieve · controles con relieve mostrado", () => {
     expect(scenes[0].release).toHaveBeenCalledTimes(1);
   });
 
-  it("cambiar «Exageración vertical» solo reescala: no consulta ni monta otra escena", async () => {
+  it("changing «Exageración vertical» only rescales: neither queries nor mounts another scene", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
     render(<ReliefViewer initialReference="" fetcher={fetcher} />);
@@ -288,7 +288,7 @@ describe("VisorRelieve · controles con relieve mostrado", () => {
     expect(numbers(readingValue("Relieve"))[0]).toBe(3);
   });
 
-  it("«Restablecer», «Acercar» y «Alejar» actúan sobre la escena", async () => {
+  it("«Restablecer», «Acercar» and «Alejar» act on the scene", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
@@ -301,7 +301,7 @@ describe("VisorRelieve · controles con relieve mostrado", () => {
     expect(scenes[0].zoomOut).toHaveBeenCalledTimes(1);
   });
 
-  it("pedir otra referencia libera la escena anterior antes de montar la nueva", async () => {
+  it("requesting another reference releases the previous scene before mounting the new one", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
     render(<ReliefViewer initialReference="" fetcher={fetcher} />);
@@ -314,8 +314,8 @@ describe("VisorRelieve · controles con relieve mostrado", () => {
   });
 });
 
-describe("VisorRelieve · liberación de recursos", () => {
-  it("desmontar el componente llama a liberar exactamente una vez", async () => {
+describe("ReliefViewer · resource release", () => {
+  it("unmounting the component calls release exactly once", async () => {
     const user = userEvent.setup();
     const { unmount } = render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
@@ -324,7 +324,7 @@ describe("VisorRelieve · liberación de recursos", () => {
     expect(scenes[0].release).toHaveBeenCalledTimes(1);
   });
 
-  it("tras varias escenas, al desmontar cada una se ha liberado exactamente una vez", async () => {
+  it("after several scenes, unmounting releases each one exactly once", async () => {
     const user = userEvent.setup();
     const { unmount } = render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
@@ -335,7 +335,7 @@ describe("VisorRelieve · liberación de recursos", () => {
     for (const e of scenes) expect(e.release).toHaveBeenCalledTimes(1);
   });
 
-  it("desmontar mientras se consulta no deja ninguna escena sin liberar", async () => {
+  it("unmounting while querying leaves no scene unreleased", async () => {
     const user = userEvent.setup();
     let resolveFetch!: (r: Relief) => void;
     const fetcher = jest.fn(() => new Promise<Relief>((res) => (resolveFetch = res)));
@@ -350,7 +350,7 @@ describe("VisorRelieve · liberación de recursos", () => {
   });
 });
 
-describe("VisorRelieve · sin WebGL", () => {
+describe("ReliefViewer · without WebGL", () => {
   beforeEach(() => {
     mount.mockReset();
     mount.mockImplementation(() => {
@@ -358,7 +358,7 @@ describe("VisorRelieve · sin WebGL", () => {
     });
   });
 
-  it("muestra el mensaje y los controles siguen disponibles", async () => {
+  it("shows the message and the controls remain available", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
@@ -371,7 +371,7 @@ describe("VisorRelieve · sin WebGL", () => {
     expect(screen.getByLabelText("Exageración vertical")).toBeEnabled();
   });
 
-  it("se puede volver a intentar con otra referencia sin que la página se rompa", async () => {
+  it("can retry with another reference without the page breaking", async () => {
     const user = userEvent.setup();
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
@@ -383,8 +383,8 @@ describe("VisorRelieve · sin WebGL", () => {
   });
 });
 
-describe("VisorRelieve · accesibilidad", () => {
-  it("cada control tiene su etiqueta asociada", () => {
+describe("ReliefViewer · accessibility", () => {
+  it("each control has its associated label", () => {
     render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
     for (const name of ["Referencia catastral", "Recorte", "Lado máximo de la vista", "Exageración vertical"]) {
       expect(screen.getByLabelText(name)).toBeInTheDocument();
@@ -395,19 +395,19 @@ describe("VisorRelieve · accesibilidad", () => {
     }
   });
 
-  it("sin violaciones de axe en el estado inicial", async () => {
+  it("no axe violations in the initial state", async () => {
     const { container } = render(<main><ReliefViewer initialReference="" fetcher={makeFetcher()} /></main>);
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("sin violaciones de axe con el relieve mostrado", async () => {
+  it("no axe violations with the relief shown", async () => {
     const user = userEvent.setup();
     const { container } = render(<main><ReliefViewer initialReference="" fetcher={makeFetcher({ clamped: true, plotClipped: true })} /></main>);
     await viewRelief(user, REF);
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("sin violaciones de axe en el estado sin WebGL", async () => {
+  it("no axe violations in the no-WebGL state", async () => {
     mount.mockReset();
     mount.mockImplementation(() => {
       throw new Error("WebGL no disponible");

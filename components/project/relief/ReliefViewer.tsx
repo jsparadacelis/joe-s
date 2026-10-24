@@ -15,9 +15,9 @@ import { ReliefControls, type ReliefShortcut } from "./ReliefControls";
 import { ReliefReadings } from "./ReliefReadings";
 
 export type ReliefViewerProps = {
-  /** Referencia catastral de la ficha del proyecto (puede estar vacía). */
+  /** Cadastral reference from the project sheet (may be empty). */
   initialReference: string;
-  /** Inyectable en tests; por defecto, el servicio de relieve. */
+  /** Injectable in tests; by default, the relief service. */
   fetcher?: typeof fetchRelief;
 };
 
@@ -25,7 +25,7 @@ type ViewerState = "idle" | "loading" | "ready" | "no-webgl" | "error";
 
 const RURAL_REFERENCE = "08187A005001230000OK";
 const RESIDENTIAL_REFERENCE = "9876543DF3897N0001XY";
-const REFERENCE_ERROR_ID = "relieve-error-referencia";
+const REFERENCE_ERROR_ID = "relief-reference-error";
 const KEYBOARD_HINT = "Usa las flechas para girar; los botones + y − acercan y alejan";
 
 export function ReliefViewer({ initialReference, fetcher = fetchRelief }: ReliefViewerProps) {
@@ -40,10 +40,10 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
   const canvasHost = useRef<HTMLDivElement>(null);
   const scene = useRef<ReliefScene | null>(null);
   const currentExaggeration = useRef<Exaggeration>(exaggeration);
-  /** Identifica la última consulta; las anteriores y las posteriores al desmontaje se descartan. */
+  /** Identifies the latest query; earlier ones and ones after unmounting are discarded. */
   const requestId = useRef(0);
 
-  // Al desmontar, invalida cualquier consulta en curso.
+  // On unmount, invalidate any query in flight.
   useEffect(() => {
     const counter = requestId;
     return () => {
@@ -66,7 +66,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
     [fetcher],
   );
 
-  // Ciclo de vida de la escena: una por relieve; el cleanup la libera antes de montar la siguiente.
+  // Scene lifecycle: one per relief; the cleanup releases it before mounting the next one.
   useEffect(() => {
     if (!relief) return;
     const host = canvasHost.current;
@@ -108,7 +108,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
     void query({ reference: reference.trim(), margin, maxSide });
   };
 
-  // Con un relieve mostrado, cambiar el recorte o el lado vuelve a pedirlo al servicio.
+  // With a relief shown, changing the margin or the side asks the service again.
   const changeViewWindow = (next: { margin: Margin; maxSide: MaxSide }) => {
     setMargin(next.margin);
     setMaxSide(next.maxSide);

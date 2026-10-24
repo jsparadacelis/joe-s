@@ -3,9 +3,9 @@ import { Notice } from "@/components/ui/Notice";
 export type ReliefNoticesProps = {
   clamped: boolean;
   plotClipped: boolean;
-  /** Procedencia del dato (p. ej. «Relieve simulado»). */
+  /** Origin of the data (e.g. «Relieve simulado»). */
   source: string;
-  /** Hay parcela dentro de la vista; si no, se avisa. */
+  /** There is a plot inside the view; otherwise a notice is shown. */
   hasReadings: boolean;
 };
 

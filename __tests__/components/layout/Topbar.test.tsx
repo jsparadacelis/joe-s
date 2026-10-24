@@ -6,21 +6,21 @@ const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 describe("Topbar", () => {
-  it("muestra las migas con la sección actual", () => {
+  it("shows the breadcrumbs with the current section", () => {
     mockPathname.mockReturnValue("/reporte-semanal");
     render(<Topbar />);
     expect(screen.getByRole("navigation", { name: "Migas de pan" })).toBeInTheDocument();
     expect(screen.getByText("Reporte semanal")).toHaveAttribute("aria-current", "page");
   });
 
-  it("solo muestra la raíz en rutas desconocidas", () => {
-    mockPathname.mockReturnValue("/otra");
+  it("only shows the root on unknown routes", () => {
+    mockPathname.mockReturnValue("/other");
     render(<Topbar />);
     expect(screen.getByText("RGB Proyectos")).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(1);
   });
 
-  it("no tiene violaciones de accesibilidad", async () => {
+  it("has no accessibility violations", async () => {
     mockPathname.mockReturnValue("/cartera");
     const { container } = render(<Topbar />);
     expect(await axe(container)).toHaveNoViolations();

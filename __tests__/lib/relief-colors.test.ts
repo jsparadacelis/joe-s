@@ -1,23 +1,23 @@
 import { readSceneColors, readHeightRamp } from "@/lib/relief-colors";
 
-describe("colores de la escena (tokens CSS)", () => {
+describe("scene colours (CSS tokens)", () => {
   afterEach(() => document.documentElement.removeAttribute("style"));
 
-  it("lee fondo, acento y borde de los tokens, sin espacios sobrantes", () => {
-    document.documentElement.style.setProperty("--surface-2", " tono-fondo ");
-    document.documentElement.style.setProperty("--point", "tono-acento");
-    document.documentElement.style.setProperty("--line", "tono-borde");
-    expect(readSceneColors()).toEqual({ background: "tono-fondo", accent: "tono-acento", border: "tono-borde" });
+  it("reads background, accent and border from the tokens, without surplus whitespace", () => {
+    document.documentElement.style.setProperty("--surface-2", " tone-background ");
+    document.documentElement.style.setProperty("--point", "tone-accent");
+    document.documentElement.style.setProperty("--line", "tone-border");
+    expect(readSceneColors()).toEqual({ background: "tone-background", accent: "tone-accent", border: "tone-border" });
   });
 
-  it("lee la rampa de alturas de cuatro tokens", () => {
-    ["bajo", "medio-bajo", "medio-alto", "alto"].forEach((n, i) =>
-      document.documentElement.style.setProperty(`--relieve-${n}`, `tono-${i}`),
+  it("reads the height ramp from four tokens", () => {
+    ["low", "mid-low", "mid-high", "high"].forEach((n, i) =>
+      document.documentElement.style.setProperty(`--relief-${n}`, `tone-${i}`),
     );
-    expect(readHeightRamp()).toEqual(["tono-0", "tono-1", "tono-2", "tono-3"]);
+    expect(readHeightRamp()).toEqual(["tone-0", "tone-1", "tone-2", "tone-3"]);
   });
 
-  it("sin tokens (jsdom) devuelve cadenas vacías", () => {
+  it("without tokens (jsdom) returns empty strings", () => {
     expect(readSceneColors()).toEqual({ background: "", accent: "", border: "" });
   });
 });

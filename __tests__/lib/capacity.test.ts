@@ -3,12 +3,12 @@ import type { TechnicalDatum } from "@/lib/technical-data";
 
 const IDS = ["builtArea", "cadastralPlotArea", "polygonPlotArea", "buildability", "maxOccupancy", "floors", "minPlot", "calcArea"] as const;
 
-/** Datos con solo los ids que usa el cálculo; los no indicados quedan vacíos. */
+/** Data with only the ids used by the calculation; the ones not given stay empty. */
 function data(v: Partial<Record<(typeof IDS)[number], string>>): TechnicalDatum[] {
   return IDS.map((id) => ({ id, value: v[id] ?? "", original: null, verified: false }));
 }
 
-describe("parseNumero", () => {
+describe("parseNumber", () => {
   it.each([
     ["1.240,5", 1240.5],
     ["1.240", 1240],
@@ -25,36 +25,36 @@ describe("parseNumero", () => {
     expect(parseNumber(input)).toBeNull();
   });
 
-  it("null o undefined -> null sin lanzar", () => {
+  it("null or undefined -> null without throwing", () => {
     expect(parseNumber(null as unknown as string)).toBeNull();
     expect(parseNumber(undefined as unknown as string)).toBeNull();
   });
 });
 
-describe("formatearNumero", () => {
-  it("formato es-ES con coma decimal y puntos de millar", () => {
+describe("formatNumber", () => {
+  it("es-ES format with decimal comma and thousands dots", () => {
     expect(formatNumber(12345.67, 1)).toBe("12.345,7");
     expect(formatNumber(1.5, 1)).toBe("1,5");
   });
-  it("sin decimales por defecto (redondea)", () => {
+  it("no decimals by default (rounds)", () => {
     expect(formatNumber(99.4)).toBe("99");
     expect(formatNumber(99.6)).toBe("100");
   });
-  it("los decimales sobrantes no se rellenan con ceros", () => {
+  it("surplus decimals are not padded with zeros", () => {
     expect(formatNumber(150, 1)).toBe("150");
   });
   it("null -> «—»", () => {
     expect(formatNumber(null)).toBe("—");
     expect(formatNumber(null, 2)).toBe("—");
   });
-  it("cero es un número, no «—»", () => {
+  it("zero is a number, not «—»", () => {
     expect(formatNumber(0)).toBe("0");
   });
 });
 
-describe("calcularCapacidad", () => {
-  it("limita ocupación × plantas cuando el techo por edificabilidad es mayor", () => {
-    // superficie 100; techo 100×2=200; huella 100×50/100=50; ×3 plantas=150
+describe("calculateCapacity", () => {
+  it("limited by occupancy × floors when the buildability ceiling is larger", () => {
+    // surface 100; ceiling 100×2=200; footprint 100×50/100=50; ×3 floors=150
     const c = calculateCapacity(data({ cadastralPlotArea: "100", buildability: "2", maxOccupancy: "50", floors: "PB+2", calcArea: "Catastral", builtArea: "60", minPlot: "80" }));
     expect(c).not.toBeNull();
     expect(c!.surface).toBe(100);
@@ -68,8 +68,8 @@ describe("calcularCapacidad", () => {
     expect(c!.meetsMinPlot).toBe(true);
   });
 
-  it("limita edificabilidad cuando el techo es menor", () => {
-    // techo 100×1=100; huella 60; ×2=120
+  it("limited by buildability when the ceiling is smaller", () => {
+    // ceiling 100×1=100; footprint 60; ×2=120
     const c = calculateCapacity(data({ cadastralPlotArea: "100", buildability: "1", maxOccupancy: "60", floors: "PB+1", calcArea: "Catastral" }))!;
     expect(c.buildableArea).toBe(100);
     expect(c.footprint).toBe(60);
@@ -78,8 +78,8 @@ describe("calcularCapacidad", () => {
     expect(c.limitedBy).toBe("buildability");
   });
 
-  it("empate entre techo y huella × plantas: limita «Edificabilidad»", () => {
-    // techo 200; huella 50 ×4 = 200
+  it("tie between ceiling and footprint × floors: limited by «Edificabilidad»", () => {
+    // ceiling 200; footprint 50 ×4 = 200
     const c = calculateCapacity(data({ cadastralPlotArea: "100", buildability: "2", maxOccupancy: "50", floors: "PB+3", calcArea: "Catastral" }))!;
     expect(c.buildableArea).toBe(200);
     expect(c.byFloors).toBe(200);
@@ -87,8 +87,8 @@ describe("calcularCapacidad", () => {
     expect(c.limitedBy).toBe("buildability");
   });
 
-  it("scalc «Polígono» usa la superficie del polígono (spp)", () => {
-    // superficie 80; techo 160; huella 40; ×1=40
+  it("calcArea «Polígono» uses the polygon surface (polygonPlotArea)", () => {
+    // surface 80; ceiling 160; footprint 40; ×1=40
     const c = calculateCapacity(data({ cadastralPlotArea: "100", polygonPlotArea: "80", buildability: "2", maxOccupancy: "50", floors: "PB", calcArea: "Polígono" }))!;
     expect(c.surface).toBe(80);
     expect(c.buildableArea).toBe(160);
@@ -98,7 +98,7 @@ describe("calcularCapacidad", () => {
     expect(c.limitedBy).toBe("occupancy-floors");
   });
 
-  it.each(["Catastral", "Topográfico", ""])("scalc %j usa la superficie del Catastro (spc)", (area) => {
+  it.each(["Catastral", "Topográfico", ""])("calcArea %j uses the Catastro surface (cadastralPlotArea)", (area) => {
     const c = calculateCapacity(data({ cadastralPlotArea: "100", polygonPlotArea: "80", buildability: "2", maxOccupancy: "50", floors: "PB", calcArea: area }))!;
     expect(c.surface).toBe(100);
   });
@@ -110,8 +110,8 @@ describe("calcularCapacidad", () => {
     ["PB+3", 4],
     ["PB+4", 5],
     ["PB+5", 6],
-  ])("plantas %s multiplica la huella por %i", (floors, n) => {
-    // edificabilidad enorme para que nunca limite; huella = 100×10/100 = 10
+  ])("floors %s multiplies the footprint by %i", (floors, n) => {
+    // huge buildability so it never limits; footprint = 100×10/100 = 10
     const c = calculateCapacity(data({ cadastralPlotArea: "100", buildability: "100", maxOccupancy: "10", floors, calcArea: "Catastral" }))!;
     expect(c.footprint).toBe(10);
     expect(c.byFloors).toBe(10 * n);
@@ -119,8 +119,8 @@ describe("calcularCapacidad", () => {
     expect(c.limitedBy).toBe("occupancy-floors");
   });
 
-  it("acepta decimales con coma", () => {
-    // 99,4 × 1,5 = 149,1; huella 99,4×70/100 = 69,58; ×3 = 208,74
+  it("accepts decimals with a comma", () => {
+    // 99,4 × 1,5 = 149,1; footprint 99,4×70/100 = 69,58; ×3 = 208,74
     const c = calculateCapacity(data({ cadastralPlotArea: "99,4", buildability: "1,5", maxOccupancy: "70", floors: "PB+2", calcArea: "Catastral" }))!;
     expect(c.buildableArea).toBeCloseTo(149.1, 6);
     expect(c.footprint).toBeCloseTo(69.58, 6);
@@ -129,60 +129,60 @@ describe("calcularCapacidad", () => {
     expect(c.limitedBy).toBe("buildability");
   });
 
-  describe("parcela mínima y existente", () => {
+  describe("minimum plot and existing", () => {
     const base = { cadastralPlotArea: "100", buildability: "2", maxOccupancy: "50", floors: "PB+2", calcArea: "Catastral" } as const;
-    it("no cumple si la superficie es menor que la parcela mínima", () => {
+    it("does not meet it if the surface is smaller than the minimum plot", () => {
       const c = calculateCapacity(data({ ...base, minPlot: "150" }))!;
       expect(c.minPlot).toBe(150);
       expect(c.meetsMinPlot).toBe(false);
     });
-    it("cumple si la superficie es igual a la parcela mínima", () => {
+    it("meets it if the surface equals the minimum plot", () => {
       const c = calculateCapacity(data({ ...base, minPlot: "100" }))!;
       expect(c.meetsMinPlot).toBe(true);
     });
-    it("compara con la superficie de cálculo elegida (Polígono)", () => {
+    it("compares with the chosen calculation surface (Polígono)", () => {
       const c = calculateCapacity(data({ ...base, polygonPlotArea: "90", calcArea: "Polígono", minPlot: "95" }))!;
       expect(c.meetsMinPlot).toBe(false);
     });
-    it("sin parcela mínima: parcelaMinima y cumple son null", () => {
+    it("without a minimum plot: minPlot and meetsMinPlot are null", () => {
       const c = calculateCapacity(data(base))!;
       expect(c.minPlot).toBeNull();
       expect(c.meetsMinPlot).toBeNull();
     });
-    it("sin superficie construida: existente es null", () => {
+    it("without built surface: existing is null", () => {
       expect(calculateCapacity(data(base))!.existing).toBeNull();
     });
   });
 
-  describe("devuelve null si falta un dato imprescindible", () => {
+  describe("returns null if an essential datum is missing", () => {
     const full = { cadastralPlotArea: "100", polygonPlotArea: "90", buildability: "2", maxOccupancy: "50", floors: "PB+2", calcArea: "Catastral" } as const;
-    it("el caso completo calcula", () => {
+    it("the complete case calculates", () => {
       expect(calculateCapacity(data(full))).not.toBeNull();
     });
-    it("sin superficie del Catastro", () => {
+    it("without the Catastro surface", () => {
       expect(calculateCapacity(data({ ...full, cadastralPlotArea: "" }))).toBeNull();
     });
-    it("scalc Polígono sin superficie del polígono", () => {
+    it("calcArea Polígono without polygon surface", () => {
       expect(calculateCapacity(data({ ...full, calcArea: "Polígono", polygonPlotArea: "" }))).toBeNull();
     });
-    it("sin edificabilidad", () => {
+    it("without buildability", () => {
       expect(calculateCapacity(data({ ...full, buildability: "" }))).toBeNull();
     });
-    it("sin ocupación", () => {
+    it("without occupancy", () => {
       expect(calculateCapacity(data({ ...full, maxOccupancy: "" }))).toBeNull();
     });
-    it("sin número de plantas", () => {
+    it("without number of floors", () => {
       expect(calculateCapacity(data({ ...full, floors: "" }))).toBeNull();
     });
-    it("valor no numérico en la edificabilidad", () => {
+    it("non-numeric value in buildability", () => {
       expect(calculateCapacity(data({ ...full, buildability: "abc" }))).toBeNull();
     });
-    it("lista de datos vacía", () => {
+    it("empty data list", () => {
       expect(calculateCapacity([])).toBeNull();
     });
   });
 
-  it("no muta los datos de entrada", () => {
+  it("does not mutate the input data", () => {
     const d = data({ cadastralPlotArea: "100", buildability: "2", maxOccupancy: "50", floors: "PB+2" });
     const copyOf = JSON.parse(JSON.stringify(d));
     calculateCapacity(d);

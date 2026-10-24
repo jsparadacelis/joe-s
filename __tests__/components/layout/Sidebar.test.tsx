@@ -7,7 +7,7 @@ const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 describe("Sidebar", () => {
-  it("lista todos los ítems de navegación", () => {
+  it("lists all the navigation items", () => {
     mockPathname.mockReturnValue("/cartera");
     render(<Sidebar />);
     const nav = screen.getByRole("navigation", { name: "Principal" });
@@ -15,14 +15,14 @@ describe("Sidebar", () => {
     expect(screen.getAllByRole("link")).toHaveLength(NAV_ITEMS.length);
   });
 
-  it("marca solo el ítem activo con aria-current=page", () => {
+  it("marks only the active item with aria-current=page", () => {
     mockPathname.mockReturnValue("/por-promover");
     render(<Sidebar />);
     expect(screen.getByRole("link", { name: "Por promover" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Cartera" })).not.toHaveAttribute("aria-current");
   });
 
-  it("no tiene violaciones de accesibilidad", async () => {
+  it("has no accessibility violations", async () => {
     mockPathname.mockReturnValue("/ajustes");
     const { container } = render(<Sidebar />);
     expect(await axe(container)).toHaveNoViolations();

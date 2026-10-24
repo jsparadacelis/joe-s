@@ -1,26 +1,26 @@
-/** Colores de la escena, leídos de los tokens CSS del tema activo (nunca literales). */
+/** Scene colours, read from the CSS tokens of the active theme (never literals). */
 export interface SceneColors {
   background: string;
   accent: string;
   border: string;
 }
 
-/** Rampa de alturas (de la cota más baja a la más alta), también definida por tokens. */
+/** Height ramp (from the lowest to the highest elevation), also defined by tokens. */
 export type HeightRamp = readonly [string, string, string, string];
 
-const RAMP_TOKENS = ["--relieve-bajo", "--relieve-medio-bajo", "--relieve-medio-alto", "--relieve-alto"] as const;
+const RAMP_TOKENS = ["--relief-low", "--relief-mid-low", "--relief-mid-high", "--relief-high"] as const;
 
 function read(computedStyle: CSSStyleDeclaration, token: string): string {
   return computedStyle.getPropertyValue(token).trim();
 }
 
-/** Lee fondo, acento y borde del documento. En entornos sin estilos (tests) devuelve cadenas vacías. */
+/** Reads background, accent and border from the document. In environments without styles (tests) returns empty strings. */
 export function readSceneColors(root: Element = document.documentElement): SceneColors {
   const computedStyle = getComputedStyle(root);
   return { background: read(computedStyle, "--surface-2"), accent: read(computedStyle, "--point"), border: read(computedStyle, "--line") };
 }
 
-/** Lee la rampa de alturas de los tokens `--relieve-*`. */
+/** Reads the height ramp from the `--relief-*` tokens. */
 export function readHeightRamp(root: Element = document.documentElement): HeightRamp {
   const computedStyle = getComputedStyle(root);
   const [a, b, c, d] = RAMP_TOKENS.map((t) => read(computedStyle, t));

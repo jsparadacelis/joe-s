@@ -1,11 +1,11 @@
 import type { Point, Relief } from "@/lib/relief";
 
-/** Ventana de prueba de 100 × 100 m con rejilla de 101 × 101 (paso de 1 m). */
+/** Test window of 100 × 100 m with a 101 × 101 grid (1 m step). */
 export const TEST_WINDOW = [0, 0, 100, 100] as const;
 
 /**
- * Construye un relieve sintético a partir de una función de altura h(x, y).
- * Fila 0 = norte (y máxima), orden de lectura, como exige el contrato.
+ * Builds a synthetic relief from a height function h(x, y).
+ * Row 0 = north (maximum y), reading order, as the contract requires.
  */
 export function reliefFromFunction(
   h: (x: number, y: number) => number,
@@ -38,10 +38,10 @@ export function reliefFromFunction(
     polygonSurface: 123456,
     clamped: false,
     plotClipped: false,
-    source: "Fuente de prueba (ficticia)",
+    source: "Test source (fictitious)",
     ...extra,
   };
 }
 
-/** Plano inclinado h = 100 + 0,1·x: pendiente del 10 % hacia el este. */
+/** Sloped plane h = 100 + 0.1·x: 10 % slope towards the east. */
 export const slopedPlane = (extra: Partial<Relief> = {}) => reliefFromFunction((x) => 100 + 0.1 * x, extra);

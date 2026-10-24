@@ -18,21 +18,21 @@ function stateOf(link: HTMLElement) {
 }
 
 describe("PhaseTimeline", () => {
-  it("es una navegación «Fases del proyecto» con una lista de 8 elementos", () => {
+  it("is a «Fases del proyecto» navigation with a list of 8 items", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     const nav = screen.getByRole("navigation", { name: "Fases del proyecto" });
     expect(within(nav).getByRole("list")).toBeInTheDocument();
     expect(within(nav).getAllByRole("listitem")).toHaveLength(8);
   });
 
-  it("muestra 8 enlaces con el href de cada fase, en orden", () => {
+  it("shows 8 links with each phase's href, in order", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     expect(links().map((l) => l.getAttribute("href"))).toEqual(
       PHASES.map((f) => `/proyectos/PRY-EJ-001/fase/${f.id}`),
     );
   });
 
-  it("cada enlace muestra número y nombre de la fase", () => {
+  it("each link shows the phase number and name", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     links().forEach((l, i) => {
       expect(l).toHaveTextContent(PHASES[i].name);
@@ -40,25 +40,25 @@ describe("PhaseTimeline", () => {
     });
   });
 
-  it("usa el código recibido en los href", () => {
+  it("uses the received code in the hrefs", () => {
     render(<PhaseTimeline code="PRY-EJ-002" currentPhase={0} viewedPhase={0} />);
     for (const l of links()) expect(l.getAttribute("href")).toMatch(/^\/proyectos\/PRY-EJ-002\/fase\/[0-7]$/);
   });
 
-  it("indica con texto accesible hecha / actual / vista según la fase actual", () => {
+  it("indicates with accessible text hecha / actual / vista according to the current phase", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     const expected = ["done", "done", "done", "current", "upcoming", "upcoming", "upcoming", "upcoming"];
     links().forEach((l, i) => expect(stateOf(l)).toEqual([expected[i]]));
   });
 
-  it("el nombre accesible de cada enlace incluye su estado", () => {
+  it("the accessible name of each link includes its state", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     expect(screen.getByRole("link", { name: /Anteproyecto.*actual|actual.*Anteproyecto/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Inicio.*hecha|hecha.*Inicio/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Obra.*vista|vista.*Obra/i })).toBeInTheDocument();
   });
 
-  it("aria-current=page solo en la fase en pantalla, distinta de la actual", () => {
+  it("aria-current=page only on the phase on screen, different from the current one", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={5} />);
     const current = links().filter((l) => l.getAttribute("aria-current") === "page");
     expect(current).toHaveLength(1);
@@ -66,13 +66,13 @@ describe("PhaseTimeline", () => {
     expect(document.querySelectorAll("[aria-current]")).toHaveLength(1);
   });
 
-  it("aria-current=page en la fase actual cuando es la que se ve", () => {
+  it("aria-current=page on the current phase when it is the one being viewed", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     const current = links().filter((l) => l.hasAttribute("aria-current"));
     expect(current.map((l) => l.getAttribute("href"))).toEqual(["/proyectos/PRY-EJ-001/fase/3"]);
   });
 
-  it("aria-current cambia al cambiar la fase en pantalla", () => {
+  it("aria-current changes when the phase on screen changes", () => {
     const { rerender } = render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={1} />);
     expect(links()[1]).toHaveAttribute("aria-current", "page");
     rerender(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={2} />);
@@ -80,7 +80,7 @@ describe("PhaseTimeline", () => {
     expect(links()[2]).toHaveAttribute("aria-current", "page");
   });
 
-  it("Tab recorre las 8 fases en orden", async () => {
+  it("Tab goes through the 8 phases in order", async () => {
     const user = userEvent.setup();
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     for (const l of links()) {
@@ -89,7 +89,7 @@ describe("PhaseTimeline", () => {
     }
   });
 
-  it("Enter sobre una fase enfocada activa su enlace", async () => {
+  it("Enter on a focused phase activates its link", async () => {
     const user = userEvent.setup();
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
     const target = links()[5];
@@ -111,7 +111,7 @@ describe("PhaseTimeline", () => {
     [7, 7],
     [0, 7],
     [7, 0],
-  ])("caso borde: fase actual %i, fase en pantalla %i", (current, viewed) => {
+  ])("edge case: current phase %i, phase on screen %i", (current, viewed) => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={current} viewedPhase={viewed} />);
     const ls = links();
     expect(ls).toHaveLength(8);
@@ -122,7 +122,7 @@ describe("PhaseTimeline", () => {
     });
   });
 
-  it("no tiene violaciones de accesibilidad", async () => {
+  it("has no accessibility violations", async () => {
     const { container } = render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={5} />);
     expect(await axe(container)).toHaveNoViolations();
   });

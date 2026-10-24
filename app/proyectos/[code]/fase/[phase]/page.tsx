@@ -26,7 +26,7 @@ export default async function Page({ params }: Props) {
   const phase = PHASES[viewedPhase];
   const { currentPhase } = project;
   const mode = phaseMode(viewedPhase, currentPhase);
-  // Los datos técnicos se revisan en Briefing (fase 2); el relieve se consulta en Anteproyecto (fase 3).
+  // Technical data are reviewed in Briefing (phase 2); the relief is queried in Anteproyecto (phase 3).
   const [saved, sheetReference] =
     viewedPhase === 2
       ? await Promise.all([fetchSavedTechnicalData(project.code), fetchCadastralReference(project.code)])

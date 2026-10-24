@@ -5,7 +5,7 @@ export type StatusChipVariant = "tag" | "traffic-light";
 
 export type StatusChipProps = {
   tone?: StatusTone;
-  /** `tag`: etiqueta con fondo suave. `semaforo`: píldora con punto de color. */
+  /** `tag`: label with a soft background. `traffic-light`: pill with a coloured dot. */
   variant?: StatusChipVariant;
   children: ReactNode;
 };

@@ -24,14 +24,14 @@ const IDS = [...PLOT_IDS, ...CONDITION_IDS, ...PLANNING_IDS];
 const def = (id: string) => DEFINITIONS.find((d) => d.id === id)!;
 const datum = (over: Partial<TechnicalDatum> = {}): TechnicalDatum => ({
   id: "address",
-  value: "CL PRUEBA 1",
-  original: "CL PRUEBA 1",
+  value: "CL TEST 1",
+  original: "CL TEST 1",
   verified: false,
   ...over,
 });
 
-describe("GRUPOS", () => {
-  it("son tres, en orden, con id, nombre y descripción del borrador", () => {
+describe("DATA_GROUPS", () => {
+  it("there are three, in order, with the draft's id, name and description", () => {
     expect(DATA_GROUPS.map((g) => [g.id, g.name])).toEqual([
       ["plot", "Parcela"],
       ["conditions", "Condiciones técnicas"],
@@ -45,20 +45,20 @@ describe("GRUPOS", () => {
   });
 });
 
-describe("DEFINICIONES", () => {
-  it("son 26, con los ids del plan en orden (parcela, condiciones, planeamiento)", () => {
+describe("DEFINITIONS", () => {
+  it("there are 26, with the plan's ids in order (plot, conditions, planning)", () => {
     expect(DEFINITIONS.map((d) => d.id)).toEqual(IDS);
     expect(DEFINITIONS).toHaveLength(26);
   });
 
-  it("recuento por grupo 12 / 6 / 8 y cada dato pertenece al grupo de sus ids", () => {
+  it("count per group 12 / 6 / 8 and each datum belongs to the group of its ids", () => {
     const de = (g: string) => DEFINITIONS.filter((d) => d.group === g).map((d) => d.id);
     expect(de("plot")).toEqual(PLOT_IDS);
     expect(de("conditions")).toEqual(CONDITION_IDS);
     expect(de("planning")).toEqual(PLANNING_IDS);
   });
 
-  it("etiquetas del borrador", () => {
+  it("draft labels", () => {
     expect(DEFINITIONS.map((d) => d.label)).toEqual([
       "Dirección", "Municipio", "Clase", "Uso catastral", "Año de construcción", "Superficie construida",
       "Sup. de parcela (Catastro)", "Sup. de parcela (polígono)", "Coordenadas", "Altitud", "Pendiente", "Tipo de pendiente",
@@ -67,7 +67,7 @@ describe("DEFINICIONES", () => {
     ]);
   });
 
-  it("tipos: lista, número o texto según el borrador", () => {
+  it("types: list, number or text according to the draft", () => {
     const lists = ["propertyClass", "use", "slopeType", "climateZone", "seismicAcceleration", "kCoefficient", "windZone", "snowZone", "floors", "calcArea"];
     const numbers = ["year", "builtArea", "cadastralPlotArea", "polygonPlotArea", "altitude", "slope", "pvProduction", "buildability", "maxOccupancy", "maxHeight", "streetSetback", "boundarySetback", "minPlot"];
     const texts = ["address", "municipality", "coords"];
@@ -77,14 +77,14 @@ describe("DEFINICIONES", () => {
     expect(lists.length + numbers.length + texts.length).toBe(26);
   });
 
-  it("solo las listas tienen opciones", () => {
+  it("only lists have options", () => {
     for (const d of DEFINITIONS) {
       if (d.type === "list") expect(d.options && d.options.length).toBeGreaterThan(0);
       else expect(d.options).toBeUndefined();
     }
   });
 
-  it("orígenes del borrador", () => {
+  it("draft origins", () => {
     const origin = Object.fromEntries(DEFINITIONS.map((d) => [d.id, d.origin]));
     expect(origin).toMatchObject({
       address: "Catastro", municipality: "Catastro", propertyClass: "Catastro", use: "Catastro", year: "Catastro", builtArea: "Catastro", cadastralPlotArea: "Catastro",
@@ -94,7 +94,7 @@ describe("DEFINICIONES", () => {
     for (const id of PLANNING_IDS) expect(origin[id]).toBe("Manual");
   });
 
-  it("unidades del borrador", () => {
+  it("draft units", () => {
     const unit = (id: string) => def(id).unit;
     expect(unit("builtArea")).toBe("m²");
     expect(unit("cadastralPlotArea")).toBe("m²");
@@ -111,7 +111,7 @@ describe("DEFINICIONES", () => {
     expect(unit("year")).toBeFalsy();
   });
 
-  it("opciones literales del borrador", () => {
+  it("literal options of the draft", () => {
     expect(def("propertyClass").options).toEqual(["Urbano", "Rústico"]);
     expect(def("kCoefficient").options).toEqual(["1,0", "1,1", "1,2", "1,3"]);
     expect(def("windZone").options).toEqual(["A", "B", "C"]);
@@ -128,7 +128,7 @@ describe("DEFINICIONES", () => {
     expect(def("climateZone").options).toEqual(["α3", "A2", "A3", "A4", "B2", "B3", "B4", "C1", "C2", "C3", "C4", "D1", "D2", "D3", "E1"]);
   });
 
-  it("aceleración sísmica: «< 0,04 g» y de 0,04 g a 0,24 g (22 opciones)", () => {
+  it("seismic acceleration: «< 0,04 g» and from 0,04 g to 0,24 g (22 options)", () => {
     const ab = def("seismicAcceleration").options!;
     const expected = ["< 0,04 g", ...Array.from({ length: 21 }, (_, i) => `0,${String(4 + i).padStart(2, "0")} g`)];
     expect(ab).toHaveLength(22);
@@ -139,92 +139,92 @@ describe("DEFINICIONES", () => {
   });
 });
 
-describe("estaEditado", () => {
-  it("falso si el valor coincide con el original", () => {
+describe("isEdited", () => {
+  it("false if the value matches the original", () => {
     expect(isEdited(datum())).toBe(false);
   });
-  it("verdadero si el valor difiere del original", () => {
-    expect(isEdited(datum({ value: "OTRA" }))).toBe(true);
+  it("true if the value differs from the original", () => {
+    expect(isEdited(datum({ value: "OTHER" }))).toBe(true);
   });
-  it("verdadero si se vacía un dato que tenía original", () => {
+  it("true if a datum that had an original is emptied", () => {
     expect(isEdited(datum({ value: "" }))).toBe(true);
   });
-  it("un dato manual (original null) nunca está editado", () => {
+  it("a manual datum (original null) is never edited", () => {
     expect(isEdited(datum({ original: null, value: "algo" }))).toBe(false);
     expect(isEdited(datum({ original: null, value: "" }))).toBe(false);
   });
-  it("original vacío y valor escrito cuenta como editado", () => {
+  it("empty original and written value counts as edited", () => {
     expect(isEdited(datum({ original: "", value: "x" }))).toBe(true);
   });
 });
 
-describe("contarPendientes / contarEditados", () => {
+describe("countPending / countEdited", () => {
   const list = [
     datum({ id: "a", verified: true }),
     datum({ id: "b", value: "cambiado" }),
     datum({ id: "c", original: null, value: "manual", verified: true }),
     datum({ id: "d", value: "otro", verified: true }),
   ];
-  it("pendientes = sin verificar", () => {
+  it("pending = unverified", () => {
     expect(countPending(list)).toBe(1);
     expect(countPending([])).toBe(0);
   });
-  it("editados = con original y valor distinto (los manuales no cuentan)", () => {
+  it("edited = with original and a different value (manual ones do not count)", () => {
     expect(countEdited(list)).toBe(2);
     expect(countEdited([])).toBe(0);
   });
 });
 
-describe("restaurarDato", () => {
-  it("devuelve el valor original y conserva el resto, sin mutar", () => {
+describe("restoreDatum", () => {
+  it("returns the original value and keeps the rest, without mutating", () => {
     const d = datum({ value: "CAMBIADO", verified: true });
     const r = restoreDatum(d);
-    expect(r).toEqual({ id: "address", value: "CL PRUEBA 1", original: "CL PRUEBA 1", verified: true });
+    expect(r).toEqual({ id: "address", value: "CL TEST 1", original: "CL TEST 1", verified: true });
     expect(d.value).toBe("CAMBIADO");
     expect(isEdited(r)).toBe(false);
   });
-  it("con original vacío restaura a vacío", () => {
+  it("with an empty original it restores to empty", () => {
     expect(restoreDatum(datum({ original: "", value: "x" })).value).toBe("");
   });
-  it("sin original (manual) no cambia el valor", () => {
+  it("without an original (manual) the value does not change", () => {
     const d = datum({ original: null, value: "manual" });
     expect(restoreDatum(d)).toEqual(d);
   });
 });
 
-describe("marcarTodoVerificado", () => {
-  it("marca todos y devuelve una copia sin mutar el original", () => {
+describe("markAllVerified", () => {
+  it("ticks all and returns a copy without mutating the original", () => {
     const original = [datum({ id: "a" }), datum({ id: "b", verified: true, value: "x" })];
     const r = markAllVerified(original);
     expect(r.every((d) => d.verified)).toBe(true);
-    expect(r.map((d) => [d.id, d.value])).toEqual([["a", "CL PRUEBA 1"], ["b", "x"]]);
+    expect(r.map((d) => [d.id, d.value])).toEqual([["a", "CL TEST 1"], ["b", "x"]]);
     expect(original[0].verified).toBe(false);
     expect(r).not.toBe(original);
     expect(r[0]).not.toBe(original[0]);
     expect(countPending(r)).toBe(0);
   });
-  it("lista vacía devuelve lista vacía", () => {
+  it("empty list returns an empty list", () => {
     expect(markAllVerified([])).toEqual([]);
   });
 });
 
-describe("esReferenciaCatastralValida", () => {
-  it.each([RESIDENTIAL_REF, OTHER_REF, "abcdefgh123456789012", `  ${RESIDENTIAL_REF}  `])("acepta %j", (ref) => {
+describe("isValidCadastralReference", () => {
+  it.each([RESIDENTIAL_REF, OTHER_REF, "abcdefgh123456789012", `  ${RESIDENTIAL_REF}  `])("accepts %j", (ref) => {
     expect(isValidCadastralReference(ref)).toBe(true);
   });
   it.each([
     ["19 caracteres", "1234567DG3413S0001A"],
     ["21 caracteres", "1234567DG3413S0001ABC"],
-    ["símbolo", "1234567DG3413S0001A!"],
+    ["symbol", "1234567DG3413S0001A!"],
     ["espacio interior", "1234567DG3413 S0001A"],
-    ["vacía", ""],
+    ["empty", ""],
     ["solo espacios", "                    "],
-  ])("rechaza %s", (_n, ref) => {
+  ])("rejects %s", (_n, ref) => {
     expect(isValidCadastralReference(ref)).toBe(false);
   });
 });
 
-describe("reconsultar", () => {
+describe("requery", () => {
   const current: TechnicalDatum[] = [
     datum({ id: "address", value: "CL EDITADA 9", original: "CL VIEJA 1", verified: true }),
     datum({ id: "municipality", value: "MUNI VIEJO", original: "MUNI VIEJO", verified: true }),
@@ -232,27 +232,27 @@ describe("reconsultar", () => {
     datum({ id: "calcArea", value: "Polígono", original: null, verified: false }),
   ];
   const incoming: TechnicalDatum[] = [
-    datum({ id: "address", value: "CL NUEVA 2", original: "CL NUEVA 2" }),
-    datum({ id: "municipality", value: "MUNI NUEVO", original: "MUNI NUEVO" }),
+    datum({ id: "address", value: "CL NEW 2", original: "CL NEW 2" }),
+    datum({ id: "municipality", value: "MUNI NEW", original: "MUNI NEW" }),
     datum({ id: "buildability", value: "", original: null }),
     datum({ id: "calcArea", value: "Catastral", original: null }),
   ];
 
-  it("sustituye los datos de origen por los nuevos, con su original y sin verificar", () => {
+  it("replaces the origin data with the new ones, with their original and unverified", () => {
     const r = requery(current, incoming);
     const byId = (id: string) => r.find((d) => d.id === id)!;
-    expect(byId("address")).toEqual({ id: "address", value: "CL NUEVA 2", original: "CL NUEVA 2", verified: false });
-    expect(byId("municipality")).toEqual({ id: "municipality", value: "MUNI NUEVO", original: "MUNI NUEVO", verified: false });
+    expect(byId("address")).toEqual({ id: "address", value: "CL NEW 2", original: "CL NEW 2", verified: false });
+    expect(byId("municipality")).toEqual({ id: "municipality", value: "MUNI NEW", original: "MUNI NEW", verified: false });
     expect(isEdited(byId("address"))).toBe(false);
   });
 
-  it("conserva los datos manuales tal como estaban (valor y verificado)", () => {
+  it("keeps the manual data as they were (value and verified)", () => {
     const r = requery(current, incoming);
     expect(r.find((d) => d.id === "buildability")).toEqual({ id: "buildability", value: "1,5", original: null, verified: true });
     expect(r.find((d) => d.id === "calcArea")).toEqual({ id: "calcArea", value: "Polígono", original: null, verified: false });
   });
 
-  it("devuelve un dato por id de los nuevos, en su orden, sin mutar las entradas", () => {
+  it("returns one datum per incoming id, in their order, without mutating the inputs", () => {
     const currentCopy = JSON.parse(JSON.stringify(current));
     const incomingCopy = JSON.parse(JSON.stringify(incoming));
     const r = requery(current, incoming);
@@ -261,14 +261,14 @@ describe("reconsultar", () => {
     expect(incoming).toEqual(incomingCopy);
   });
 
-  it("un dato que no estaba en el estado actual se toma de los nuevos", () => {
+  it("a datum that was not in the current state is taken from the incoming ones", () => {
     const r = requery([], incoming);
     expect(r).toEqual(incoming);
   });
 });
 
-describe("obtenerDatosTecnicos", () => {
-  it("referencia residencial: valores de ejemplo del borrador", async () => {
+describe("fetchTechnicalData", () => {
+  it("residential reference: sample values from the draft", async () => {
     const r = await fetchTechnicalData(RESIDENTIAL_REF);
     expect(r.cadastralReference).toBe(RESIDENTIAL_REF);
     const v = Object.fromEntries(r.data.map((d) => [d.id, d.value]));
@@ -279,7 +279,7 @@ describe("obtenerDatosTecnicos", () => {
     });
   });
 
-  it("otra referencia válida: valores de ejemplo industriales", async () => {
+  it("another valid reference: industrial sample values", async () => {
     const r = await fetchTechnicalData(OTHER_REF);
     expect(r.cadastralReference).toBe(OTHER_REF);
     const v = Object.fromEntries(r.data.map((d) => [d.id, d.value]));
@@ -289,13 +289,13 @@ describe("obtenerDatosTecnicos", () => {
     });
   });
 
-  it("26 datos en el orden de DEFINICIONES, con fecha de consulta ISO", async () => {
+  it("26 data in the order of DEFINITIONS, with an ISO query date", async () => {
     const r = await fetchTechnicalData(RESIDENTIAL_REF);
     expect(r.data.map((d) => d.id)).toEqual(DEFINITIONS.map((d) => d.id));
     expect(r.queriedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
-  it("los datos de origen guardan original = valor y llegan sin verificar", async () => {
+  it("origin data keep original = value and arrive unverified", async () => {
     for (const ref of [RESIDENTIAL_REF, OTHER_REF]) {
       const r = await fetchTechnicalData(ref);
       for (const d of r.data.filter((x) => def(x.id).group !== "planning")) {
@@ -308,7 +308,7 @@ describe("obtenerDatosTecnicos", () => {
     }
   });
 
-  it("planeamiento vacío salvo scalc = «Catastral», con original null y sin verificar", async () => {
+  it("planning empty except calcArea = «Catastral», with original null and unverified", async () => {
     const r = await fetchTechnicalData(RESIDENTIAL_REF);
     for (const d of r.data.filter((x) => def(x.id).group === "planning")) {
       expect(d.original).toBeNull();
@@ -317,7 +317,7 @@ describe("obtenerDatosTecnicos", () => {
     }
   });
 
-  it("devuelve copias: modificar el resultado no afecta a la siguiente consulta", async () => {
+  it("returns copies: modifying the result does not affect the next query", async () => {
     const a = await fetchTechnicalData(RESIDENTIAL_REF);
     a.data[0].value = "MUTADO";
     a.data[0].verified = true;
@@ -328,23 +328,23 @@ describe("obtenerDatosTecnicos", () => {
     expect(b.data[0].verified).toBe(false);
   });
 
-  it("datos ficticios: sin correos ni teléfonos", async () => {
+  it("fictitious data: no emails or phone numbers", async () => {
     const r = await fetchTechnicalData(RESIDENTIAL_REF);
     expect(JSON.stringify(r)).not.toMatch(/@|\b\d{9}\b/);
   });
 });
 
-describe("obtenerDatosTecnicosGuardados", () => {
-  it("PRY-EJ-004 aún no tiene datos: null", async () => {
+describe("fetchSavedTechnicalData", () => {
+  it("PRY-EJ-004 has no data yet: null", async () => {
     expect(await fetchSavedTechnicalData("PRY-EJ-004")).toBeNull();
   });
-  it("PRY-EJ-002 y códigos desconocidos: null", async () => {
+  it("PRY-EJ-002 and unknown codes: null", async () => {
     expect(await fetchSavedTechnicalData("PRY-EJ-002")).toBeNull();
     expect(await fetchSavedTechnicalData("PRY-EJ-003")).toBeNull();
     expect(await fetchSavedTechnicalData("NO-EXISTE")).toBeNull();
     expect(await fetchSavedTechnicalData("")).toBeNull();
   });
-  it("PRY-EJ-001: datos completos, verificados y con exactamente 2 editados", async () => {
+  it("PRY-EJ-001: complete, verified data with exactly 2 edited", async () => {
     const r = await fetchSavedTechnicalData("PRY-EJ-001");
     expect(r).not.toBeNull();
     expect(isValidCadastralReference(r!.cadastralReference)).toBe(true);
@@ -353,7 +353,7 @@ describe("obtenerDatosTecnicosGuardados", () => {
     expect(countPending(r!.data)).toBe(0);
     expect(countEdited(r!.data)).toBe(2);
   });
-  it("devuelve copias", async () => {
+  it("returns copies", async () => {
     const a = (await fetchSavedTechnicalData("PRY-EJ-001"))!;
     a.data[0].value = "MUTADO";
     a.data.length = 0;

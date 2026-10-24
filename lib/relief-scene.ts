@@ -25,7 +25,7 @@ import type { Exaggeration, Relief } from "@/lib/relief";
 import { heightAt } from "@/lib/relief-readings";
 import { readHeightRamp, type SceneColors } from "@/lib/relief-colors";
 
-/** Este módulo es el ÚNICO que importa `three`; se carga con `import()` desde el visor. */
+/** This module is the ONLY one that imports `three`; it is loaded with `import()` from the viewer. */
 export interface ReliefScene {
   reset(): void;
   zoomIn(): void;
@@ -34,17 +34,17 @@ export interface ReliefScene {
   release(): void;
 }
 
-/** Divisiones de la malla del terreno por eje. */
+/** Divisions of the terrain mesh per axis. */
 const MESH_DIVISIONS = 90;
-/** Puntos intermedios por lado en el borde de la parcela para que siga el terreno. */
+/** Intermediate points per side on the plot border so that it follows the terrain. */
 const POINTS_PER_SIDE = 12;
 const DEFAULT_WIDTH = 600;
 const DEFAULT_HEIGHT = 460;
-/** Colores de reserva (tonos neutros) si los tokens del tema no están disponibles. */
+/** Fallback colours (neutral tones) if the theme tokens are not available. */
 const GREY_BACKGROUND = 0x808080;
 const GREY_BORDER = 0x6b6b6b;
 const GREY_ACCENT = 0x5a5a5a;
-/** Luces neutras: blanco (cielo), gris medio (suelo) y blanco (sol); no son colores de la interfaz. */
+/** Neutral lights: white (sky), mid grey (ground) and white (sun); they are not interface colours. */
 const SKY_LIGHT = 0xffffff;
 const GROUND_LIGHT = 0x808080;
 const SUN_LIGHT = 0xffffff;
@@ -53,7 +53,7 @@ const color = (value: string, fallback: number) => new Color(value || fallback);
 
 type ObjectWithResources = Object3D & { geometry?: BufferGeometry; material?: Material | Material[] };
 
-/** Libera la geometría y los materiales de un objeto (sirve para `traverse`). */
+/** Releases the geometry and materials of an object (use with `traverse`). */
 function releaseObject(object: Object3D) {
   const { geometry, material } = object as ObjectWithResources;
   geometry?.dispose();
@@ -62,8 +62,8 @@ function releaseObject(object: Object3D) {
 }
 
 /**
- * Monta la escena 3D del relieve dentro de `contenedor`.
- * Lanza `Error` si el navegador no tiene WebGL. Todo se libera en `liberar()`.
+ * Mounts the 3D relief scene inside `host`.
+ * Throws `Error` if the browser has no WebGL. Everything is freed in `release()`.
  */
 export function mountScene(
   host: HTMLElement,
@@ -114,7 +114,7 @@ export function mountScene(
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.maxPolarAngle = Math.PI * 0.49;
-    // Flechas del teclado con el visor enfocado (el contenedor es enfocable).
+    // Keyboard arrows with the viewer focused (the host is focusable).
     controls.listenToKeyEvents(host);
 
     scene.add(new HemisphereLight(SKY_LIGHT, GROUND_LIGHT, 2));
@@ -122,7 +122,7 @@ export function mountScene(
     sun.position.set(-240, 360, 180);
     scene.add(sun);
 
-    // Cotas de la rejilla: base del eje vertical y extremos de la rampa de colores.
+    // Grid elevations: base of the vertical axis and ends of the colour ramp.
     let minElevation = Infinity;
     let maxElevation = -Infinity;
     for (const h of relief.heights) {
@@ -137,7 +137,7 @@ export function mountScene(
       return ramp[k].clone().lerp(ramp[k + 1], q - k);
     };
 
-    // Geometría que depende de la exageración: se reconstruye al cambiarla.
+    // Geometry that depends on the exaggeration: rebuilt when it changes.
     const content = new Group();
     scene.add(content);
 
@@ -172,7 +172,7 @@ export function mountScene(
         new Mesh(terrain, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: DoubleSide })),
       );
 
-      // Borde del recorte (la ventana).
+      // Clip border (the window).
       const clip = [
         [x0, y0],
         [x1, y0],
@@ -187,7 +187,7 @@ export function mountScene(
         ),
       );
 
-      // Parcela (recortada a la ventana): relleno translúcido y borde que sigue el terreno.
+      // Plot (clipped to the window): translucent fill and border that follows the terrain.
       const perimeter = relief.perimeter;
       if (perimeter.length < 3) return;
       const outline = perimeter.map(([x, y]) => new Vector2(x, -y));

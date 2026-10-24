@@ -9,13 +9,13 @@ jest.setTimeout(20000);
 const REF = "1234567DG3413S0001AB";
 
 const VALUES: Record<string, string> = {
-  address: "CL PRUEBA 1", municipality: "MUNI PRUEBA", propertyClass: "Urbano", use: "Residencial", year: "1990", builtArea: "100", cadastralPlotArea: "100", polygonPlotArea: "98",
+  address: "CL TEST 1", municipality: "MUNI TEST", propertyClass: "Urbano", use: "Residencial", year: "1990", builtArea: "100", cadastralPlotArea: "100", polygonPlotArea: "98",
   coords: "40,00 N · 2,00 E", altitude: "10", slope: "2", slopeType: "Llana (< 3 %)",
   climateZone: "D2", seismicAcceleration: "< 0,04 g", kCoefficient: "1,0", windZone: "A", snowZone: "1", pvProduction: "1300",
   buildability: "", maxOccupancy: "", maxHeight: "", floors: "", streetSetback: "", boundarySetback: "", minPlot: "", calcArea: "Catastral",
 };
 
-/** Datos construidos en el test (no dependen de los datos de ejemplo de la librería). */
+/** Data built in the test (independent of the library's sample data). */
 function data(overrides: Record<string, Partial<TechnicalDatum>> = {}, values: Record<string, string> = {}): TechnicalData {
   const list: TechnicalDatum[] = DEFINITIONS.map((d) => {
     const value = values[d.id] ?? VALUES[d.id];
@@ -25,7 +25,7 @@ function data(overrides: Record<string, Partial<TechnicalDatum>> = {}, values: R
   return { cadastralReference: REF, queriedOn: "2026-10-18", data: list };
 }
 
-/** Fila de un dato: primer ancestro del control que contiene una casilla. */
+/** A datum's row: first ancestor of the control that contains a checkbox. */
 function row(control: HTMLElement): HTMLElement {
   let el: HTMLElement | null = control.parentElement;
   while (el && !el.querySelector('input[type="checkbox"]')) el = el.parentElement;
@@ -61,8 +61,8 @@ async function queried() {
   return m;
 }
 
-describe("DatosTecnicosEditor · antes de consultar", () => {
-  it("solo se ve la entrada: referencia prellenada y «Obtener datos técnicos»", () => {
+describe("TechnicalDataEditor · before querying", () => {
+  it("only the input is shown: prefilled reference and «Obtener datos técnicos»", () => {
     mount();
     expect(screen.getByLabelText(/Referencia catastral/)).toHaveValue(REF);
     expect(screen.getByRole("button", { name: "Obtener datos técnicos" })).toBeEnabled();
@@ -74,7 +74,7 @@ describe("DatosTecnicosEditor · antes de consultar", () => {
     expect(screen.queryByRole("button", { name: "Marcar todo como verificado" })).not.toBeInTheDocument();
   });
 
-  it("la referencia es editable", async () => {
+  it("the reference is editable", async () => {
     const { user } = mount();
     const field = screen.getByLabelText(/Referencia catastral/);
     await user.clear(field);
@@ -83,12 +83,12 @@ describe("DatosTecnicosEditor · antes de consultar", () => {
   });
 });
 
-describe("DatosTecnicosEditor · referencia inválida", () => {
+describe("TechnicalDataEditor · invalid reference", () => {
   it.each([
     ["corta", "123"],
-    ["con símbolos", "1234567DG3413S0001A!"],
-    ["vacía", ""],
-  ])("referencia %s: aviso y no se consulta", async (_n, ref) => {
+    ["with symbols", "1234567DG3413S0001A!"],
+    ["empty", ""],
+  ])("reference %s: notice and no query", async (_n, ref) => {
     const { user, query } = mount();
     await typeInto(user, "Referencia catastral", ref);
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
@@ -97,13 +97,13 @@ describe("DatosTecnicosEditor · referencia inválida", () => {
     expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
   });
 
-  it("sin aviso mientras la referencia es válida", async () => {
+  it("no notice while the reference is valid", async () => {
     const { user } = mount();
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     expect(screen.queryByText("La referencia catastral debe tener 20 caracteres.")).not.toBeInTheDocument();
   });
 
-  it("al corregir la referencia y volver a pulsar, se consulta", async () => {
+  it("after fixing the reference and pressing again, it queries", async () => {
     const { user, query } = mount();
     await typeInto(user, "Referencia catastral", "123");
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
@@ -115,8 +115,8 @@ describe("DatosTecnicosEditor · referencia inválida", () => {
   });
 });
 
-describe("DatosTecnicosEditor · consulta", () => {
-  it("muestra «Consultando…» con el botón deshabilitado y luego los datos", async () => {
+describe("TechnicalDataEditor · query", () => {
+  it("shows «Consultando…» with the button disabled and then the data", async () => {
     let resolveFetch!: (d: TechnicalData) => void;
     const query = jest.fn(() => new Promise<TechnicalData>((r) => (resolveFetch = r)));
     const { user } = mount({ query });
@@ -130,7 +130,7 @@ describe("DatosTecnicosEditor · consulta", () => {
     expect(screen.queryByRole("button", { name: "Consultando…" })).not.toBeInTheDocument();
   });
 
-  it("tras consultar aparecen los tres grupos, la capacidad y el botón cambia a «Volver a consultar»", async () => {
+  it("after querying the three groups and the capacity appear and the button changes to «Volver a consultar»", async () => {
     await queried();
     expect(screen.getByRole("heading", { name: "Condiciones técnicas" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Planeamiento" })).toBeInTheDocument();
@@ -140,9 +140,9 @@ describe("DatosTecnicosEditor · consulta", () => {
     expect(screen.getByText("Catastro, INSPIRE y Open-Meteo")).toBeInTheDocument();
   });
 
-  it("cada dato muestra su valor, su origen y su unidad", async () => {
+  it("each datum shows its value, origin and unit", async () => {
     await queried();
-    expect(control("Dirección")).toHaveValue("CL PRUEBA 1");
+    expect(control("Dirección")).toHaveValue("CL TEST 1");
     expect(rowOf("Dirección")).toHaveTextContent("Catastro");
     expect(control("Superficie construida")).toHaveValue("100");
     expect(rowOf("Superficie construida")).toHaveTextContent("m²");
@@ -154,7 +154,7 @@ describe("DatosTecnicosEditor · consulta", () => {
     expect(rowOf("Edificabilidad")).toHaveTextContent("m²t/m²s");
   });
 
-  it("los datos con opciones son listas con «Sin dato» y las opciones del dato", async () => {
+  it("data with options are lists with «Sin dato» and the datum's options", async () => {
     await queried();
     for (const d of DEFINITIONS) {
       const c = control(d.label);
@@ -168,7 +168,7 @@ describe("DatosTecnicosEditor · consulta", () => {
     }
   });
 
-  it("cada uno de los 26 datos tiene su control con etiqueta y su casilla «Verificado»", async () => {
+  it("each of the 26 data has its labelled control and its «Verificado» checkbox", async () => {
     await queried();
     expect(screen.getAllByRole("checkbox")).toHaveLength(26);
     for (const d of DEFINITIONS) {
@@ -178,40 +178,40 @@ describe("DatosTecnicosEditor · consulta", () => {
     }
   });
 
-  it("anuncia el resultado en una región aria-live", async () => {
+  it("announces the result in an aria-live region", async () => {
     const { container } = await queried();
     const liveRegions = Array.from(container.querySelectorAll("[aria-live]"));
     expect(liveRegions.length).toBeGreaterThan(0);
     expect(liveRegions.some((el) => /26 sin verificar/.test(el.textContent ?? ""))).toBe(true);
   });
 
-  it("con `inicial` muestra los datos sin consultar", () => {
+  it("with `initial` it shows the data without querying", () => {
     const { query } = mount({ initial: data() });
     expect(query).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Parcela" })).toBeInTheDocument();
-    expect(control("Municipio")).toHaveValue("MUNI PRUEBA");
+    expect(control("Municipio")).toHaveValue("MUNI TEST");
     expect(screen.getByRole("button", { name: "Volver a consultar" })).toBeEnabled();
   });
 });
 
-describe("DatosTecnicosEditor · edición y restaurar", () => {
-  it("editar un texto con origen muestra «Editado» y el valor de origen; «Restaurar» lo devuelve", async () => {
+describe("TechnicalDataEditor · edit and restore", () => {
+  it("editing a text with an origin shows «Editado» and the origin value; «Restaurar» gives it back", async () => {
     const { user } = await queried();
     expect(within(rowOf("Dirección")).queryByText("Editado")).not.toBeInTheDocument();
     expect(within(rowOf("Dirección")).queryByRole("button", { name: /Restaurar/ })).not.toBeInTheDocument();
 
-    await typeInto(user, "Dirección", "CL NUEVA 2");
+    await typeInto(user, "Dirección", "CL NEW 2");
     const f = rowOf("Dirección");
     expect(within(f).getByText("Editado")).toBeInTheDocument();
-    expect(f).toHaveTextContent("Valor de Catastro: CL PRUEBA 1");
+    expect(f).toHaveTextContent("Valor de Catastro: CL TEST 1");
 
     await user.click(within(f).getByRole("button", { name: /Restaurar/ }));
-    expect(control("Dirección")).toHaveValue("CL PRUEBA 1");
+    expect(control("Dirección")).toHaveValue("CL TEST 1");
     expect(within(rowOf("Dirección")).queryByText("Editado")).not.toBeInTheDocument();
     expect(rowOf("Dirección")).not.toHaveTextContent("Valor de Catastro");
   });
 
-  it("editar una lista muestra «Editado» con el origen del dato; «Sin dato» deja el valor vacío", async () => {
+  it("editing a list shows «Editado» with the datum's origin; «Sin dato» leaves the value empty", async () => {
     const { user } = await queried();
     await user.selectOptions(control("Clase"), "Rústico");
     expect(control("Clase")).toHaveValue("Rústico");
@@ -223,21 +223,21 @@ describe("DatosTecnicosEditor · edición y restaurar", () => {
     expect(rowOf("Zona climática")).toHaveTextContent("Valor de CTE DB-HE · Anejo B: D2");
   });
 
-  it("si el original estaba vacío, el aviso de origen dice «vacío»", async () => {
+  it("if the original was empty, the origin notice says «vacío»", async () => {
     const m = mount({ initial: data({ altitude: { original: "" } }, { altitude: "" }) });
     await typeInto(m.user, "Altitud", "55");
     expect(rowOf("Altitud")).toHaveTextContent(/Valor de Open-Meteo: vacío/);
   });
 
-  it("volver a escribir el valor original quita la marca de editado", async () => {
+  it("typing the original value again removes the edited mark", async () => {
     const { user } = await queried();
     await typeInto(user, "Municipio", "OTRO");
     expect(within(rowOf("Municipio")).getByText("Editado")).toBeInTheDocument();
-    await typeInto(user, "Municipio", "MUNI PRUEBA");
+    await typeInto(user, "Municipio", "MUNI TEST");
     expect(within(rowOf("Municipio")).queryByText("Editado")).not.toBeInTheDocument();
   });
 
-  it("un dato manual (sin original) editado NO muestra «Editado» ni «Restaurar»", async () => {
+  it("an edited manual datum (no original) does NOT show «Editado» or «Restaurar»", async () => {
     const { user } = await queried();
     await typeInto(user, "Edificabilidad", "2");
     expect(control("Edificabilidad")).toHaveValue("2");
@@ -247,7 +247,7 @@ describe("DatosTecnicosEditor · edición y restaurar", () => {
     expect(f).not.toHaveTextContent("Valor de");
   });
 
-  it("el contador «{n} editados» sube al editar y baja al restaurar", async () => {
+  it("the «{n} editados» counter goes up when editing and down when restoring", async () => {
     const { user } = await queried();
     expect(screen.queryByText("1 editados")).not.toBeInTheDocument();
     await typeInto(user, "Dirección", "X");
@@ -258,15 +258,15 @@ describe("DatosTecnicosEditor · edición y restaurar", () => {
     expect(screen.getByText("1 editados")).toBeInTheDocument();
   });
 
-  it("un dato editado conserva su marca de editado en `inicial`", () => {
-    mount({ initial: data({ address: { value: "CL OTRA 5" } }) });
+  it("an edited datum keeps its edited mark in `initial`", () => {
+    mount({ initial: data({ address: { value: "CL OTHER 5" } }) });
     expect(within(rowOf("Dirección")).getByText("Editado")).toBeInTheDocument();
     expect(screen.getByText("1 editados")).toBeInTheDocument();
   });
 });
 
-describe("DatosTecnicosEditor · verificación", () => {
-  it("marcar «Verificado» actualiza el contador y desmarcar lo revierte", async () => {
+describe("TechnicalDataEditor · verification", () => {
+  it("ticking «Verificado» updates the counter and unticking reverts it", async () => {
     const { user } = await queried();
     expect(screen.getByText("26 sin verificar")).toBeInTheDocument();
     await user.click(checkbox("Dirección"));
@@ -277,14 +277,14 @@ describe("DatosTecnicosEditor · verificación", () => {
     expect(screen.getByText("26 sin verificar")).toBeInTheDocument();
   });
 
-  it("verificar los 26 uno a uno muestra «Todo verificado»", async () => {
+  it("verifying all 26 one by one shows «Todo verificado»", async () => {
     const { user } = await queried();
     for (const c of screen.getAllByRole("checkbox")) await user.click(c);
     expect(screen.getByText("Todo verificado")).toBeInTheDocument();
     expect(screen.queryByText(/sin verificar/)).not.toBeInTheDocument();
   });
 
-  it("«Marcar todo como verificado» marca todas las casillas y muestra «Todo verificado»", async () => {
+  it("«Marcar todo como verificado» ticks every checkbox and shows «Todo verificado»", async () => {
     const { user } = await queried();
     await user.click(screen.getByRole("button", { name: "Marcar todo como verificado" }));
     for (const c of screen.getAllByRole("checkbox")) expect(c).toBeChecked();
@@ -292,42 +292,42 @@ describe("DatosTecnicosEditor · verificación", () => {
     expect(screen.queryByText(/sin verificar/)).not.toBeInTheDocument();
   });
 
-  it("editar un dato no cambia su casilla de verificado", async () => {
+  it("editing a datum does not change its verified checkbox", async () => {
     const { user } = await queried();
     await user.click(checkbox("Municipio"));
     await typeInto(user, "Municipio", "OTRO");
     expect(checkbox("Municipio")).toBeChecked();
   });
 
-  it("con `inicial` ya verificado muestra «Todo verificado»", () => {
+  it("with `initial` already verified it shows «Todo verificado»", () => {
     const todos = Object.fromEntries(DEFINITIONS.map((d) => [d.id, { verified: true }]));
     mount({ initial: data(todos) });
     expect(screen.getByText("Todo verificado")).toBeInTheDocument();
   });
 });
 
-describe("DatosTecnicosEditor · capacidad", () => {
+describe("TechnicalDataEditor · capacity", () => {
   const NOTICE = "Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.";
 
-  it("sin planeamiento muestra el aviso en lugar de cifras", async () => {
+  it("without planning it shows the notice instead of figures", async () => {
     await queried();
     expect(screen.getByText(NOTICE)).toBeInTheDocument();
   });
 
-  it("se calcula en vivo cuando existen edificabilidad, ocupación y plantas", async () => {
+  it("it is calculated live when buildability, occupancy and floors exist", async () => {
     const { user, container } = await queried();
     await typeInto(user, "Edificabilidad", "2");
     await typeInto(user, "Ocupación máxima", "50");
     expect(screen.getByText(NOTICE)).toBeInTheDocument();
     await user.selectOptions(control("Número de plantas"), "PB+2");
     expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
-    // superficie 100: techo 200, huella 50, huella × plantas 150 → limita ocupación × plantas
+    // surface 100: ceiling 200, footprint 50, footprint × floors 150 → limited by occupancy × floors
     expect(container).toHaveTextContent(/200 m²t/);
     expect(container).toHaveTextContent(/150 m²t/);
     expect(container).toHaveTextContent("limita: Ocupación × plantas");
   });
 
-  it("se recalcula al editar: edificabilidad 1 pasa a limitar la edificabilidad", async () => {
+  it("it is recalculated on edit: buildability 1 becomes the limit", async () => {
     const { user, container } = await queried();
     await typeInto(user, "Edificabilidad", "2");
     await typeInto(user, "Ocupación máxima", "50");
@@ -339,7 +339,7 @@ describe("DatosTecnicosEditor · capacidad", () => {
     expect(container).toHaveTextContent(/100 m²t/);
   });
 
-  it("vuelve al aviso si se vacía un dato necesario", async () => {
+  it("returns to the notice if a required datum is emptied", async () => {
     const { user } = await queried();
     await typeInto(user, "Edificabilidad", "2");
     await typeInto(user, "Ocupación máxima", "50");
@@ -348,18 +348,18 @@ describe("DatosTecnicosEditor · capacidad", () => {
     expect(screen.getByText(NOTICE)).toBeInTheDocument();
   });
 
-  it("usa la superficie del polígono cuando la superficie de cálculo es «Polígono»", async () => {
+  it("uses the polygon surface when the calculation surface is «Polígono»", async () => {
     const { user, container } = await queried();
     await typeInto(user, "Edificabilidad", "2");
     await typeInto(user, "Ocupación máxima", "50");
     await user.selectOptions(control("Número de plantas"), "PB+2");
     await user.selectOptions(control("Superficie de cálculo"), "Polígono");
-    // superficie 98: techo 196, huella 49, ×3 = 147
+    // surface 98: ceiling 196, footprint 49, ×3 = 147
     expect(container).toHaveTextContent(/196 m²t/);
     expect(container).toHaveTextContent(/147 m²t/);
   });
 
-  it("indica si se cumple la parcela mínima", async () => {
+  it("indicates whether the minimum plot is met", async () => {
     const { user, container } = await queried();
     await typeInto(user, "Edificabilidad", "2");
     await typeInto(user, "Ocupación máxima", "50");
@@ -371,7 +371,7 @@ describe("DatosTecnicosEditor · capacidad", () => {
     expect(container).toHaveTextContent(/No cumple/);
   });
 
-  it("con `inicial` completo calcula la capacidad sin editar", () => {
+  it("with a complete `initial` it calculates the capacity without editing", () => {
     const { container } = mount({
       initial: data({}, { buildability: "2", maxOccupancy: "50", floors: "PB+2" }),
     });
@@ -380,9 +380,9 @@ describe("DatosTecnicosEditor · capacidad", () => {
   });
 });
 
-describe("DatosTecnicosEditor · volver a consultar", () => {
-  it("sustituye los datos de origen, reinicia su verificación y conserva los manuales", async () => {
-    const incoming = data({}, { address: "CL OTRA 3", municipality: "MUNI NUEVO", buildability: "", calcArea: "Catastral" });
+describe("TechnicalDataEditor · query again", () => {
+  it("replaces the origin data, resets their verification and keeps the manual ones", async () => {
+    const incoming = data({}, { address: "CL OTHER 3", municipality: "MUNI NEW", buildability: "", calcArea: "Catastral" });
     const query = jest.fn().mockResolvedValueOnce(data()).mockResolvedValueOnce(incoming);
     const { user } = mount({ query });
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
@@ -394,19 +394,19 @@ describe("DatosTecnicosEditor · volver a consultar", () => {
     await user.selectOptions(control("Superficie de cálculo"), "Polígono");
 
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
-    await waitFor(() => expect(control("Municipio")).toHaveValue("MUNI NUEVO"));
+    await waitFor(() => expect(control("Municipio")).toHaveValue("MUNI NEW"));
     expect(query).toHaveBeenCalledTimes(2);
 
-    // origen sustituido: ya no está editado ni verificado
-    expect(control("Dirección")).toHaveValue("CL OTRA 3");
+    // origin replaced: no longer edited or verified
+    expect(control("Dirección")).toHaveValue("CL OTHER 3");
     expect(within(rowOf("Dirección")).queryByText("Editado")).not.toBeInTheDocument();
     expect(checkbox("Municipio")).not.toBeChecked();
-    // manuales conservados
+    // manual ones kept
     expect(control("Edificabilidad")).toHaveValue("1,5");
     expect(control("Superficie de cálculo")).toHaveValue("Polígono");
   });
 
-  it("mientras vuelve a consultar el botón dice «Consultando…» y está deshabilitado", async () => {
+  it("while querying again the button says «Consultando…» and is disabled", async () => {
     let resolveFetch!: (d: TechnicalData) => void;
     const query = jest
       .fn()
@@ -421,19 +421,19 @@ describe("DatosTecnicosEditor · volver a consultar", () => {
     await screen.findByRole("button", { name: "Volver a consultar" });
   });
 
-  it("volver a consultar con la referencia inválida avisa y no consulta", async () => {
+  it("querying again with an invalid reference warns and does not query", async () => {
     const { user, query } = await queried();
     await typeInto(user, "Referencia catastral", "123");
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
     expect(screen.getByText("La referencia catastral debe tener 20 caracteres.")).toBeInTheDocument();
     expect(query).toHaveBeenCalledTimes(1);
-    expect(control("Dirección")).toHaveValue("CL PRUEBA 1");
+    expect(control("Dirección")).toHaveValue("CL TEST 1");
   });
 });
 
-describe.each(["read-only", "preview"] as const)("DatosTecnicosEditor · modo %s", (mode) => {
-  it("todos los controles de datos y todos los botones están deshabilitados", () => {
-    const { query } = mount({ mode, initial: data({ address: { value: "CL OTRA 5" } }) });
+describe.each(["read-only", "preview"] as const)("TechnicalDataEditor · %s mode", (mode) => {
+  it("all data controls and all buttons are disabled", () => {
+    const { query } = mount({ mode, initial: data({ address: { value: "CL OTHER 5" } }) });
     const fields = [...screen.getAllByRole("textbox"), ...screen.getAllByRole("combobox"), ...screen.getAllByRole("checkbox")];
     expect(screen.getAllByRole("checkbox")).toHaveLength(26);
     for (const d of DEFINITIONS) {
@@ -451,19 +451,19 @@ describe.each(["read-only", "preview"] as const)("DatosTecnicosEditor · modo %s
     expect(query).not.toHaveBeenCalled();
   });
 
-  it("sigue mostrando el estado (editado, origen) pero no permite restaurar", async () => {
-    const { user } = mount({ mode, initial: data({ address: { value: "CL OTRA 5" } }) });
+  it("still shows the state (edited, origin) but does not allow restoring", async () => {
+    const { user } = mount({ mode, initial: data({ address: { value: "CL OTHER 5" } }) });
     expect(within(rowOf("Dirección")).getByText("Editado")).toBeInTheDocument();
-    expect(rowOf("Dirección")).toHaveTextContent("Valor de Catastro: CL PRUEBA 1");
+    expect(rowOf("Dirección")).toHaveTextContent("Valor de Catastro: CL TEST 1");
     const r = within(rowOf("Dirección")).queryByRole("button", { name: /Restaurar/ });
     if (r) {
       expect(r).toBeDisabled();
       await user.click(r);
     }
-    expect(control("Dirección")).toHaveValue("CL OTRA 5");
+    expect(control("Dirección")).toHaveValue("CL OTHER 5");
   });
 
-  it("no se puede marcar como verificado ni marcar todo", async () => {
+  it("cannot be ticked as verified nor tick all", async () => {
     const { user } = mount({ mode, initial: data() });
     await user.click(checkbox("Dirección"));
     expect(checkbox("Dirección")).not.toBeChecked();
@@ -475,7 +475,7 @@ describe.each(["read-only", "preview"] as const)("DatosTecnicosEditor · modo %s
     expect(screen.getByText("26 sin verificar")).toBeInTheDocument();
   });
 
-  it("no se puede consultar sin datos: botón deshabilitado y `consultar` no se llama", async () => {
+  it("cannot be queried without data: button disabled and `query` is not called", async () => {
     const { user, query } = mount({ mode, initial: null });
     const b = screen.queryByRole("button", { name: /Obtener datos técnicos|Volver a consultar/ });
     if (b) {
@@ -486,35 +486,35 @@ describe.each(["read-only", "preview"] as const)("DatosTecnicosEditor · modo %s
     expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
   });
 
-  it("la capacidad también se muestra, sin poder editar", () => {
+  it("the capacity is also shown, without being editable", () => {
     const { container } = mount({ mode, initial: data({}, { buildability: "2", maxOccupancy: "50", floors: "PB+2" }) });
     expect(container).toHaveTextContent(/150 m²t/);
   });
 
-  it("sin violaciones de accesibilidad", async () => {
+  it("no accessibility violations", async () => {
     const { container } = render(
       <main>
-        <TechnicalDataEditor cadastralReference={REF} initial={data({ address: { value: "CL OTRA 5" } })} mode={mode} query={jest.fn()} />
+        <TechnicalDataEditor cadastralReference={REF} initial={data({ address: { value: "CL OTHER 5" } })} mode={mode} query={jest.fn()} />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();
   });
 });
 
-describe("DatosTecnicosEditor · solo lectura sin datos", () => {
-  it("muestra «Sin datos técnicos registrados.» sin grupos ni consulta", () => {
+describe("TechnicalDataEditor · read-only without data", () => {
+  it("shows «Sin datos técnicos registrados.» without groups or query", () => {
     const { query } = mount({ mode: "read-only", initial: null });
     expect(screen.getByText("Sin datos técnicos registrados.")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
     expect(query).not.toHaveBeenCalled();
   });
 
-  it("en edición sin datos no aparece ese mensaje", () => {
+  it("in edit mode without data that message does not appear", () => {
     mount({ mode: "edit", initial: null });
     expect(screen.queryByText("Sin datos técnicos registrados.")).not.toBeInTheDocument();
   });
 
-  it("sin violaciones de accesibilidad", async () => {
+  it("no accessibility violations", async () => {
     const { container } = render(
       <main>
         <TechnicalDataEditor cadastralReference="" initial={null} mode="read-only" query={jest.fn()} />
@@ -524,8 +524,8 @@ describe("DatosTecnicosEditor · solo lectura sin datos", () => {
   });
 });
 
-describe("DatosTecnicosEditor · accesibilidad", () => {
-  it("antes de consultar", async () => {
+describe("TechnicalDataEditor · accessibility", () => {
+  it("before querying", async () => {
     const { container } = render(
       <main>
         <TechnicalDataEditor cadastralReference={REF} initial={null} mode="edit" query={jest.fn()} />
@@ -534,8 +534,8 @@ describe("DatosTecnicosEditor · accesibilidad", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("tras consultar, con datos editados, verificados y capacidad", async () => {
-    const query = jest.fn().mockResolvedValue(data({ address: { value: "CL OTRA 5", verified: true } }, { buildability: "2", maxOccupancy: "50", floors: "PB+2" }));
+  it("after querying, with edited and verified data and capacity", async () => {
+    const query = jest.fn().mockResolvedValue(data({ address: { value: "CL OTHER 5", verified: true } }, { buildability: "2", maxOccupancy: "50", floors: "PB+2" }));
     const user = userEvent.setup();
     const { container } = render(
       <main>
@@ -547,7 +547,7 @@ describe("DatosTecnicosEditor · accesibilidad", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("con el aviso de referencia inválida", async () => {
+  it("with the invalid-reference notice", async () => {
     const user = userEvent.setup();
     const { container } = render(
       <main>
@@ -559,7 +559,7 @@ describe("DatosTecnicosEditor · accesibilidad", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("se puede operar con teclado: Tab llega a la casilla y Espacio la marca", async () => {
+  it("can be operated with the keyboard: Tab reaches the checkbox and Space ticks it", async () => {
     const { user } = await queried();
     checkbox("Dirección").focus();
     expect(checkbox("Dirección")).toHaveFocus();

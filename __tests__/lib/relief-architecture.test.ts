@@ -16,16 +16,16 @@ const sources = ["app", "components", "lib"].flatMap((d) => walk(join(root, d)))
 
 // import ... from "three" | "three/..." ; import("three") ; require("three")
 const THREE_IMPORT = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)["']three(?:\/[^"']*)?["']/;
-// import estático (no `import type`) del módulo de la escena
+// static import (not `import type`) of the scene module
 const STATIC_SCENE_IMPORT = /^\s*(?:import|export)\s+(?!type\b)[^;]*?from\s+["']@\/lib\/relief-scene["']|^\s*import\s+["']@\/lib\/relief-scene["']/m;
 
-describe("arquitectura del visor 3D (RGB-34)", () => {
-  it("lib/relief-scene.ts existe e importa three", () => {
+describe("3D viewer architecture (RGB-34)", () => {
+  it("lib/relief-scene.ts exists and imports three", () => {
     expect(existsSync(SCENE)).toBe(true);
     expect(readFileSync(SCENE, "utf8")).toMatch(THREE_IMPORT);
   });
 
-  it("three solo se importa en lib/relief-scene.ts", () => {
+  it("three is only imported in lib/relief-scene.ts", () => {
     const offenders = sources
       .filter((f) => f !== SCENE)
       .filter((f) => THREE_IMPORT.test(readFileSync(f, "utf8")))
@@ -33,12 +33,12 @@ describe("arquitectura del visor 3D (RGB-34)", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("VisorRelieve carga la escena con import() dinámico", () => {
+  it("ReliefViewer loads the scene with a dynamic import()", () => {
     expect(existsSync(VIEWER)).toBe(true);
     expect(readFileSync(VIEWER, "utf8")).toMatch(/import\s*\(\s*["']@\/lib\/relief-scene["']\s*\)/);
   });
 
-  it("ningún archivo importa de forma estática el módulo de la escena (solo se permite `import type`)", () => {
+  it("no file statically imports the scene module (only `import type` is allowed)", () => {
     const offenders = sources
       .filter((f) => f !== SCENE)
       .filter((f) => STATIC_SCENE_IMPORT.test(readFileSync(f, "utf8")))
@@ -46,7 +46,7 @@ describe("arquitectura del visor 3D (RGB-34)", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("la escena no se usa desde la página (render de servidor): app/ no la referencia", () => {
+  it("the scene is not used from the page (server render): app/ does not reference it", () => {
     const offenders = sources
       .filter((f) => f.startsWith(join(root, "app")))
       .filter((f) => /relief-scene/.test(readFileSync(f, "utf8")))

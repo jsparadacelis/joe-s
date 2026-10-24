@@ -1,8 +1,8 @@
 /**
- * Capa de datos de EJEMPLO (ficticios) de RGB-10.
- * Las firmas exportadas son el contrato con la API: cuando exista el backend
- * (RGB-9) se sustituye el bloque «DATOS DE EJEMPLO» por el cliente de la API
- * sin tocar los componentes.
+ * SAMPLE (fictitious) data layer of RGB-10.
+ * The exported signatures are the contract with the API: once the backend exists
+ * (RGB-9) the "SAMPLE DATA" block is replaced by the API client
+ * without touching the components.
  */
 import { PHASES, type PhaseId } from "@/lib/phases";
 
@@ -27,7 +27,7 @@ export interface PhaseDeliverable {
   fields: Field[];
 }
 
-// ---- DATOS DE EJEMPLO (sustituible por el cliente de la API) ----
+// ---- SAMPLE DATA (replaceable by the API client) ----
 
 const PROJECTS: readonly Project[] = [
   { code: "PRY-EJ-001", name: "Vivienda unifamiliar (ejemplo)", currentPhase: 3 },
@@ -36,7 +36,7 @@ const PROJECTS: readonly Project[] = [
   { code: "PRY-EJ-004", name: "Local comercial (ejemplo)", currentPhase: 2 },
 ];
 
-/** Referencia catastral (ficticia) de la ficha de cada proyecto. */
+/** Cadastral reference (fictitious) from each project's sheet. */
 const CADASTRAL_REFERENCES: Readonly<Record<string, string>> = {
   "PRY-EJ-001": "1234567DG3413S0001AB",
   "PRY-EJ-004": "1234567DG3413S0001AB",
@@ -51,7 +51,7 @@ function sampleFields(phase: PhaseId): Field[] {
   ];
 }
 
-// ---- Funciones públicas (mismas firmas que el cliente de la API) ----
+// ---- Public functions (same signatures as the API client) ----
 
 export async function listProjects(): Promise<Project[]> {
   return PROJECTS.map((p) => ({ ...p }));
@@ -72,7 +72,7 @@ export async function fetchDeliverable(code: string, phase: PhaseId): Promise<Ph
   };
 }
 
-/** Referencia catastral de la ficha del proyecto; cadena vacía si no la tiene. */
+/** Cadastral reference from the project sheet; empty string if it has none. */
 export async function fetchCadastralReference(code: string): Promise<string> {
   return CADASTRAL_REFERENCES[code] ?? "";
 }

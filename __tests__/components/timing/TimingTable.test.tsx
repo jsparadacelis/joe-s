@@ -18,27 +18,27 @@ function phases(active: readonly number[] = ACTIVE, paused: readonly number[] = 
 }
 
 function rows() {
-  return screen.getAllByRole("row").slice(1); // sin la cabecera
+  return screen.getAllByRole("row").slice(1); // without the header
 }
 function row(n: number) {
   return rows()[n - 1];
 }
 const headers = () => screen.getAllByRole("columnheader").map((h) => h.textContent?.trim());
 
-describe("TablaTiempos", () => {
-  it("tiene las columnas Fase, Plan, Activas, Pausa, Estado y Consumo", () => {
+describe("TimingTable", () => {
+  it("has the columns Fase, Plan, Activas, Pausa, Estado and Consumo", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     expect(headers()).toEqual(["Fase", "Plan", "Activas", "Pausa", "Estado", "Consumo"]);
   });
 
-  it("tiene 7 filas, fases 1 a 7 en orden, con el nombre de cada fase", () => {
+  it("has 7 rows, phases 1 to 7 in order, with the name of each phase", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     expect(rows()).toHaveLength(7);
     rows().forEach((f, i) => expect(f).toHaveTextContent(PHASES[i + 1].name));
     expect(screen.queryByText(PHASES[0].name)).not.toBeInTheDocument();
   });
 
-  it("muestra plan, activas y pausa de cada fase tal cual", () => {
+  it("shows plan, active and pause of each phase as they are", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     rows().forEach((f, i) => {
       const cells = within(f).getAllByRole("cell");
@@ -48,7 +48,7 @@ describe("TablaTiempos", () => {
     });
   });
 
-  it("Estado: Hecha antes de la actual, Actual en la actual, Pendiente después", () => {
+  it("Estado: Hecha before the current one, Actual on the current one, Pendiente after", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     const states = rows().map((f) => within(f).getAllByRole("cell")[4].textContent?.trim());
     expect(states).toEqual(["Hecha", "Hecha", "Actual", "Pendiente", "Pendiente", "Pendiente", "Pendiente"]);
@@ -57,13 +57,13 @@ describe("TablaTiempos", () => {
   it.each([
     [1, ["Actual", "Pendiente", "Pendiente", "Pendiente", "Pendiente", "Pendiente", "Pendiente"]],
     [7, ["Hecha", "Hecha", "Hecha", "Hecha", "Hecha", "Hecha", "Actual"]],
-  ] as const)("Estado con fase actual %i", (current, expected) => {
+  ] as const)("Estado with current phase %i", (current, expected) => {
     render(<TimingTable phases={phases()} currentPhase={current} />);
     const states = rows().map((f) => within(f).getAllByRole("cell")[4].textContent?.trim());
     expect(states).toEqual(expected);
   });
 
-  it("cada fila tiene una barra de progreso con valores 0..100, valor = porcentaje y nombre de la fase", () => {
+  it("each row has a progress bar with values 0..100, value = percentage and phase name", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     const bars = screen.getAllByRole("progressbar");
     expect(bars).toHaveLength(7);
@@ -77,7 +77,7 @@ describe("TablaTiempos", () => {
     });
   });
 
-  it("el porcentaje se muestra en texto junto a la barra", () => {
+  it("the percentage is shown as text next to the bar", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     expect(row(1).textContent).toMatch(/150\s?%/);
     expect(row(2).textContent).toMatch(/133\s?%/);
@@ -85,12 +85,12 @@ describe("TablaTiempos", () => {
     expect(row(4).textContent).toMatch(/(^|\D)0\s?%/);
   });
 
-  it("con más del 100 % la barra conserva el valor accesible real, pero ninguna medida visual pasa del 100 %", () => {
+  it("above 100 % the bar keeps the real accessible value, but no visual measure goes past 100 %", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     const bar = within(row(1)).getByRole("progressbar");
     expect(bar).toHaveAttribute("aria-valuenow", "150");
-    // Ambigüedad del plan: no fija cómo se limita (style.width, transform, clase). Se comprueba
-    // que ningún ancho en línea de la barra o sus hijos supere el 100 %.
+    // Plan ambiguity: it does not fix how it is limited (style.width, transform, class). We check
+    // that no inline width of the bar or its children exceeds 100 %.
     const widths = [bar, ...Array.from(bar.querySelectorAll<HTMLElement>("*"))]
       .map((el) => el.style.width)
       .filter((w) => w.endsWith("%"))
@@ -98,7 +98,7 @@ describe("TablaTiempos", () => {
     for (const w of widths) expect(w).toBeLessThanOrEqual(100);
   });
 
-  it("filas con activas > 0: la etiqueta del semáforo aparece como texto (rojo, rojo, ámbar)", () => {
+  it("rows with active > 0: the traffic-light label appears as text (red, red, amber)", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     expect(within(row(1)).getByText("Plan superado")).toBeInTheDocument();
     expect(within(row(2)).getByText("Plan superado")).toBeInTheDocument();
@@ -107,13 +107,13 @@ describe("TablaTiempos", () => {
     expect(within(row(3)).queryByText("Plan superado")).not.toBeInTheDocument();
   });
 
-  it("una fila verde con activas > 0 muestra «En plazo»", () => {
+  it("a green row with active > 0 shows «En plazo»", () => {
     render(<TimingTable phases={phases([1, 1, 1, 0, 0, 0, 0])} currentPhase={3} />);
     expect(within(row(2)).getByText("En plazo")).toBeInTheDocument();
     expect(within(row(3)).getByText("En plazo")).toBeInTheDocument();
   });
 
-  it("en una fase en el límite exacto del plan (100 %) muestra «Atención», no «Plan superado»", () => {
+  it("a phase at the exact plan limit (100 %) shows «Atención», not «Plan superado»", () => {
     render(<TimingTable phases={phases([2, 3, 5, 0, 0, 0, 0])} currentPhase={4} />);
     for (const n of [1, 2, 3]) {
       expect(within(row(n)).getByText("Atención")).toBeInTheDocument();
@@ -121,12 +121,12 @@ describe("TablaTiempos", () => {
     }
   });
 
-  it("no depende de cálculos propios del total: solo pinta lo que recibe (sin fila de totales inventada)", () => {
+  it("does not depend on its own total calculations: it only paints what it receives (no invented totals row)", () => {
     render(<TimingTable phases={phases()} currentPhase={3} />);
     expect(screen.getAllByRole("row")).toHaveLength(8);
   });
 
-  it("sin violaciones de accesibilidad", async () => {
+  it("no accessibility violations", async () => {
     const { container } = render(<TimingTable phases={phases()} currentPhase={3} />);
     expect(await axe(container)).toHaveNoViolations();
   });

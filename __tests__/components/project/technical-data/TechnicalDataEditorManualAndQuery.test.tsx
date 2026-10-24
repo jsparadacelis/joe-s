@@ -6,8 +6,8 @@ import { fetchTechnicalData } from "@/lib/technical-data";
 jest.setTimeout(20000);
 const REF = "1234567DG3413S0001AB";
 
-describe("DatosTecnicosEditor · ruta manual y consulta posterior (regresión)", () => {
-  it("tras la ruta manual, una consulta correcta rellena parcela y condiciones y conserva planeamiento", async () => {
+describe("TechnicalDataEditor · manual path and later query (regression)", () => {
+  it("after the manual path, a successful query fills plot and conditions and keeps planning", async () => {
     const query = jest
       .fn()
       .mockRejectedValueOnce(new Error("sin servicio"))
@@ -22,7 +22,7 @@ describe("DatosTecnicosEditor · ruta manual y consulta posterior (regresión)",
     await user.type(screen.getByLabelText(/^Edificabilidad/), "2");
     await user.selectOptions(screen.getByLabelText(/^Superficie de cálculo/), "Polígono");
 
-    // Sin marcas engañosas en lo introducido a mano.
+    // No misleading marks on what was entered by hand.
     const row = screen.getByLabelText(/^Dirección/).closest("li") as HTMLElement;
     expect(within(row).queryByText("Editado")).not.toBeInTheDocument();
     expect(row).not.toHaveTextContent("Valor de");
