@@ -2,8 +2,8 @@ import type { Point } from "@/lib/relief";
 
 export type Triangle = readonly [Point, Point, Point];
 
-/** Opacity of the translucent plot fill (high enough to stand out from the terrain colour ramp). */
-export const PLOT_FILL_OPACITY = 0.6;
+/** Opacity of the translucent plot fill (as in the draft): low enough to keep the height ramp visible through it. */
+export const PLOT_FILL_OPACITY = 0.45;
 
 const dist = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const mid = (a: Point, b: Point): Point => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];

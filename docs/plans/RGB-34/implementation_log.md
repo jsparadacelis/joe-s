@@ -202,3 +202,7 @@ Fecha: 2026-10-24. Mismo método (build real, Chromium con WebGL por software, e
 **Hallazgos nuevos.**
 - A. **Baja (visual).** Con opacidad 0,6 el relleno oculta casi por completo la rampa de alturas dentro de la parcela: en la rústica recortada (donde la parcela ocupa toda la ventana) el terreno se ve de un solo tono pardo (claro) o rosa pálido (oscuro) y el relieve se lee solo por el sombreado y las lecturas; en oscuro con ×3 el sombreado es muy tenue. Propuesta: bajar la opacidad (~0,35-0,45) o dibujar solo el contorno y un relleno más tenue cuando la parcela cubre la ventana.
 - B. **Info.** Pendientes de antes: 2 (encuadre que recorta el borde sur) y 5 (pérdida de contexto WebGL sin aviso).
+
+### Ajuste tras el Juez
+- `PLOT_FILL_OPACITY` baja de 0,6 a 0,45 (el valor del borrador): con 0,6 el relleno tapaba la rampa y la parcela rústica, que llena la ventana, quedaba como una losa de un tono. `relief-plot-fill.test.ts` añade `toBeLessThanOrEqual(0.45)` para que no vuelva a subir. `relief-contrast.test.ts` no se tocó y sigue pasando (umbral 1,2:1 del relleno sobre cada tono de la rampa; mínimo con 0,45 = 1,22).
+- `@types/three` pasa de `dependencies` a `devDependencies` (0.186.0 exacta). `package-lock.json` regenerado con `npm install --package-lock-only`: además del cambio esperado, npm añadió entradas opcionales de `@tailwindcss/oxide-wasm32-wasi` (ajenas a esta tarea; es la salida del propio npm).

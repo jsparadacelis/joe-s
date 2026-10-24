@@ -38,5 +38,7 @@ describe("subdivideTriangles", () => {
   it("fill opacity is a valid translucent value", () => {
     expect(PLOT_FILL_OPACITY).toBeGreaterThan(0);
     expect(PLOT_FILL_OPACITY).toBeLessThan(1);
+    // Do not raise it: a denser fill hides the height ramp and flattens large plots into one tone.
+    expect(PLOT_FILL_OPACITY).toBeLessThanOrEqual(0.45);
   });
 });
