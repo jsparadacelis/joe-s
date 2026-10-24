@@ -49,6 +49,8 @@ export function ScoringSettingsEditor({ fetcher = defaultFetcher, saver = defaul
   const [weightDrafts, setWeightDrafts] = useState<WeightDraft | null>(null);
   const [thresholdDraft, setThresholdDraft] = useState("");
   const [weightsError, setWeightsError] = useState<string | undefined>();
+  // Criterion at fault in a client-side error; `null` when the error comes from the server (it names none).
+  const [weightsErrorField, setWeightsErrorField] = useState<Criterion | null>(null);
   const [thresholdError, setThresholdError] = useState<string | undefined>();
   const [formError, setFormError] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
@@ -126,6 +128,7 @@ export function ScoringSettingsEditor({ fetcher = defaultFetcher, saver = defaul
     if (saving) return;
     const errors = validateScoringSettings(current);
     setWeightsError(errors.weights);
+    setWeightsErrorField(errors.weightsField ?? null);
     setThresholdError(errors.threshold);
     setFormError(undefined);
     if (errors.weights || errors.threshold) {
@@ -143,6 +146,7 @@ export function ScoringSettingsEditor({ fetcher = defaultFetcher, saver = defaul
       const message = error instanceof ApiError ? error.message : UNEXPECTED_MESSAGE;
       if (error instanceof ApiError && error.code === "invalid_weights") {
         setWeightsError(message);
+        setWeightsErrorField(null);
         restoreFocus(weightRefs.current[CRITERIA[0]]);
       } else if (error instanceof ApiError && error.code === "invalid_threshold") {
         setThresholdError(message);
@@ -162,7 +166,9 @@ export function ScoringSettingsEditor({ fetcher = defaultFetcher, saver = defaul
         <fieldset className="flex min-w-0 flex-col gap-2.5">
           <legend className="mb-2 text-m font-medium">Pesos de los criterios</legend>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2.5">
-            {CRITERIA.map((criterion) => (
+            {CRITERIA.map((criterion) => {
+              const invalid = weightsError !== undefined && (weightsErrorField === null || weightsErrorField === criterion);
+              return (
               <label key={criterion} className="flex flex-col gap-1 text-xs text-muted">
                 <span>{`Peso de ${CRITERION_LABELS[criterion]}`}</span>
                 <input
@@ -174,7 +180,7 @@ export function ScoringSettingsEditor({ fetcher = defaultFetcher, saver = defaul
                   min={0}
                   max={MAX_WEIGHT}
                   step="any"
-                  className={`${INPUT_CLASS} ${weightsError ? "border-bad" : "border-hair"}`}
+                  className={`${INPUT_CLASS} ${invalid ? "border-bad" : "border-hair"}`}
                   value={weightDrafts[criterion]}
                   onChange={(e) => {
                     const next = e.target.value;
@@ -185,11 +191,12 @@ export function ScoringSettingsEditor({ fetcher = defaultFetcher, saver = defaul
                   onFocus={(e) => {
                     lastFocused.current = e.currentTarget;
                   }}
-                  aria-invalid={weightsError ? true : undefined}
-                  aria-describedby={weightsError ? weightsErrorId : undefined}
+                  aria-invalid={invalid ? true : undefined}
+                  aria-describedby={invalid ? weightsErrorId : undefined}
                 />
               </label>
-            ))}
+              );
+            })}
           </div>
           {weightsError ? (
             <p id={weightsErrorId} role="alert" className="text-s text-bad">

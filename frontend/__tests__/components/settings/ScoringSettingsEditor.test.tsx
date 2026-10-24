@@ -79,6 +79,15 @@ describe("ScoringSettingsEditor validation (same limits as the API)", () => {
     expect(saver).not.toHaveBeenCalled();
   });
 
+  it("marks only the offending weight as invalid for a client-side error", async () => {
+    const { user } = await loaded();
+    await typeInto(user, weight("budget"), "0");
+    await user.click(saveButton());
+    await screen.findByText(WEIGHT_MESSAGE);
+    expect(weight("budget")).toHaveAttribute("aria-invalid", "true");
+    expect(weight("location")).not.toHaveAttribute("aria-invalid");
+  });
+
   it.each(["0", "101", "60.5", ""])("rejects the threshold «%s»", async (bad) => {
     const { user, saver } = await loaded();
     await typeInto(user, threshold(), bad);
