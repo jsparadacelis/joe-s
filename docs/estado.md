@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-23 (tras RGB-9, RGB-15, RGB-29 y RGB-34). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-24 (tras la conexión de los ajustes del plan, PR #27). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -23,7 +23,7 @@ Actualizado: 2026-10-23 (tras RGB-9, RGB-15, RGB-29 y RGB-34). Fuente de verdad 
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 | Reordenado del repo (PR #23) y URLs en inglés (PR #24) | `frontend/` y `backend/` separados (Dockerfile y dependencias de Python dentro de `backend/`), URLs de página en inglés (`/projects`, `/portfolio`, `/to-promote`, `/settings`, `/weekly-report`, `plan-and-timing`, `phase`, `#content`). `main` protegida con el ruleset `main-rule`: todo por PR y checks `front`, `backend` y `Vercel` en verde | — |
 | Infra desplegada | API en Cloud Run (`https://rgb-api-368607571687.us-central1.run.app`, pública, con CORS para `https://joe-s.vercel.app` y `http://localhost:3000`), base en Supabase, front en Vercel (*Root Directory* `frontend`). Verificado el 2026-10-24: `/api/health`, `/api/settings/plan` y `/api/plan` responden. Falta `NEXT_PUBLIC_API_URL` en Vercel | [despliegue](despliegue.md) |
-| **Conexión front–API**, paso 1 · Ajustes del plan | Cliente HTTP (`lib/api.ts`) y pantalla `/settings` con las plantillas de semanas y los factores de escala conectados a la API, con topes en el cliente, errores accesibles y foco gestionado; 957 tests; 15 pantallazos. `NEXT_PUBLIC_API_URL` fijada en Vercel. Siguiente: botones de promoción | [plan](plans/connect-api-settings/plan.md) · [log](plans/connect-api-settings/implementation_log.md) |
+| **Conexión front–API**, paso 1 · Ajustes del plan (PR #27) | Cliente HTTP (`lib/api.ts`) y pantalla `/settings` con las plantillas de semanas y los factores de escala conectados a la API, con topes en el cliente, errores accesibles y foco gestionado; 957 tests; 15 pantallazos. `NEXT_PUBLIC_API_URL` fijada en Vercel y aplicada: en producción `/settings` carga (200) con la URL de Cloud Run incrustada. Siguiente: botones de promoción | [plan](plans/connect-api-settings/plan.md) · [log](plans/connect-api-settings/implementation_log.md) |
 
 ## Decisiones
 
