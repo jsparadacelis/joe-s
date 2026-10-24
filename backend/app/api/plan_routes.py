@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
@@ -19,12 +18,14 @@ Context = Annotated[RequestContext, Depends(request_context)]
 Unit = Annotated[PlanUnitOfWork, Depends(plan_unit_of_work)]
 
 
+# Typed as Any on purpose: the domain is the single place that validates values, so every
+# bad type or range answers with the same `invalid_weeks` / `invalid_factor` error.
 class WeeksInput(BaseModel):
-    weeks: list[int]
+    weeks: Any
 
 
 class FactorInput(BaseModel):
-    factor: Decimal
+    factor: Any
 
 
 def _rejected(error: PlanSettingsError) -> HTTPException:

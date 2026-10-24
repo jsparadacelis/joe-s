@@ -96,10 +96,54 @@ class TestValidation:
         with pytest.raises(InvalidWeeks):
             validate_weeks(weeks)
 
-    @pytest.mark.parametrize("factor", [0, -1, "0", 11])
-    def test_factor_must_be_positive_and_reasonable(self, factor):
+    @pytest.mark.parametrize(
+        "weeks",
+        [
+            [521] + [1] * 6,
+            [2147483648] + [1] * 6,
+            [99999999999] + [1] * 6,
+            [10**21] + [1] * 6,
+            [True] + [1] * 6,
+            ["3"] + [1] * 6,
+            [None] + [1] * 6,
+            [float("inf")] + [1] * 6,
+            "1234567",
+            None,
+        ],
+    )
+    def test_weeks_are_capped_and_must_be_plain_integers(self, weeks):
+        with pytest.raises(InvalidWeeks):
+            validate_weeks(weeks)
+
+    def test_weeks_accept_the_bounds(self):
+        assert validate_weeks([1, 520, 1, 520, 1, 520, 1]) == (1, 520, 1, 520, 1, 520, 1)
+
+    @pytest.mark.parametrize(
+        "factor",
+        [
+            0, -1, "0", 11, "0.09", "1e-10", 1e-10, "1e309", 1e309, "NaN", float("nan"),
+            "Infinity", "sNaN", True, None, [1], {"a": 1}, "abc", "1" * 5000,
+        ],
+    )  # fmt: skip
+    def test_factor_must_be_within_bounds(self, factor):
         with pytest.raises(InvalidFactor):
             validate_factor(factor)
+
+    @pytest.mark.parametrize("factor", ["0.1", 0.1, "10", 10, "1.25"])
+    def test_factor_accepts_the_bounds(self, factor):
+        assert validate_factor(factor) == Decimal(str(factor))
+
+    def test_prd_defaults_are_within_the_caps(self):
+        for weeks in DEFAULT_TEMPLATES.values():
+            assert validate_weeks(list(weeks)) == weeks
+        for factor in DEFAULT_SCALE_FACTORS.values():
+            assert validate_factor(factor) == factor
+
+    def test_error_messages_match_the_front(self):
+        assert InvalidWeeks().message == (
+            "Cada plantilla necesita exactamente 7 valores de semanas, enteros y entre 1 y 520."
+        )
+        assert InvalidFactor().message == "El factor de escala debe ser un número entre 0,1 y 10."
 
     def test_factor_is_returned_as_decimal(self):
         assert validate_factor("1.25") == Decimal("1.25")
