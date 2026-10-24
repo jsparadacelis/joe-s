@@ -4,7 +4,7 @@
  * exposes it; the pure functions below stay in the front end as presentation logic.
  */
 import type { PhaseId } from "@/lib/phases";
-import { TRAFFIC_LIGHT_LABEL } from "@/lib/timing";
+import { TRAFFIC_LIGHT_LABEL, consumptionPercent, consumptionTrafficLight, type TrafficLight } from "@/lib/timing";
 
 export type PortfolioStatus = "green" | "amber" | "red" | "paused" | "no-plan";
 
@@ -19,6 +19,11 @@ export interface PortfolioRow {
   owner: string;
   blocker: string | null;
   daysSinceUpdate: number;
+  /**
+   * Active and planned weeks of the CURRENT phase (same as `PhaseTiming` in lib/timing.ts).
+   * `null` if and only if `status === "no-plan"`. Paused rows keep their frozen weeks.
+   */
+  phaseWeeks: { active: number; planned: number } | null;
 }
 
 export interface PortfolioSummary {
@@ -70,6 +75,15 @@ export function summarizePortfolio(rows: readonly PortfolioRow[], today: string)
   };
 }
 
+/** Consumption of the current phase; `null` without a plan. Independent of `status`; percent is not capped. */
+export function phaseWeeksProgress(
+  row: Pick<PortfolioRow, "phaseWeeks">,
+): { percent: number; trafficLight: TrafficLight } | null {
+  if (!row.phaseWeeks) return null;
+  const { active, planned } = row.phaseWeeks;
+  return { percent: consumptionPercent(active, planned), trafficLight: consumptionTrafficLight(active, planned) };
+}
+
 export function filterPortfolio(rows: readonly PortfolioRow[], filter: PortfolioFilter): PortfolioRow[] {
   return rows.filter(
     (row) =>
@@ -90,6 +104,7 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Ana Ejemplo",
     blocker: null,
     daysSinceUpdate: 2,
+    phaseWeeks: { active: 4, planned: 5 },
   },
   {
     code: "PRY-EJ-002",
@@ -100,6 +115,7 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Carla Ejemplo",
     blocker: null,
     daysSinceUpdate: 0,
+    phaseWeeks: null,
   },
   {
     code: "PRY-EJ-003",
@@ -110,6 +126,7 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Beto Ejemplo",
     blocker: "Espera de la licencia de primera ocupación",
     daysSinceUpdate: 9,
+    phaseWeeks: { active: 30, planned: 36 },
   },
   {
     code: "PRY-EJ-004",
@@ -120,6 +137,7 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Ana Ejemplo",
     blocker: "Falta el levantamiento topográfico",
     daysSinceUpdate: 5,
+    phaseWeeks: { active: 1, planned: 3 },
   },
   {
     code: "PRY-EJ-005",
@@ -130,6 +148,7 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Beto Ejemplo",
     blocker: null,
     daysSinceUpdate: 12,
+    phaseWeeks: { active: 9, planned: 8 },
   },
   {
     code: "PRY-EJ-006",
@@ -140,6 +159,7 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Carla Ejemplo",
     blocker: null,
     daysSinceUpdate: 1,
+    phaseWeeks: { active: 5, planned: 6 },
   },
   {
     code: "PRY-EJ-007",
@@ -150,9 +170,14 @@ const ROWS: readonly PortfolioRow[] = [
     owner: "Ana Ejemplo",
     blocker: null,
     daysSinceUpdate: 3,
+    phaseWeeks: null,
   },
 ];
 
 export async function fetchPortfolio(): Promise<PortfolioRow[]> {
-  return ROWS.map((row) => ({ ...row, nextMilestone: row.nextMilestone && { ...row.nextMilestone } }));
+  return ROWS.map((row) => ({
+    ...row,
+    nextMilestone: row.nextMilestone && { ...row.nextMilestone },
+    phaseWeeks: row.phaseWeeks && { ...row.phaseWeeks },
+  }));
 }

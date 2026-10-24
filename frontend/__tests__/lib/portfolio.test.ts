@@ -7,11 +7,12 @@ import {
   fetchPortfolio,
   filterPortfolio,
   isStale,
+  phaseWeeksProgress,
   summarizePortfolio,
   type PortfolioRow,
   type PortfolioStatus,
 } from "@/lib/portfolio";
-import { TRAFFIC_LIGHT_LABEL, consumptionTrafficLight, fetchTimingPlan } from "@/lib/timing";
+import { TRAFFIC_LIGHT_LABEL, consumptionPercent, consumptionTrafficLight, fetchTimingPlan } from "@/lib/timing";
 
 const TODAY = "2026-10-24";
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -28,6 +29,8 @@ function row(extra: Partial<PortfolioRow> = {}): PortfolioRow {
     owner: "Owner A",
     blocker: null,
     daysSinceUpdate: 1,
+    // RGB-23: required field; null if and only if the status is no-plan.
+    phaseWeeks: extra.status === "no-plan" ? null : { active: 1, planned: 5 },
     ...extra,
   };
 }
@@ -187,12 +190,13 @@ describe("filterPortfolio", () => {
 });
 
 describe("fetchPortfolio (sample data)", () => {
+  // RGB-23: the exact key list now includes the new required field `phaseWeeks`.
   it("returns rows with the contract shape", async () => {
     const rows = await fetchPortfolio();
     expect(rows.length).toBeGreaterThanOrEqual(6);
     for (const r of rows) {
       expect(Object.keys(r).sort()).toEqual(
-        ["blocker", "code", "daysSinceUpdate", "name", "nextMilestone", "owner", "phase", "status"],
+        ["blocker", "code", "daysSinceUpdate", "name", "nextMilestone", "owner", "phase", "phaseWeeks", "status"],
       );
       expect(r.code).toMatch(/^PRY-EJ-\d{3}$/);
       expect(r.name.length).toBeGreaterThan(0);
@@ -323,5 +327,109 @@ describe("portfolio traffic light is the one of the timing plan (RGB-11 B1)", ()
     expect(summary.active).toBe(rows.length);
     // Phase lights from the plans: 001 amber (4/5), 004 green (1/3), 005 red, 006 amber (5/6).
     expect(summary.atRisk).toBe(3);
+  });
+});
+
+describe("RGB-23 phaseWeeks of the rows are the weeks of the plan's current phase", () => {
+  async function currentPhaseOf(code: string) {
+    const plan = await fetchTimingPlan(code);
+    return plan && plan.phases.find((p) => p.phase === plan.currentPhase)!;
+  }
+
+  it("phaseWeeks is null if and only if the status is no-plan, i.e. there is no timing plan", async () => {
+    const rows = await fetchPortfolio();
+    for (const r of rows) {
+      const plan = await fetchTimingPlan(r.code);
+      expect({ code: r.code, nullWeeks: r.phaseWeeks === null }).toEqual({ code: r.code, nullWeeks: r.status === "no-plan" });
+      expect({ code: r.code, nullWeeks: r.phaseWeeks === null }).toEqual({ code: r.code, nullWeeks: plan === null });
+    }
+  });
+
+  it("otherwise phaseWeeks equals activeWeeks/plannedWeeks of the current phase of the plan (paused rows too)", async () => {
+    const rows = (await fetchPortfolio()).filter((r) => r.status !== "no-plan");
+    expect(rows.some((r) => r.status === "paused")).toBe(true);
+    expect(rows.length).toBeGreaterThanOrEqual(5);
+    for (const r of rows) {
+      const current = await currentPhaseOf(r.code);
+      expect({ code: r.code, weeks: r.phaseWeeks }).toEqual({
+        code: r.code,
+        weeks: { active: current!.activeWeeks, planned: current!.plannedWeeks },
+      });
+    }
+  });
+
+  it("phaseWeeks has exactly the keys active and planned, as non-negative integers (planned > 0)", async () => {
+    for (const r of await fetchPortfolio()) {
+      if (r.phaseWeeks === null) continue;
+      expect(Object.keys(r.phaseWeeks).sort()).toEqual(["active", "planned"]);
+      expect(Number.isInteger(r.phaseWeeks.active) && r.phaseWeeks.active >= 0).toBe(true);
+      expect(Number.isInteger(r.phaseWeeks.planned) && r.phaseWeeks.planned > 0).toBe(true);
+    }
+  });
+
+  it("sample values per project come from lib/timing.ts", async () => {
+    const byCode = Object.fromEntries((await fetchPortfolio()).map((r) => [r.code, r.phaseWeeks]));
+    expect(byCode).toMatchObject({
+      "PRY-EJ-001": { active: 4, planned: 5 },
+      "PRY-EJ-002": null,
+      "PRY-EJ-003": { active: 30, planned: 36 },
+      "PRY-EJ-004": { active: 1, planned: 3 },
+      "PRY-EJ-005": { active: 9, planned: 8 },
+      "PRY-EJ-006": { active: 5, planned: 6 },
+      "PRY-EJ-007": null,
+    });
+  });
+
+  it("mutating phaseWeeks of a result does not affect the next result (independent copies)", async () => {
+    const first = await fetchPortfolio();
+    const target = first.find((r) => r.phaseWeeks !== null)!;
+    target.phaseWeeks!.active = 999;
+    const second = await fetchPortfolio();
+    expect(second.find((r) => r.code === target.code)!.phaseWeeks!.active).not.toBe(999);
+  });
+});
+
+describe("phaseWeeksProgress", () => {
+  const weeks = (active: number, planned: number) => row({ phaseWeeks: { active, planned } });
+
+  it("returns null when the row has no phase weeks (opportunity)", () => {
+    expect(phaseWeeksProgress(row({ status: "no-plan", phase: 0 }))).toBeNull();
+  });
+
+  it.each([
+    [1, 3, 33, "green"],
+    [3, 5, 60, "green"],
+    [4, 5, 80, "amber"],
+    [5, 6, 83, "amber"],
+    [5, 5, 100, "amber"],
+    [9, 8, 113, "red"],
+    [0, 4, 0, "green"],
+  ] as const)("%i of %i weeks -> %i %% and %s", (active, planned, percent, trafficLight) => {
+    expect(phaseWeeksProgress(weeks(active, planned))).toEqual({ percent, trafficLight });
+  });
+
+  it("is exactly consumptionPercent and consumptionTrafficLight (single source of truth)", () => {
+    for (const [active, planned] of [[1, 3], [4, 5], [30, 36], [9, 8], [0, 2]]) {
+      expect(phaseWeeksProgress(weeks(active, planned))).toEqual({
+        percent: consumptionPercent(active, planned),
+        trafficLight: consumptionTrafficLight(active, planned),
+      });
+    }
+  });
+
+  it("does not depend on the row status: a paused row still reports its frozen weeks", () => {
+    const paused = row({ status: "paused", phaseWeeks: { active: 30, planned: 36 } });
+    expect(phaseWeeksProgress(paused)).toEqual({ percent: 83, trafficLight: "amber" });
+  });
+
+  it("the percent is not capped at 100", () => {
+    expect(phaseWeeksProgress(weeks(12, 8))?.percent).toBe(150);
+  });
+
+  it("does not mutate the row", () => {
+    const r = weeks(4, 5);
+    const copy = JSON.parse(JSON.stringify(r));
+    phaseWeeksProgress(r);
+    expect(r).toEqual(copy);
   });
 });
