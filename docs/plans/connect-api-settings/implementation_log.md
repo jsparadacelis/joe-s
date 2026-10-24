@@ -1,6 +1,6 @@
 # Registro de ejecución · Conexión del front con la API y ajustes del plan
 
-Estado a 2026-10-24: **en pausa por petición del usuario**, en la fase de Escritor de tests (incompleta). No hay código de producción ni PR.
+Estado a 2026-10-24: **primer paso ejecutado** (cliente HTTP y ajustes del plan en `/settings`). Reanudado por petición del usuario tras la pausa; el resto de este registro (hasta «Ejecución») es el estado previo.
 
 ## Comprobaciones de la infra (hechas)
 
@@ -42,3 +42,32 @@ Faltaron `frontend/__tests__/components/settings/PlanSettingsEditor.test.tsx` y 
 3. PR con pantallazos y monitor cada 30 s; el usuario lo revisa.
 4. Fijar `NEXT_PUBLIC_API_URL` en Vercel (usuario) y redesplegar.
 5. Siguiente PR: botones de promoción (Promover, Retener, No perseguir) cuando la API pueda devolver proyectos reales.
+
+## Ejecución (2026-10-24)
+
+- `NEXT_PUBLIC_API_URL` fijada en Vercel por el MCP (proyecto `joe-s`, producción y preview, valor de Cloud Run). Falta un redeploy: se aplica con el del PR.
+- Escritor de tests: rehizo los tres parciales, escribió los del editor y `contract.md`. Cambio justificado en `pages.test.tsx` (`/settings` ya no es un estado vacío).
+- Desarrollador: `lib/api.ts`, `lib/plan-settings.ts`, `components/settings/PlanSettingsEditor.tsx`, página `/settings` y `docs/despliegue.md`.
+- Tester (1.ª pasada), con el build real y la API local: halló valores que el cliente dejaba pasar y la API rechazaba con 500 (sin CORS, la interfaz decía «No se pudo conectar»), foco perdido tras guardar, mensaje de éxito que no se limpiaba y total sin sentido con valores inválidos. Corregido con topes en el cliente (1–520 semanas; factor 0,1–10), foco devuelto al campo, `aria-live` que se vacía al editar y «Total: —».
+- Correcciones de tests justificadas: `0.01` pasó de aceptado a rechazado (mínimo 0,1) y un total esperado de 521 era 553 (3+3+5+7+10+520+5).
+- Tester (2.ª pasada): correcciones verificadas; 15 pantallazos regenerados con la base limpia. Cloud Run, solo lectura: una carga de `/settings` desde `http://localhost:3000` hace únicamente `GET /api/settings/plan` → 200 con `access-control-allow-origin: http://localhost:3000`; ningún `PUT` ni `POST`.
+- Juez (1.ª vez): **rechazado** por el foco perdido tras un error del servidor (422, 500 o red). Corregido (`restoreFocus` en el `catch`, 3 tests). Prettier no aplica (el repo no lo usa).
+- Estado final: 957 tests, lint, typecheck y build en verde.
+
+## Observaciones del entorno local
+
+- `dev.sh` no siembra el estudio ficticio de desarrollo (`00000000-0000-0000-0000-00000000e001`); sin él todo `PUT` falla por la clave foránea. Hay que insertarlo a mano.
+- `audit_events` es de solo inserción: las pruebas dejan filas; se limpian con `docker compose down -v`.
+
+## Seguimientos
+
+- El aviso de validación persiste al volver al valor guardado (solo se limpia al guardar bien).
+- Una respuesta 200 con cuerpo mal formado deja «Cargando…» sin «Reintentar»: validar la forma en `fetchPlanSettings` y lanzar `ApiError(…, "unexpected_error")`.
+- Backend: alinear topes (520 semanas, factor ≥ 0,1) y mensajes con el front, y devolver 422 en vez de 500 cuando un valor no cabe en la base.
+- Etiquetas de dos líneas desalinean los campos de la fila.
+- `UNEXPECTED_MESSAGE` duplicado en `lib/api.ts` y en el editor.
+- Scroll horizontal a 360 px por las migas del layout (toda la plataforma).
+
+## Pantallazos
+
+Están en [screenshots/](screenshots/), con datos ficticios, claro y oscuro: `settings-loaded`, `settings-saved-success`, `settings-keyboard-focus`, `settings-client-validation-error`, `settings-server-422-error` (respuesta simulada con Playwright), `settings-api-down`, `settings-narrow-800px` y `settings-loaded-cloud-run-readonly-light`.

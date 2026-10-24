@@ -72,12 +72,12 @@ El secreto `database-url` apunta al pooler en modo sesión, el mismo que se usó
 ## 3. Front (Vercel)
 
 1. Importa el repositorio; en *Root Directory* pon `frontend`. No hace falta `vercel.json`.
-2. Variable de entorno `NEXT_PUBLIC_API_URL` = URL de Cloud Run.
+2. Variable de entorno `NEXT_PUBLIC_API_URL` = URL de Cloud Run, fijada en los entornos de producción y de preview (ya está fijada con el valor de Cloud Run). En local se define en `frontend/.env.local` (ver `frontend/.env.example`). Al ser `NEXT_PUBLIC_*`, Next.js la incrusta en el build: si cambia, hay que redesplegar el front para que surta efecto.
 3. Añade el dominio de Vercel (y los de preview que uses) a `CORS_ORIGINS` en Cloud Run, separados por comas:
    `gcloud run services update rgb-api --region $REGION --update-env-vars ^@^CORS_ORIGINS=https://a.vercel.app,https://b.vercel.app`
 4. `next/font/google` necesita red en el build; en Vercel la hay. Pasar a fuentes locales sigue pendiente (ver [estado](estado.md)).
 
-Hoy el front solo usa datos de ejemplo y todavía no llama a la API.
+Hoy el front llama a la API solo en `/settings` (ajustes del plan); el resto de pantallas sigue con datos de ejemplo.
 
 ## Orden recomendado
 
