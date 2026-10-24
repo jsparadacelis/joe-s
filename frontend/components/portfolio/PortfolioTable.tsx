@@ -3,6 +3,7 @@ import { StatusChip, type StatusTone } from "@/components/ui/StatusChip";
 import { Table, type TableColumn } from "@/components/ui/Table";
 import { PHASES } from "@/lib/phases";
 import { STATUS_LABEL, isStale, phaseWeeksProgress, type PortfolioRow, type PortfolioStatus } from "@/lib/portfolio";
+import { overdueText, type PauseSummary } from "@/lib/pauses";
 import { formatDate, type TrafficLight } from "@/lib/timing";
 
 export type PortfolioTableProps = {
@@ -56,6 +57,15 @@ function PhaseWeeksCell({ row }: { row: PortfolioRow }) {
   );
 }
 
+function PauseInfo({ pause }: { pause: PauseSummary }) {
+  return (
+    <>
+      <span className="text-xs text-muted">Reanudación prevista el {formatDate(pause.expectedResumption)}</span>
+      {pause.overdue ? <span className="text-xs font-medium text-bad">{overdueText(pause.daysOverdue)}</span> : null}
+    </>
+  );
+}
+
 const COLUMNS: readonly TableColumn<PortfolioRow>[] = [
   {
     key: "project",
@@ -76,9 +86,12 @@ const COLUMNS: readonly TableColumn<PortfolioRow>[] = [
     key: "status",
     header: "Semáforo",
     render: (row) => (
-      <StatusChip variant="traffic-light" tone={STATUS_TONE[row.status]}>
-        {STATUS_LABEL[row.status]}
-      </StatusChip>
+      <div className="flex flex-col items-start gap-1">
+        <StatusChip variant="traffic-light" tone={STATUS_TONE[row.status]}>
+          {STATUS_LABEL[row.status]}
+        </StatusChip>
+        {row.status === "paused" && row.pause ? <PauseInfo pause={row.pause} /> : null}
+      </div>
     ),
   },
   {

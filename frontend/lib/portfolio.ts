@@ -5,6 +5,7 @@
  */
 import { request as defaultRequest, type ApiRequest } from "@/lib/api";
 import type { PhaseId } from "@/lib/phases";
+import { pauseSummaryFromApi, type ApiPauseSummary, type PauseSummary } from "@/lib/pauses";
 import { TRAFFIC_LIGHT_LABEL, consumptionPercent, consumptionTrafficLight, type TrafficLight } from "@/lib/timing";
 
 /** `unknown` («Sin calcular»): the API has no traffic light for a project that is neither phase 0 nor paused. */
@@ -27,6 +28,11 @@ export interface PortfolioRow {
    * plan is calculated (RGB-16/21). Paused rows keep their frozen weeks when there are any.
    */
   phaseWeeks: { active: number; planned: number } | null;
+  /**
+   * RGB-21: the open pause (reason, expected resumption, overdue). Can be `null` while `status` is `paused`
+   * (an open pause that only exists in `projects.paused`); never set for other statuses.
+   */
+  pause: PauseSummary | null;
 }
 
 /** What the view needs: the rows and the reference date (`as_of`, UTC) of the API. */
@@ -115,6 +121,8 @@ interface ApiPortfolioProject {
   blocker: string | null;
   days_since_update: number;
   phase_weeks: { active: number; planned: number } | null;
+  /** Additive field of RGB-21; absent in an older back. */
+  pause?: ApiPauseSummary | null;
 }
 
 interface ApiPortfolio {
@@ -147,6 +155,7 @@ function toRow(project: ApiPortfolioProject): PortfolioRow {
     blocker: project.blocker,
     daysSinceUpdate: project.days_since_update,
     phaseWeeks: project.phase_weeks && { active: project.phase_weeks.active, planned: project.phase_weeks.planned },
+    pause: project.pause ? pauseSummaryFromApi(project.pause) : null,
   };
 }
 

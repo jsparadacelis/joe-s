@@ -17,6 +17,7 @@ export function makeRow(extra: Partial<PortfolioRow> = {}): PortfolioRow {
     blocker: null,
     daysSinceUpdate: 1,
     phaseWeeks,
+    pause: null,
     ...extra,
   };
 }
