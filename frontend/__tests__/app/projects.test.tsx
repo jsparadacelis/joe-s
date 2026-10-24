@@ -1,10 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import { axe } from "jest-axe";
-import ProjectsPage from "@/app/projects/page";
+import ProjectsPage, { dynamic } from "@/app/projects/page";
 import ProjectPage from "@/app/projects/[code]/page";
 import PhasePage from "@/app/projects/[code]/phase/[phase]/page";
 import PlanAndTimingPage from "@/app/projects/[code]/plan-and-timing/page";
 import ProjectLayout from "@/app/projects/[code]/layout";
+import { stubProjectNotFound } from "../helpers/mock-api";
 
 jest.mock("next/navigation", () => ({
   usePathname: () => "/projects",
@@ -15,6 +16,13 @@ jest.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   },
 }));
+
+// RGB-13: «NO-EXISTE» is asked to the API now; it answers 404 project_not_found.
+let restoreFetch: () => void;
+beforeEach(() => {
+  restoreFetch = stubProjectNotFound();
+});
+afterEach(() => restoreFetch());
 
 const phase = (code: string, f: string) =>
   PhasePage({ params: Promise.resolve({ code, phase: f }) });
@@ -326,10 +334,10 @@ describe("a real project created through the API (RGB-13)", () => {
     );
   });
 
-  it("its layout shows the phase tabs", async () => {
+  it("its layout shows the project sections (tabs)", async () => {
     mockProjects(real);
     render(await ProjectLayout({ params: Promise.resolve({ code: "PRY-2026-001" }), children: <p>contenido</p> }));
-    expect(screen.getByRole("navigation", { name: "Fases del proyecto" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Secciones del proyecto" })).toBeInTheDocument();
   });
 
   it("«Plan y tiempos» says «Sin plan hasta promover» (no sample plan is invented)", async () => {
@@ -356,3 +364,15 @@ describe("a real project created through the API (RGB-13)", () => {
   });
 });
 
+describe("/projects is rendered per request (RGB-13)", () => {
+  it("is dynamic: the list of real projects must not be frozen at build time", () => {
+    expect(dynamic).toBe("force-dynamic");
+  });
+
+  it("the panel is no longer called «de ejemplo» (real and sample projects share the list) and says which are fictitious", async () => {
+    render(await ProjectsPage());
+    expect(screen.queryByRole("heading", { name: "Proyectos de ejemplo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Proyectos" })).toBeInTheDocument();
+    expect(screen.getByText(/PRY-EJ-NNN.*ficticios/)).toBeInTheDocument();
+  });
+});

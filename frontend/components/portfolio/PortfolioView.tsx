@@ -13,13 +13,14 @@ import {
   fetchPortfolio,
   filterPortfolio,
   summarizePortfolio,
+  type Portfolio,
   type PortfolioFilter,
   type PortfolioRow,
 } from "@/lib/portfolio";
 
 export interface PortfolioViewProps {
-  fetcher?: () => Promise<PortfolioRow[]>;
-  /** ISO date (yyyy-mm-dd) used for the milestones summary; defaults to today. */
+  fetcher?: () => Promise<Portfolio>;
+  /** ISO date (yyyy-mm-dd) used for the milestones summary; defaults to the API's `as_of`, then to today. */
   today?: string;
 }
 
@@ -30,7 +31,7 @@ const defaultFetcher = () => fetchPortfolio();
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export function PortfolioView({ fetcher = defaultFetcher, today }: PortfolioViewProps) {
-  const [rows, setRows] = useState<PortfolioRow[] | null>(null);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [filter, setFilter] = useState<PortfolioFilter>(NO_FILTER);
@@ -40,7 +41,7 @@ export function PortfolioView({ fetcher = defaultFetcher, today }: PortfolioView
     fetcher().then(
       (loaded) => {
         if (cancelled) return;
-        setRows(loaded);
+        setPortfolio(loaded);
         setLoadError(null);
       },
       (error: unknown) => {
@@ -57,6 +58,7 @@ export function PortfolioView({ fetcher = defaultFetcher, today }: PortfolioView
     setAttempt((n) => n + 1);
   }, []);
 
+  const rows: PortfolioRow[] | null = portfolio?.rows ?? null;
   const owners = useMemo(
     () => [...new Set((rows ?? []).map((row) => row.owner))].sort((a, b) => a.localeCompare(b, "es")),
     [rows],
@@ -83,7 +85,7 @@ export function PortfolioView({ fetcher = defaultFetcher, today }: PortfolioView
   const visible = filterPortfolio(rows, filter);
   return (
     <div className="flex flex-col gap-5">
-      <PortfolioSummary summary={summarizePortfolio(rows, today ?? todayIso())} />
+      <PortfolioSummary summary={summarizePortfolio(rows, today ?? (portfolio?.asOf || todayIso()))} />
       <PortfolioFilters owners={owners} value={filter} onChange={setFilter} />
       <p role="status" className="text-s text-muted">
         Mostrando {visible.length} de {rows.length} proyectos

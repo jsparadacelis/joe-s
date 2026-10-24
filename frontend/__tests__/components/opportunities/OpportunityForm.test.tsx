@@ -33,7 +33,7 @@ const CREATED: Opportunity = {
 
 type Submitter = (payload: OpportunityPayload) => Promise<Opportunity>;
 
-function setup(submitter: jest.Mock<ReturnType<Submitter>, Parameters<Submitter>> = jest.fn().mockResolvedValue(CREATED), onCreated?: jest.Mock) {
+function setup(submitter: Submitter | jest.Mock = jest.fn().mockResolvedValue(CREATED), onCreated?: jest.Mock) {
   const user = userEvent.setup();
   const view = render(<OpportunityForm submitter={submitter} onCreated={onCreated} />);
   return { user, submitter, onCreated, ...view };

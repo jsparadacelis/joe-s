@@ -6,12 +6,15 @@ export class ApiError extends Error {
   /** HTTP status; 0 means the request never got a response (network failure or CORS). */
   readonly status: number;
   readonly code: string;
+  /** Offending field of a validation error (`detail.field`); `undefined` when the API did not name one. */
+  readonly field?: string;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, field?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.field = field;
   }
 }
 
@@ -44,8 +47,10 @@ function errorFromBody(status: number, text: string): ApiError {
   const body = parseJson(text);
   const detail = typeof body === "object" && body !== null ? (body as { detail?: unknown }).detail : undefined;
   if (typeof detail === "object" && detail !== null && !Array.isArray(detail)) {
-    const { code, message } = detail as { code?: unknown; message?: unknown };
-    if (typeof code === "string" && typeof message === "string") return new ApiError(status, code, message);
+    const { code, message, field } = detail as { code?: unknown; message?: unknown; field?: unknown };
+    if (typeof code === "string" && typeof message === "string") {
+      return new ApiError(status, code, message, typeof field === "string" ? field : undefined);
+    }
   }
   return new ApiError(status, "unexpected_error", UNEXPECTED_MESSAGE);
 }

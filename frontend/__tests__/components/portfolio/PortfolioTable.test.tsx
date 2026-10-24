@@ -375,8 +375,8 @@ describe("PortfolioTable with API data (RGB-13)", () => {
 
   it("«Sin calcular» uses a neutral tone, not the warning or error ones", () => {
     render(<PortfolioTable rows={[makeRow({ status: "unknown", phaseWeeks: null })]} />);
-    const chip = within(rowOf("PRY-EJ-901")).getByText("Sin calcular");
-    const dot = chip.querySelector('[aria-hidden="true"]');
+    // Two texts say «Sin calcular» in the row (chip and weeks cell): the chip is the one with a dot.
+    const dot = rowOf("PRY-EJ-901").querySelector('[aria-hidden="true"]');
     expect(dot).not.toHaveClass("bg-warn");
     expect(dot).not.toHaveClass("bg-bad");
   });
