@@ -40,4 +40,4 @@ Fuera de alcance: scoring (RGB-14), plan propuesto y promoción (RGB-16), ficha 
 
 ## Flujo
 
-Ver la skill `skills/orchestrate-task/SKILL.md`: contrato → frentes en paralelo en worktrees (`feat/RGB-13-back`, `feat/RGB-13-front`) → Integrador (`feat/RGB-13`) → Juez (Opus) → PR único con pantallazos, merge con checks en verde (autorizado por el usuario hasta nuevo aviso), documentos, Notion y memoria.
+Siguiendo el borrador de la skill de orquestación (aún sin subir al repositorio): contrato → frentes en paralelo en worktrees (`feat/RGB-13-back`, `feat/RGB-13-front`) → Integrador (`feat/RGB-13`) → Juez (Opus) → PR único con pantallazos, merge con checks en verde (autorizado por el usuario hasta nuevo aviso), documentos, Notion y memoria.

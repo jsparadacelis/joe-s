@@ -104,3 +104,10 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 
 - Contraste de la barra de pausa (`bg-off`) frente a su pista; barra de consumo compartida entre `PortfolioTable` y `TimingTable` (arregla también el `aria-valuenow` sin acotar de RGB-22); una comparación de fase del test B1 que compara un valor consigo mismo.
 - Sustituir `phaseWeeks` por el valor de la API cuando existan RGB-20/21 y `GET /api/portfolio`.
+
+## Pendientes de RGB-13
+
+- «Plan y tiempos» de un proyecto real con fase mayor que 0 debería decir «Sin calcular», no «Sin plan hasta promover».
+- La ficha de una oportunidad real muestra «Guardar» sobre un entregable sin campos (llega con RGB-36).
+- `/opportunities/new` sin entrada de menú; `trim` de JS y `strip` de Python recortan distinto; permisos por rol (RGB-4).
+- Desplegar el backend en Cloud Run y aplicar la migración 006 en Supabase antes de apuntar Vercel a él (acciones del usuario).

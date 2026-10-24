@@ -55,7 +55,7 @@ Ningún fallo del back ni del contrato. Ninguna discrepancia obligó a cambiar e
 
 ## Supuestos provisionales del plan
 
-Los del plan: oportunidades en fase 0 sin plan (`phase_weeks` nulo → «Sin plan hasta promover»); responsable guardado como texto libre en `owner`; código `PRY-AAAA-NNN` con el año UTC del reloj; opcionales vacíos = nulos; presupuesto 0 a 1.000.000.000 con 2 decimales; entidad de auditoría `project`; el semáforo `unknown` para cualquier fase > 0 sin semáforo guardado.
+Los del plan: en la cartera entran todos los proyectos del estudio; sin permisos por rol hasta RGB-4; «Nombre» es un campo obligatorio del formulario (el PRD no lo lista, pero `projects.name` lo exige); el hito sale del texto `projects.next_milestone` (sin fecha). Además: oportunidades en fase 0 sin plan (`phase_weeks` nulo → «Sin plan hasta promover»); responsable guardado como texto libre en `owner`; código `PRY-AAAA-NNN` con el año UTC del reloj; opcionales vacíos = nulos; presupuesto 0 a 1.000.000.000 con 2 decimales; entidad de auditoría `project`; el semáforo `unknown` para cualquier fase > 0 sin semáforo guardado.
 
 ## Seguimientos
 
@@ -65,7 +65,10 @@ Los del plan: oportunidades en fase 0 sin plan (`phase_weeks` nulo → «Sin pla
 - Permisos por rol (RGB-4); desplegar este back en Cloud Run y aplicar la migración 006 en Supabase antes de apuntar Vercel a él.
 - Estado `unknown` y semáforo/hito/semanas calculados en servidor (RGB-16, 17, 21).
 - Alinear `trim`/`strip` (ver tabla).
+- **«Plan y tiempos» dice «Sin plan hasta promover» a un proyecto real con fase mayor que 0** (`frontend/app/projects/[code]/plan-and-timing/page.tsx`): debería decir «Sin calcular». Hoy solo se llega a ese caso promoviendo por la API, porque la interfaz aún no tiene botón de promover.
+- La ficha de una oportunidad real muestra «Guardar» sobre un entregable sin campos: ocultarlo o explicar que el entregable llega con RGB-36.
+- Capturas con fechas en formato inglés (`mm/dd/yyyy`): usar `locale: "es-ES"` en las próximas.
 
 ## Estado
 
-RGB-13 queda lista salvo las decisiones pendientes de producto (qué proyectos entran en la cartera y si se ocultan los cerrados, qué manda para el próximo hito, dueño de «bloqueo» y «última actualización»), recogidas en [huecos-backend](../../huecos-backend.md). Estado en Notion a «En revisión»; la persona revisora lo pasa a «Hecho».
+RGB-13 queda lista salvo las decisiones pendientes de producto (qué proyectos entran en la cartera y si se ocultan los cerrados, qué manda para el próximo hito, dueño de «bloqueo» y «última actualización»), recogidas en [huecos-backend](../../huecos-backend.md). Al mergear se pasa a «En revisión» en Notion; la persona revisora lo pasa a «Hecho».
