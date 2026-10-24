@@ -20,6 +20,11 @@ const SIZES: Record<ButtonSize, string> = {
   sm: "px-[9px] py-1 text-xs",
 };
 
+/** Classes of a button; shared with `ButtonLink` so a link that looks like a button uses the same tokens. */
+export function buttonClassName(variant: ButtonVariant = "default", size: ButtonSize = "md", className = ""): string {
+  return `inline-flex items-center gap-2 rounded-base border font-medium disabled:cursor-not-allowed disabled:opacity-45 ${VARIANTS[variant]} ${SIZES[size]} ${className}`;
+}
+
 export function Button({
   variant = "default",
   size = "md",
@@ -27,11 +32,5 @@ export function Button({
   className = "",
   ...rest
 }: ButtonProps) {
-  return (
-    <button
-      type={type}
-      className={`inline-flex items-center gap-2 rounded-base border font-medium disabled:cursor-not-allowed disabled:opacity-45 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
-      {...rest}
-    />
-  );
+  return <button type={type} className={buttonClassName(variant, size, className)} {...rest} />;
 }

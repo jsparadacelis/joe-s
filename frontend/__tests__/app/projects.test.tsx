@@ -1,8 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import { axe } from "jest-axe";
-import ProjectsPage from "@/app/projects/page";
+import ProjectsPage, { dynamic } from "@/app/projects/page";
 import ProjectPage from "@/app/projects/[code]/page";
 import PhasePage from "@/app/projects/[code]/phase/[phase]/page";
+import PlanAndTimingPage from "@/app/projects/[code]/plan-and-timing/page";
+import ProjectLayout from "@/app/projects/[code]/layout";
+import { stubProjectNotFound } from "../helpers/mock-api";
 
 jest.mock("next/navigation", () => ({
   usePathname: () => "/projects",
@@ -13,6 +16,13 @@ jest.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   },
 }));
+
+// RGB-13: «NO-EXISTE» is asked to the API now; it answers 404 project_not_found.
+let restoreFetch: () => void;
+beforeEach(() => {
+  restoreFetch = stubProjectNotFound();
+});
+afterEach(() => restoreFetch());
 
 const phase = (code: string, f: string) =>
   PhasePage({ params: Promise.resolve({ code, phase: f }) });
@@ -139,9 +149,10 @@ describe("portfolio links resolve to the project's current phase", () => {
     );
   });
 
-  it("every code returned by fetchPortfolio resolves on its row's phase page", async () => {
-    const { fetchPortfolio } = await import("@/lib/portfolio");
-    for (const row of await fetchPortfolio()) {
+  // RGB-13: sample fixtures replace the former sample fetchPortfolio; real codes are covered in the RGB-13 block below.
+  it("every sample portfolio row resolves on its row's phase page", async () => {
+    const { SAMPLE_ROWS } = await import("../helpers/portfolio-sample");
+    for (const row of SAMPLE_ROWS) {
       const { unmount } = render(await phase(row.code, String(row.phase)));
       unmount();
     }
@@ -284,5 +295,84 @@ describe("/projects/[code]/phase/3 · 3D relief viewer (RGB-34)", () => {
   ])("%s phase %s: no accessibility violations", async (code, f) => {
     const { container } = render(<main>{await phase(code, f)}</main>);
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+// RGB-13: a project created through the API (code PRY-AAAA-NNN) opens without a 404; the PRY-EJ samples keep working.
+describe("a real project created through the API (RGB-13)", () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  function mockProjects(known: Record<string, unknown>) {
+    const fetchMock = jest.fn(async (url: string) => {
+      const code = decodeURIComponent(url.split("/api/projects/")[1] ?? "");
+      if (code in known) return { ok: true, status: 200, text: async () => JSON.stringify(known[code]) };
+      return {
+        ok: false,
+        status: 404,
+        text: async () => JSON.stringify({ detail: { code: "project_not_found", message: `No existe el proyecto ${code}.` } }),
+      };
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    return fetchMock;
+  }
+  const real = { "PRY-2026-001": { code: "PRY-2026-001", name: "Test opportunity", current_phase: 0 } };
+
+  it("its phase page renders with the name, the code and a single h1", async () => {
+    mockProjects(real);
+    render(await phase("PRY-2026-001", "0"));
+    expect(screen.getByRole("heading", { level: 1, name: "Test opportunity" })).toBeInTheDocument();
+    expect(screen.getByText(/PRY-2026-001 · Fase 0/)).toBeInTheDocument();
+  });
+
+  it("/projects/{code} redirects to phase 0", async () => {
+    mockProjects(real);
+    await expect(ProjectPage({ params: Promise.resolve({ code: "PRY-2026-001" }) })).rejects.toThrow(
+      "/projects/PRY-2026-001/phase/0",
+    );
+  });
+
+  it("its layout shows the project sections (tabs)", async () => {
+    mockProjects(real);
+    render(await ProjectLayout({ params: Promise.resolve({ code: "PRY-2026-001" }), children: <p>contenido</p> }));
+    expect(screen.getByRole("navigation", { name: "Secciones del proyecto" })).toBeInTheDocument();
+  });
+
+  it("«Plan y tiempos» says «Sin plan hasta promover» (no sample plan is invented)", async () => {
+    mockProjects(real);
+    render(await PlanAndTimingPage({ params: Promise.resolve({ code: "PRY-2026-001" }) }));
+    expect(screen.getByText("Sin plan hasta promover")).toBeInTheDocument();
+  });
+
+  it("a code that exists nowhere is a 404", async () => {
+    mockProjects(real);
+    await expect(phase("PRY-2026-999", "0")).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("no accessibility violations on the phase page", async () => {
+    mockProjects(real);
+    const { container } = render(<main>{await phase("PRY-2026-001", "0")}</main>);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("the PRY-EJ samples do not touch the network", async () => {
+    const fetchMock = mockProjects({});
+    render(await phase("PRY-EJ-001", "3"));
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("/projects is rendered per request (RGB-13)", () => {
+  it("is dynamic: the list of real projects must not be frozen at build time", () => {
+    expect(dynamic).toBe("force-dynamic");
+  });
+
+  it("the panel is no longer called «de ejemplo» (real and sample projects share the list) and says which are fictitious", async () => {
+    render(await ProjectsPage());
+    expect(screen.queryByRole("heading", { name: "Proyectos de ejemplo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Proyectos" })).toBeInTheDocument();
+    expect(screen.getByText(/PRY-EJ-NNN.*ficticios/)).toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import PlanAndTimingPage from "@/app/projects/[code]/plan-and-timing/page";
 import ProjectLayout from "@/app/projects/[code]/layout";
+import { stubProjectNotFound } from "../helpers/mock-api";
 
 const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -19,6 +20,13 @@ const layout = (code: string) =>
   ProjectLayout({ params: Promise.resolve({ code }), children: <p>Contenido hijo</p> });
 
 beforeEach(() => mockPathname.mockReturnValue("/projects/PRY-EJ-001/plan-and-timing"));
+
+// RGB-13: «NO-EXISTE» is asked to the API now; it answers 404 project_not_found.
+let restoreFetch: () => void;
+beforeEach(() => {
+  restoreFetch = stubProjectNotFound();
+});
+afterEach(() => restoreFetch());
 
 describe("/projects/[code]/plan-and-timing", () => {
   it("returns 404 if the project does not exist", async () => {

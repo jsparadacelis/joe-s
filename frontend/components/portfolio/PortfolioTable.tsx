@@ -15,6 +15,7 @@ const STATUS_TONE: Record<PortfolioStatus, StatusTone> = {
   red: "bad",
   paused: "off",
   "no-plan": "off",
+  unknown: "neutral",
 };
 
 function daysText(days: number): string {
@@ -26,7 +27,10 @@ const BAR_COLOR: Record<TrafficLight, string> = { green: "bg-ok", amber: "bg-war
 
 function PhaseWeeksCell({ row }: { row: PortfolioRow }) {
   const progress = phaseWeeksProgress(row);
-  if (!row.phaseWeeks || !progress) return <span className="text-muted">Sin plan hasta promover</span>;
+  if (!row.phaseWeeks || !progress) {
+    // An opportunity has no plan until it is promoted; any other row without weeks has them pending (RGB-16/21).
+    return <span className="text-muted">{row.status === "no-plan" ? "Sin plan hasta promover" : "Sin calcular"}</span>;
+  }
   const { active, planned } = row.phaseWeeks;
   const { percent, trafficLight } = progress;
   const paused = row.status === "paused";
@@ -84,9 +88,13 @@ const COLUMNS: readonly TableColumn<PortfolioRow>[] = [
       nextMilestone ? (
         <div className="flex flex-col">
           <span>{nextMilestone.name}</span>
-          <time dateTime={nextMilestone.date} className="text-xs text-muted tabular-nums">
-            {formatDate(nextMilestone.date)}
-          </time>
+          {nextMilestone.date ? (
+            <time dateTime={nextMilestone.date} className="text-xs text-muted tabular-nums">
+              {formatDate(nextMilestone.date)}
+            </time>
+          ) : (
+            <span className="text-xs text-muted">Sin fecha</span>
+          )}
         </div>
       ) : (
         <span className="text-muted">Sin hito próximo</span>

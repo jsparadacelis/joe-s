@@ -1,12 +1,14 @@
 /**
- * RGB-11 portfolio contract and SAMPLE (fictitious) data layer.
- * `fetchPortfolio` is replaced by the API client (`GET /api/portfolio`) once the backend
- * exposes it; the pure functions below stay in the front end as presentation logic.
+ * Portfolio (RGB-11) read from the API (RGB-13): `fetchPortfolio` calls `GET /api/portfolio` and maps
+ * snake_case to the row contract below; the pure functions stay in the front end as presentation logic.
+ * The former sample rows live on only as test fixtures (`__tests__/helpers/portfolio-sample.ts`).
  */
+import { request as defaultRequest, type ApiRequest } from "@/lib/api";
 import type { PhaseId } from "@/lib/phases";
 import { TRAFFIC_LIGHT_LABEL, consumptionPercent, consumptionTrafficLight, type TrafficLight } from "@/lib/timing";
 
-export type PortfolioStatus = "green" | "amber" | "red" | "paused" | "no-plan";
+/** `unknown` («Sin calcular»): the API has no traffic light for a project that is neither phase 0 nor paused. */
+export type PortfolioStatus = "green" | "amber" | "red" | "paused" | "no-plan" | "unknown";
 
 export interface PortfolioRow {
   code: string;
@@ -14,16 +16,23 @@ export interface PortfolioRow {
   phase: PhaseId;
   /** `no-plan` if and only if the project is an opportunity (phase 0). */
   status: PortfolioStatus;
-  /** `date` is an ISO date (yyyy-mm-dd). */
-  nextMilestone: { name: string; date: string } | null;
+  /** `date` is an ISO date (yyyy-mm-dd), or `null` when the milestone has no date yet. */
+  nextMilestone: { name: string; date: string | null } | null;
   owner: string;
   blocker: string | null;
   daysSinceUpdate: number;
   /**
    * Active and planned weeks of the CURRENT phase (same as `PhaseTiming` in lib/timing.ts).
-   * `null` if and only if `status === "no-plan"`. Paused rows keep their frozen weeks.
+   * `null` when the API has no plan weeks: always for `no-plan`, and for any other status until the
+   * plan is calculated (RGB-16/21). Paused rows keep their frozen weeks when there are any.
    */
   phaseWeeks: { active: number; planned: number } | null;
+}
+
+/** What the view needs: the rows and the reference date (`as_of`, UTC) of the API. */
+export interface Portfolio {
+  asOf: string;
+  rows: PortfolioRow[];
 }
 
 export interface PortfolioSummary {
@@ -50,6 +59,7 @@ export const STATUS_LABEL: Record<PortfolioStatus, string> = {
   ...TRAFFIC_LIGHT_LABEL,
   paused: "En pausa",
   "no-plan": "Sin plan",
+  unknown: "Sin calcular",
 };
 
 export function isStale(row: PortfolioRow): boolean {
@@ -63,7 +73,7 @@ function daysBetween(from: string, to: string): number {
 
 export function summarizePortfolio(rows: readonly PortfolioRow[], today: string): PortfolioSummary {
   const dueSoon = (row: PortfolioRow) => {
-    if (!row.nextMilestone) return false;
+    if (!row.nextMilestone?.date) return false;
     const days = daysBetween(today, row.nextMilestone.date);
     return days >= 0 && days <= MILESTONE_WINDOW_DAYS;
   };
@@ -92,92 +102,55 @@ export function filterPortfolio(rows: readonly PortfolioRow[], filter: Portfolio
   );
 }
 
-// ---- SAMPLE DATA (replaceable by the API client) ----
+// ---- API (GET /api/portfolio) ----
 
-const ROWS: readonly PortfolioRow[] = [
-  {
-    code: "PRY-EJ-001",
-    name: "Vivienda unifamiliar (ejemplo)",
-    phase: 3,
-    status: "amber",
-    nextMilestone: { name: "Entrega del anteproyecto", date: "2026-10-28" },
-    owner: "Ana Ejemplo",
-    blocker: null,
-    daysSinceUpdate: 2,
-    phaseWeeks: { active: 4, planned: 5 },
-  },
-  {
-    code: "PRY-EJ-002",
-    name: "Reforma de local comercial (ejemplo)",
-    phase: 0,
-    status: "no-plan",
-    nextMilestone: null,
-    owner: "Carla Ejemplo",
-    blocker: null,
-    daysSinceUpdate: 0,
-    phaseWeeks: null,
-  },
-  {
-    code: "PRY-EJ-003",
-    name: "Edificio de oficinas (ejemplo)",
-    phase: 6,
-    status: "paused",
-    nextMilestone: { name: "Reanudación de la obra", date: "2026-11-09" },
-    owner: "Beto Ejemplo",
-    blocker: "Espera de la licencia de primera ocupación",
-    daysSinceUpdate: 9,
-    phaseWeeks: { active: 30, planned: 36 },
-  },
-  {
-    code: "PRY-EJ-004",
-    name: "Local comercial (ejemplo)",
-    phase: 2,
-    status: "green",
-    nextMilestone: { name: "Aprobación del brief", date: "2026-11-04" },
-    owner: "Ana Ejemplo",
-    blocker: "Falta el levantamiento topográfico",
-    daysSinceUpdate: 5,
-    phaseWeeks: { active: 1, planned: 3 },
-  },
-  {
-    code: "PRY-EJ-005",
-    name: "Rehabilitación de fachada (ejemplo)",
-    phase: 5,
-    status: "red",
-    nextMilestone: { name: "Visado del proyecto de ejecución", date: "2026-10-30" },
-    owner: "Beto Ejemplo",
-    blocker: null,
-    daysSinceUpdate: 12,
-    phaseWeeks: { active: 9, planned: 8 },
-  },
-  {
-    code: "PRY-EJ-006",
-    name: "Nave logística (ejemplo)",
-    phase: 4,
-    status: "amber",
-    nextMilestone: { name: "Presentación de la licencia", date: "2026-12-10" },
-    owner: "Carla Ejemplo",
-    blocker: null,
-    daysSinceUpdate: 1,
-    phaseWeeks: { active: 5, planned: 6 },
-  },
-  {
-    code: "PRY-EJ-007",
-    name: "Residencia de mayores (ejemplo)",
-    phase: 0,
-    status: "no-plan",
-    nextMilestone: null,
-    owner: "Ana Ejemplo",
-    blocker: null,
-    daysSinceUpdate: 3,
-    phaseWeeks: null,
-  },
-];
+interface ApiPortfolioProject {
+  code: string;
+  name: string;
+  phase: PhaseId;
+  status: string;
+  next_milestone: { name: string; date: string | null } | null;
+  owner_id: string | null;
+  owner_name: string | null;
+  blocker: string | null;
+  days_since_update: number;
+  phase_weeks: { active: number; planned: number } | null;
+}
 
-export async function fetchPortfolio(): Promise<PortfolioRow[]> {
-  return ROWS.map((row) => ({
-    ...row,
-    nextMilestone: row.nextMilestone && { ...row.nextMilestone },
-    phaseWeeks: row.phaseWeeks && { ...row.phaseWeeks },
-  }));
+interface ApiPortfolio {
+  as_of: string;
+  projects: ApiPortfolioProject[];
+}
+
+export const NO_OWNER_LABEL = "Sin responsable";
+
+const API_STATUS: Record<string, PortfolioStatus> = {
+  no_plan: "no-plan",
+  paused: "paused",
+  green: "green",
+  amber: "amber",
+  red: "red",
+  unknown: "unknown",
+};
+
+const firstText = (...values: (string | null | undefined)[]) => values.find((v) => v != null && v.trim() !== "");
+
+function toRow(project: ApiPortfolioProject): PortfolioRow {
+  return {
+    code: project.code,
+    name: project.name,
+    phase: project.phase,
+    // A status this client does not know is shown as «Sin calcular» rather than breaking the table.
+    status: API_STATUS[project.status] ?? "unknown",
+    nextMilestone: project.next_milestone && { name: project.next_milestone.name, date: project.next_milestone.date },
+    owner: firstText(project.owner_name, project.owner_id) ?? NO_OWNER_LABEL,
+    blocker: project.blocker,
+    daysSinceUpdate: project.days_since_update,
+    phaseWeeks: project.phase_weeks && { active: project.phase_weeks.active, planned: project.phase_weeks.planned },
+  };
+}
+
+export async function fetchPortfolio(request: ApiRequest = defaultRequest): Promise<Portfolio> {
+  const { as_of, projects } = await request<ApiPortfolio>("/api/portfolio");
+  return { asOf: as_of, rows: projects.map(toRow) };
 }
