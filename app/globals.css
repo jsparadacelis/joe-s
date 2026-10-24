@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Valores por tema. Los componentes nunca usan colores sueltos: solo los tokens de @theme. */
+/* Per-theme values. Components never use loose colours: only the @theme tokens. */
 :root {
   color-scheme: light;
   --bg: #f6f5f2;
@@ -28,6 +28,11 @@
   --side-active: #3a3b3e;
   --focus: #5e2a35;
   --focus-on-side: #ebeae6;
+  --relief-low: #4a5d45;
+  --relief-mid-low: #6f7d58;
+  --relief-mid-high: #8f8a5e;
+  --relief-high: #a8895a;
+  --relief-clip: #6b6a66;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,6 +63,11 @@
     --side-active: #2a2b2f;
     --focus: #c78492;
     --focus-on-side: #ebeae6;
+    --relief-low: #35553f;
+    --relief-mid-low: #3f6149;
+    --relief-mid-high: #4a6e52;
+    --relief-high: #557b5b;
+    --relief-clip: #8c8b87;
   }
 }
 
@@ -88,6 +98,11 @@
   --side-active: #2a2b2f;
   --focus: #c78492;
   --focus-on-side: #ebeae6;
+  --relief-low: #35553f;
+  --relief-mid-low: #3f6149;
+  --relief-mid-high: #4a6e52;
+  --relief-high: #557b5b;
+  --relief-clip: #8c8b87;
 }
 
 @theme inline {

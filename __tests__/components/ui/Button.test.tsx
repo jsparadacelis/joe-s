@@ -4,12 +4,12 @@ import { axe } from "jest-axe";
 import { Button } from "@/components/ui/Button";
 
 describe("Button", () => {
-  it("es type=button por defecto", () => {
+  it("is type=button by default", () => {
     render(<Button>Guardar</Button>);
     expect(screen.getByRole("button", { name: "Guardar" })).toHaveAttribute("type", "button");
   });
 
-  it("dispara onClick y no lo hace si está deshabilitado", async () => {
+  it("fires onClick and does not when disabled", async () => {
     const onClick = jest.fn();
     const { rerender } = render(<Button onClick={onClick}>Ir</Button>);
     await userEvent.click(screen.getByRole("button"));
@@ -19,12 +19,12 @@ describe("Button", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it("aplica variantes por tokens", () => {
+  it("applies variants through tokens", () => {
     render(<Button variant="point" size="sm">Acento</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-point", "text-on-point");
   });
 
-  it("no tiene violaciones de accesibilidad", async () => {
+  it("has no accessibility violations", async () => {
     const { container } = render(<Button>Aceptar</Button>);
     expect(await axe(container)).toHaveNoViolations();
   });

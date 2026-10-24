@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export type PanelProps = {
   title?: string;
   description?: string;
-  /** Nivel del encabezado; por defecto 2. */
+  /** Heading level; defaults to 2. */
   headingLevel?: 2 | 3;
   children?: ReactNode;
 };

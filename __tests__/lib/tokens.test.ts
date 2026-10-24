@@ -11,7 +11,7 @@ function sources(dir: string): string[] {
   });
 }
 
-it("ningún componente ni página usa colores sueltos (solo tokens)", () => {
+it("no component or page uses loose colours (tokens only)", () => {
   const root = process.cwd();
   const files = ["app", "components", "lib"].flatMap((d) => sources(join(root, d)));
   const offenders = files.filter((f) => COLOR_LITERAL.test(readFileSync(f, "utf8")));

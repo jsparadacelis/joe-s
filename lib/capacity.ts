@@ -1,0 +1,68 @@
+/**
+ * Buildable capacity of the property (RGB-29).
+ * Pure function, replaceable by the server's calculation service (RGB-30)
+ * without touching the components.
+ */
+import type { TechnicalDatum } from "@/lib/technical-data";
+
+export interface Capacity {
+  surface: number;
+  buildableArea: number;
+  footprint: number;
+  byFloors: number;
+  maximum: number;
+  limitedBy: "buildability" | "occupancy-floors";
+  existing: number | null;
+  minPlot: number | null;
+  meetsMinPlot: boolean | null;
+}
+
+const FLOORS: Readonly<Record<string, number>> = { PB: 1, "PB+1": 2, "PB+2": 3, "PB+3": 4, "PB+4": 5, "PB+5": 6 };
+
+/** «1.240,5» becomes 1240.5; empty or non-numeric becomes null. */
+export function parseNumber(v: string): number | null {
+  if (typeof v !== "string") return null;
+  const n = parseFloat(v.replace(/\./g, "").replace(",", "."));
+  return Number.isNaN(n) ? null : n;
+}
+
+const formats = new Map<number, Intl.NumberFormat>();
+
+/** es-ES format; null is shown as «—». */
+export function formatNumber(n: number | null, decimals = 0): string {
+  if (n === null) return "—";
+  let f = formats.get(decimals);
+  if (!f) {
+    f = new Intl.NumberFormat("es-ES", { maximumFractionDigits: decimals });
+    formats.set(decimals, f);
+  }
+  return f.format(n);
+}
+
+export function calculateCapacity(data: TechnicalDatum[]): Capacity | null {
+  const values = new Map(data.map((d) => [d.id, d.value]));
+  const num = (id: string) => parseNumber(values.get(id) ?? "");
+
+  const surface = values.get("calcArea") === "Polígono" ? num("polygonPlotArea") : num("cadastralPlotArea");
+  const buildability = num("buildability");
+  const occupancy = num("maxOccupancy");
+  const floors = FLOORS[values.get("floors") ?? ""];
+  if (surface === null || buildability === null || occupancy === null || !floors) return null;
+
+  const buildableArea = surface * buildability;
+  const footprint = (surface * occupancy) / 100;
+  const byFloors = footprint * floors;
+  const minPlot = num("minPlot");
+
+  return {
+    surface,
+    buildableArea,
+    footprint,
+    byFloors,
+    maximum: Math.min(buildableArea, byFloors),
+    limitedBy: buildableArea <= byFloors ? "buildability" : "occupancy-floors",
+    existing: num("builtArea"),
+    minPlot,
+    meetsMinPlot: minPlot === null ? null : surface >= minPlot,
+  };
+}

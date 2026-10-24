@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 jest.mock("next/navigation", () => ({ usePathname: () => "/cartera" }));
 
 describe("AppShell", () => {
-  it("compone barra lateral, cabecera y contenido principal", () => {
+  it("composes sidebar, header and main content", () => {
     render(<AppShell><p>Hola</p></AppShell>);
     expect(screen.getByRole("navigation", { name: "Principal" })).toBeInTheDocument();
     expect(screen.getByRole("banner")).toBeInTheDocument();
@@ -13,7 +13,7 @@ describe("AppShell", () => {
     expect(screen.getByRole("link", { name: "Saltar al contenido" })).toHaveAttribute("href", "#contenido");
   });
 
-  it("no tiene violaciones de accesibilidad", async () => {
+  it("has no accessibility violations", async () => {
     const { container } = render(<AppShell><h1>Título</h1></AppShell>);
     expect(await axe(container)).toHaveNoViolations();
   });

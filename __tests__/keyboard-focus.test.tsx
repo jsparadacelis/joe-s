@@ -10,16 +10,16 @@ import { NAV_ITEMS } from "@/lib/nav";
 const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
-describe("navegación por teclado", () => {
+describe("keyboard navigation", () => {
   beforeEach(() => mockPathname.mockReturnValue("/cartera"));
 
-  it("Tab recorre skip link, ítems de la barra lateral y botones del contenido en orden", async () => {
+  it("Tab goes through skip link, sidebar items and content buttons in order", async () => {
     const user = userEvent.setup();
     render(
       <AppShell>
         <Button>Primero</Button>
         <Button disabled>Deshabilitado</Button>
-        <Button>Último</Button>
+        <Button>Last</Button>
       </AppShell>,
     );
     await user.tab();
@@ -30,18 +30,18 @@ describe("navegación por teclado", () => {
     }
     await user.tab();
     expect(screen.getByRole("button", { name: "Primero" })).toHaveFocus();
-    await user.tab(); // salta el deshabilitado
-    expect(screen.getByRole("button", { name: "Último" })).toHaveFocus();
+    await user.tab(); // skips the disabled one
+    expect(screen.getByRole("button", { name: "Last" })).toHaveFocus();
   });
 
-  it("el skip link apunta a un destino existente (#contenido)", () => {
+  it("the skip link points to an existing target (#contenido)", () => {
     render(<AppShell>x</AppShell>);
     const href = screen.getByRole("link", { name: "Saltar al contenido" }).getAttribute("href");
     expect(href).toBe("#contenido");
     expect(document.getElementById("contenido")?.tagName).toBe("MAIN");
   });
 
-  it("Shift+Tab vuelve atrás por la barra lateral", async () => {
+  it("Shift+Tab goes back through the sidebar", async () => {
     const user = userEvent.setup();
     render(<Sidebar />);
     await user.tab();
@@ -50,7 +50,7 @@ describe("navegación por teclado", () => {
     expect(screen.getByRole("link", { name: NAV_ITEMS[0].label })).toHaveFocus();
   });
 
-  it("Enter y Space activan un botón enfocado", async () => {
+  it("Enter and Space activate a focused button", async () => {
     const user = userEvent.setup();
     const onClick = jest.fn();
     render(<Button onClick={onClick}>Acción</Button>);
@@ -61,43 +61,43 @@ describe("navegación por teclado", () => {
   });
 });
 
-describe("aria-current por ruta", () => {
-  it.each(NAV_ITEMS.map((i) => [i.href, i.label]))("en %s solo «%s» es la página actual", (href, label) => {
+describe("aria-current by route", () => {
+  it.each(NAV_ITEMS.map((i) => [i.href, i.label]))("on %s only «%s» is the current page", (href, label) => {
     mockPathname.mockReturnValue(href);
     render(<Sidebar />);
     const current = screen.getAllByRole("link").filter((l) => l.getAttribute("aria-current") === "page");
     expect(current.map((l) => l.textContent)).toEqual([label]);
   });
 
-  it("en una subruta se marca el ítem padre", () => {
+  it("on a subroute the parent item is marked", () => {
     mockPathname.mockReturnValue("/proyectos/abc");
     render(<Sidebar />);
     expect(screen.getByRole("link", { name: "Proyectos" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("en una ruta desconocida no hay ningún ítem actual", () => {
+  it("on an unknown route there is no current item", () => {
     mockPathname.mockReturnValue("/no-existe");
     render(<Sidebar />);
     expect(document.querySelector('[aria-current]')).toBeNull();
   });
 
-  it("un prefijo parcial (/proyectosX) no marca /proyectos", () => {
+  it("a partial prefix (/proyectosX) does not mark /proyectos", () => {
     mockPathname.mockReturnValue("/proyectosX");
     render(<Sidebar />);
     expect(document.querySelector('[aria-current]')).toBeNull();
   });
 });
 
-describe("foco visible (CSS)", () => {
+describe("visible focus (CSS)", () => {
   const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
 
-  it("existe una regla :focus-visible con outline basado en token", () => {
+  it("there is a :focus-visible rule with a token-based outline", () => {
     const m = css.match(/:focus-visible\s*\{([^}]*)\}/);
     expect(m).not.toBeNull();
     expect(m![1]).toMatch(/outline:\s*\d+px solid var\(--focus\)/);
   });
 
-  it("ningún componente elimina el outline", () => {
+  it("no component removes the outline", () => {
     const walk = (dir: string): string[] =>
       readdirSync(dir).flatMap((n) => {
         const p = join(dir, n);

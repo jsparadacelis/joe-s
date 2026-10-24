@@ -11,9 +11,9 @@ function block(selector: string): Record<string, string> {
 }
 
 const themes = {
-  claro: block(":root"),
-  oscuro: block(':root[data-theme="dark"]'),
-  "oscuro (sistema)": block(':root:not([data-theme="light"])'),
+  light: block(":root"),
+  dark: block(':root[data-theme="dark"]'),
+  "dark (system)": block(':root:not([data-theme="light"])'),
 };
 
 function luminance(hex: string): number {
@@ -25,11 +25,11 @@ function luminance(hex: string): number {
 }
 
 function ratio(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
+  const [hi, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (low + 0.05);
 }
 
-// [texto, fondo] tal como se combinan en los componentes.
+// [text, background] as combined in the components.
 const PAIRS: [string, string][] = [
   ["ink", "bg"],
   ["ink", "surface"],
@@ -53,23 +53,23 @@ const PAIRS: [string, string][] = [
   ["point", "surface"],
 ];
 
-describe("contraste WCAG AA (4.5:1) de los tokens", () => {
-  it("el tema oscuro por media query coincide con data-theme=dark", () => {
-    expect(themes["oscuro (sistema)"]).toEqual(themes.oscuro);
+describe("WCAG AA contrast (4.5:1) of the tokens", () => {
+  it("the dark theme by media query matches data-theme=dark", () => {
+    expect(themes["dark (system)"]).toEqual(themes.dark);
   });
 
-  it("todos los tokens están definidos en ambos temas", () => {
-    expect(Object.keys(themes.oscuro).sort()).toEqual(Object.keys(themes.claro).sort());
+  it("all tokens are defined in both themes", () => {
+    expect(Object.keys(themes.dark).sort()).toEqual(Object.keys(themes.light).sort());
   });
 
-  describe.each(Object.entries(themes))("tema %s", (_themeName, tokens) => {
-    it.each(PAIRS)("%s sobre %s", (fg, bg) => {
+  describe.each(Object.entries(themes))("theme %s", (_themeName, tokens) => {
+    it.each(PAIRS)("%s on %s", (fg, bg) => {
       expect(ratio(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(4.5);
     });
   });
 });
 
-// Contraste no textual (WCAG 1.4.11, >= 3:1, sin excepciones) del indicador de foco.
+// Non-text contrast (WCAG 1.4.11, >= 3:1, no exceptions) of the focus indicator.
 const FOCUS_PAIRS: [string, string][] = [
   ["focus", "bg"],
   ["focus", "surface"],
@@ -78,15 +78,15 @@ const FOCUS_PAIRS: [string, string][] = [
   ["focus-on-side", "side-active"],
 ];
 
-describe("contraste no textual (3:1) del foco", () => {
-  describe.each(Object.entries(themes))("tema %s", (_themeName, tokens) => {
-    it.each(FOCUS_PAIRS)("%s sobre %s", (fg, bg) => {
+describe("non-text contrast (3:1) of the focus", () => {
+  describe.each(Object.entries(themes))("theme %s", (_themeName, tokens) => {
+    it.each(FOCUS_PAIRS)("%s on %s", (fg, bg) => {
       expect(ratio(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(3);
     });
   });
 });
 
-// Valores del plan RGB-6 (docs/plans/RGB-6/plan.md). `on-point` es un token añadido por el desarrollador.
+// Values from plan RGB-6 (docs/plans/RGB-6/plan.md). `on-point` is a token added by the developer.
 const PLAN: Record<string, [string, string]> = {
   bg: ["#F6F5F2", "#161719"], surface: ["#FFFFFF", "#1E1F22"], "surface-2": ["#EBEAE6", "#2A2B2F"],
   hair: ["#D6D5D1", "#34353A"], line: ["#A9A8A4", "#55565A"],
@@ -101,9 +101,9 @@ const PLAN: Record<string, [string, string]> = {
   focus: ["#5E2A35", "#C78492"], "focus-on-side": ["#EBEAE6", "#EBEAE6"],
 };
 
-describe("valores de tokens según la tabla del plan", () => {
+describe("token values according to the plan table", () => {
   it.each(Object.entries(PLAN))("%s", (name, [light, dark]) => {
-    expect(themes.claro[name]?.toLowerCase()).toBe(light.toLowerCase());
-    expect(themes.oscuro[name]?.toLowerCase()).toBe(dark.toLowerCase());
+    expect(themes.light[name]?.toLowerCase()).toBe(light.toLowerCase());
+    expect(themes.dark[name]?.toLowerCase()).toBe(dark.toLowerCase());
   });
 });
