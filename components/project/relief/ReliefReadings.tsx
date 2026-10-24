@@ -1,14 +1,14 @@
-import type { Exageracion, Relief } from "@/lib/relief";
+import type { Exaggeration, Relief } from "@/lib/relief";
 import type { Readings } from "@/lib/relief-readings";
 
 export type ReliefReadingsProps = {
   readings: Readings | null;
   viewWindow: Relief["viewWindow"];
-  exaggeration: Exageracion;
+  exaggeration: Exaggeration;
 };
 
-const number = (value: number, decimales = 0) =>
-  new Intl.NumberFormat("es-ES", { minimumFractionDigits: decimales, maximumFractionDigits: decimales }).format(value);
+const number = (value: number, decimals = 0) =>
+  new Intl.NumberFormat("es-ES", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
 
 function Reading({ label, value }: { label: string; value: string }) {
   return (

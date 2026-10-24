@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Notice } from "@/components/ui/Notice";
-import { modoFase, type PhaseId } from "@/lib/phases";
+import { phaseMode, type PhaseId } from "@/lib/phases";
 
 export type ModeBannerProps = {
   code: string;
@@ -9,7 +9,7 @@ export type ModeBannerProps = {
 };
 
 export function ModeBanner({ code, currentPhase, viewedPhase }: ModeBannerProps) {
-  const mode = modoFase(viewedPhase, currentPhase);
+  const mode = phaseMode(viewedPhase, currentPhase);
   if (mode === "edit") return null;
 
   const message =

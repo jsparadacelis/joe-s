@@ -45,8 +45,8 @@ describe("recortarPoligono", () => {
     expect(r.length).toBeGreaterThanOrEqual(4);
     expect(polygonArea(r)).toBeCloseTo(30, 6); // 5 × 6
     expect(polygonArea(r)).toBeLessThan(polygonArea(polygon));
-    const sobreElBorde = r.filter(([x]) => Math.abs(x - 10) < EPS);
-    expect(sobreElBorde.length).toBeGreaterThanOrEqual(2);
+    const onEdge = r.filter(([x]) => Math.abs(x - 10) < EPS);
+    expect(onEdge.length).toBeGreaterThanOrEqual(2);
     for (const [x, y] of r) {
       expect(x).toBeGreaterThanOrEqual(-EPS);
       expect(x).toBeLessThanOrEqual(10 + EPS);
@@ -80,44 +80,44 @@ describe("recortarPoligono", () => {
 });
 
 describe("calcularVentana", () => {
-  const parcela = [[0, 0], [40, 0], [40, 30], [0, 30]] as const;
+  const plot = [[0, 0], [40, 0], [40, 30], [0, 30]] as const;
 
   it("caja de la parcela + margen", () => {
-    const { viewWindow, clamped } = calculateViewWindow(parcela, 10, 200);
+    const { viewWindow, clamped } = calculateViewWindow(plot, 10, 200);
     expect(viewWindow).toEqual([-10, -10, 50, 40]);
     expect(clamped).toBe(false);
   });
 
   it.each([0, 10, 25, 50, 100])("margen %i m ensancha la caja por los cuatro lados", (m) => {
-    const { viewWindow } = calculateViewWindow(parcela, m, 500);
+    const { viewWindow } = calculateViewWindow(plot, m, 500);
     expect(viewWindow).toEqual([0 - m, 0 - m, 40 + m, 30 + m]);
   });
 
   it("margen 0: exactamente la caja de la parcela", () => {
-    const { viewWindow, clamped } = calculateViewWindow(parcela, 0, 100);
+    const { viewWindow, clamped } = calculateViewWindow(plot, 0, 100);
     expect(viewWindow).toEqual([0, 0, 40, 30]);
     expect(clamped).toBe(false);
   });
 
   it("si el ancho supera el lado máximo, se centra en el centroide (media de vértices)", () => {
     // Vértices con x medios = 250 (no coincide con el centroide de área, 300): el plan fija la media de vértices.
-    const larga = [[0, 0], [100, 0], [200, 0], [600, 0], [600, 10], [0, 10]] as const;
-    const { viewWindow, clamped } = calculateViewWindow(larga, 0, 200);
+    const long = [[0, 0], [100, 0], [200, 0], [600, 0], [600, 10], [0, 10]] as const;
+    const { viewWindow, clamped } = calculateViewWindow(long, 0, 200);
     expect(viewWindow[0]).toBeCloseTo(150, 9);
     expect(viewWindow[2]).toBeCloseTo(350, 9);
     expect(clamped).toBe(true);
   });
 
   it("parcela grande centrada en el centroide: ventana cuadrada del lado máximo", () => {
-    const grande = [[-300, -200], [300, -200], [300, 200], [-300, 200]] as const;
-    const { viewWindow, clamped } = calculateViewWindow(grande, 25, 200);
+    const large = [[-300, -200], [300, -200], [300, 200], [-300, 200]] as const;
+    const { viewWindow, clamped } = calculateViewWindow(large, 25, 200);
     expect(viewWindow).toEqual([-100, -100, 100, 100]);
     expect(clamped).toBe(true);
   });
 
   it("dimensión por dimensión: solo se limita la que supera el lado", () => {
-    const ancha = [[0, 0], [400, 0], [400, 100], [0, 100]] as const;
-    const { viewWindow, clamped } = calculateViewWindow(ancha, 25, 200);
+    const wide = [[0, 0], [400, 0], [400, 100], [0, 100]] as const;
+    const { viewWindow, clamped } = calculateViewWindow(wide, 25, 200);
     expect(viewWindow[0]).toBeCloseTo(100, 9);
     expect(viewWindow[2]).toBeCloseTo(300, 9);
     expect(viewWindow[1]).toBeCloseTo(-25, 9); // alto 150 < 200: caja + margen
@@ -126,8 +126,8 @@ describe("calcularVentana", () => {
   });
 
   it("«recortada» solo si se limitó: un ancho igual al lado máximo no cuenta", () => {
-    const justa = [[0, 0], [150, 0], [150, 150], [0, 150]] as const;
-    const { viewWindow, clamped } = calculateViewWindow(justa, 25, 200); // 150 + 50 = 200
+    const exact = [[0, 0], [150, 0], [150, 150], [0, 150]] as const;
+    const { viewWindow, clamped } = calculateViewWindow(exact, 25, 200); // 150 + 50 = 200
     expect(viewWindow).toEqual([-25, -25, 175, 175]);
     expect(clamped).toBe(false);
   });
@@ -236,7 +236,7 @@ describe("obtenerRelieve", () => {
         expect(r.viewWindow[3] - r.viewWindow[1]).toBeLessThanOrEqual(maxSide + EPS);
         expect(area).toBeLessThanOrEqual(r.polygonSurface + 1);
         if (r.plotClipped) expect({ label, recorta: area < r.polygonSurface }).toEqual({ label, recorta: true });
-        else expect({ label, dif: Math.abs(area - r.polygonSurface) < 1 }).toEqual({ label, dif: true });
+        else expect({ label, diff: Math.abs(area - r.polygonSurface) < 1 }).toEqual({ label, diff: true });
         if (r.clamped) {
           // Si la ventana se limitó, alguna dimensión mide exactamente el lado máximo.
           const w = r.viewWindow[2] - r.viewWindow[0];
@@ -254,9 +254,9 @@ describe("obtenerRelieve", () => {
   });
 
   it("un margen mayor da una ventana mayor (o igual) con el mismo lado", async () => {
-    const chico = await fetchRelief(options(RESIDENTIAL, 10, 500));
-    const grande = await fetchRelief(options(RESIDENTIAL, 100, 500));
-    expect(grande.viewWindow[2] - grande.viewWindow[0]).toBeGreaterThan(chico.viewWindow[2] - chico.viewWindow[0]);
+    const small = await fetchRelief(options(RESIDENTIAL, 10, 500));
+    const large = await fetchRelief(options(RESIDENTIAL, 100, 500));
+    expect(large.viewWindow[2] - large.viewWindow[0]).toBeGreaterThan(small.viewWindow[2] - small.viewWindow[0]);
   });
 
   it("devuelve copias: mutar el resultado no afecta a la siguiente llamada", async () => {

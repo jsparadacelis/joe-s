@@ -33,14 +33,14 @@ export function TimingSummary({ plan }: TimingSummaryProps) {
       {plan.activePause ? (
         <Notice tone="warn">
           Proyecto en pausa desde el {formatDate(plan.activePause.from)}. Motivo:{" "}
-          {REASON_LABEL[plan.activePause.motivo]}. Reanudación prevista el{" "}
+          {REASON_LABEL[plan.activePause.reason]}. Reanudación prevista el{" "}
           {formatDate(plan.activePause.expectedResumption)}.
         </Notice>
       ) : null}
       <div className="grid grid-cols-5 gap-3.5">
         <Stat label="Total activo frente al plan">{`${plan.totalActiveWeeks} / ${plan.totalPlannedWeeks} sem`}</Stat>
         <Stat label="Pausa">{`${plan.totalPausedWeeks} sem en pausa`}</Stat>
-        <Stat label="Calendario total">{`${plan.calendarioSemanas} sem de calendario`}</Stat>
+        <Stat label="Calendario total">{`${plan.calendarWeeks} sem de calendario`}</Stat>
         <Stat label="Desviación">{`${deviation} sem de desviación`}</Stat>
         {current && trafficLight ? (
           <div className="flex flex-col gap-1 rounded-base border border-hair bg-surface p-3.5">

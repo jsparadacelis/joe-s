@@ -49,13 +49,13 @@ function DeliverableField({ field, mode, baseId }: { field: Field; mode: PhaseMo
 export function PhaseDeliverableForm({ deliverable, mode, onSave }: PhaseDeliverableFormProps) {
   const baseId = useId();
 
-  function enviar(e: FormEvent<HTMLFormElement>) {
+  function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (mode === "edit") onSave?.();
   }
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       {mode === "read-only" && deliverable.frozenVersion ? (
         <p className="text-s text-muted">Versión congelada: {deliverable.frozenVersion}</p>
       ) : null}

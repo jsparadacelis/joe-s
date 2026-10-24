@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { Panel } from "@/components/ui/Panel";
 import { isValidCadastralReference } from "@/lib/technical-data";
-import { fetchRelief, type Exageracion, type MaxSide, type Margin, type Relief } from "@/lib/relief";
+import { fetchRelief, type Exaggeration, type MaxSide, type Margin, type Relief } from "@/lib/relief";
 import { readSceneColors } from "@/lib/relief-colors";
 import type { ReliefScene } from "@/lib/relief-scene";
 import { calculateReadings } from "@/lib/relief-readings";
@@ -32,14 +32,14 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
   const [reference, setReference] = useState(initialReference);
   const [margin, setMargin] = useState<Margin>(25);
   const [maxSide, setMaxSide] = useState<MaxSide>(200);
-  const [exaggeration, setExaggeration] = useState<Exageracion>(2);
+  const [exaggeration, setExaggeration] = useState<Exaggeration>(2);
   const [relief, setRelief] = useState<Relief | null>(null);
   const [state, setState] = useState<ViewerState>("idle");
-  const [errorReferencia, setReferenceError] = useState(false);
+  const [referenceError, setReferenceError] = useState(false);
 
   const canvasHost = useRef<HTMLDivElement>(null);
   const scene = useRef<ReliefScene | null>(null);
-  const currentExaggeration = useRef<Exageracion>(exaggeration);
+  const currentExaggeration = useRef<Exaggeration>(exaggeration);
   /** Identifica la última consulta; las anteriores y las posteriores al desmontaje se descartan. */
   const requestId = useRef(0);
 
@@ -99,7 +99,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
 
   const readings = useMemo(() => (relief ? calculateReadings(relief) : null), [relief]);
 
-  const ver = () => {
+  const viewRelief = () => {
     if (!isValidCadastralReference(reference)) {
       setReferenceError(true);
       return;
@@ -131,17 +131,17 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
         maxSide={maxSide}
         exaggeration={exaggeration}
         atajos={atajos}
-        errorId={errorReferencia ? REFERENCE_ERROR_ID : undefined}
+        errorId={referenceError ? REFERENCE_ERROR_ID : undefined}
         onReference={setReference}
         onMargin={(m) => changeViewWindow({ margin: m, maxSide })}
         onMaxSide={(l) => changeViewWindow({ margin, maxSide: l })}
         onExaggeration={setExaggeration}
         onShortcut={setReference}
-        onView={ver}
+        onView={viewRelief}
       />
 
       <div aria-live="polite" className="flex flex-col gap-2">
-        {errorReferencia ? (
+        {referenceError ? (
           <div id={REFERENCE_ERROR_ID}>
             <Notice tone="bad">La referencia catastral debe tener 20 caracteres.</Notice>
           </div>
@@ -153,7 +153,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
         {state === "no-webgl" ? (
           <Notice tone="warn">Este navegador no puede mostrar el modelo 3D (WebGL no disponible).</Notice>
         ) : null}
-        {relief === null && state === "idle" && !errorReferencia ? (
+        {relief === null && state === "idle" && !referenceError ? (
           <Notice>Escribe una referencia catastral de 20 caracteres y pulsa «Ver relieve».</Notice>
         ) : null}
       </div>

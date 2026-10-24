@@ -9,7 +9,7 @@ const COLUMNS: TableColumn<Pause>[] = [
     render: (p) => `${formatDate(p.from)} – ${p.to ? formatDate(p.to) : "en curso"}`,
   },
   { key: "phase", header: "Fase", render: (p) => PHASES[p.phase].name },
-  { key: "reason", header: "Motivo", render: (p) => REASON_LABEL[p.motivo] },
+  { key: "reason", header: "Motivo", render: (p) => REASON_LABEL[p.reason] },
   { key: "weeks", header: "Semanas", render: (p) => p.weeks },
 ];
 

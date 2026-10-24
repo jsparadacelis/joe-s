@@ -2,15 +2,15 @@ import { heightAt, polygonArea, calculateReadings, pointInPolygon } from "@/lib/
 import { slopedPlane, reliefFromFunction } from "../helpers/relief-plane";
 
 describe("areaPoligono", () => {
-  const cuadrado = [[0, 0], [10, 0], [10, 10], [0, 10]] as const;
+  const square = [[0, 0], [10, 0], [10, 10], [0, 10]] as const;
 
   it("cuadrado de 10 × 10 = 100", () => {
-    expect(polygonArea(cuadrado)).toBeCloseTo(100, 9);
+    expect(polygonArea(square)).toBeCloseTo(100, 9);
   });
 
   it("no depende de la orientación (horaria o antihoraria): siempre >= 0", () => {
-    expect(polygonArea([...cuadrado].reverse())).toBeCloseTo(100, 9);
-    expect(polygonArea([...cuadrado].reverse())).toBeGreaterThanOrEqual(0);
+    expect(polygonArea([...square].reverse())).toBeCloseTo(100, 9);
+    expect(polygonArea([...square].reverse())).toBeGreaterThanOrEqual(0);
   });
 
   it("triángulo rectángulo de catetos 6 y 4 = 12", () => {
@@ -29,15 +29,15 @@ describe("areaPoligono", () => {
 });
 
 describe("puntoEnPoligono", () => {
-  const cuadrado = [[0, 0], [10, 0], [10, 10], [0, 10]] as const;
+  const square = [[0, 0], [10, 0], [10, 10], [0, 10]] as const;
   // «U» cóncava: el hueco central está abierto por arriba.
   const u = [[0, 0], [30, 0], [30, 30], [20, 30], [20, 10], [10, 10], [10, 30], [0, 30]] as const;
 
   it("dentro y fuera de un cuadrado", () => {
-    expect(pointInPolygon(cuadrado, 5, 5)).toBe(true);
-    expect(pointInPolygon(cuadrado, 11, 5)).toBe(false);
-    expect(pointInPolygon(cuadrado, -1, 5)).toBe(false);
-    expect(pointInPolygon(cuadrado, 5, 11)).toBe(false);
+    expect(pointInPolygon(square, 5, 5)).toBe(true);
+    expect(pointInPolygon(square, 11, 5)).toBe(false);
+    expect(pointInPolygon(square, -1, 5)).toBe(false);
+    expect(pointInPolygon(square, 5, 11)).toBe(false);
   });
 
   it("polígono cóncavo: el hueco queda fuera y los brazos dentro", () => {

@@ -29,12 +29,12 @@ export function parseNumber(v: string): number | null {
 const formats = new Map<number, Intl.NumberFormat>();
 
 /** Formato es-ES; null se muestra como «—». */
-export function formatNumber(n: number | null, decimales = 0): string {
+export function formatNumber(n: number | null, decimals = 0): string {
   if (n === null) return "—";
-  let f = formats.get(decimales);
+  let f = formats.get(decimals);
   if (!f) {
-    f = new Intl.NumberFormat("es-ES", { maximumFractionDigits: decimales });
-    formats.set(decimales, f);
+    f = new Intl.NumberFormat("es-ES", { maximumFractionDigits: decimals });
+    formats.set(decimals, f);
   }
   return f.format(n);
 }
@@ -44,14 +44,14 @@ export function calculateCapacity(data: TechnicalDatum[]): Capacity | null {
   const num = (id: string) => parseNumber(values.get(id) ?? "");
 
   const surface = values.get("calcArea") === "Polígono" ? num("polygonPlotArea") : num("cadastralPlotArea");
-  const edificabilidad = num("buildability");
-  const ocupacion = num("maxOccupancy");
-  const plantas = FLOORS[values.get("floors") ?? ""];
-  if (surface === null || edificabilidad === null || ocupacion === null || !plantas) return null;
+  const buildability = num("buildability");
+  const occupancy = num("maxOccupancy");
+  const floors = FLOORS[values.get("floors") ?? ""];
+  if (surface === null || buildability === null || occupancy === null || !floors) return null;
 
-  const buildableArea = surface * edificabilidad;
-  const footprint = (surface * ocupacion) / 100;
-  const byFloors = footprint * plantas;
+  const buildableArea = surface * buildability;
+  const footprint = (surface * occupancy) / 100;
+  const byFloors = footprint * floors;
   const minPlot = num("minPlot");
 
   return {

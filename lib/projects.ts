@@ -63,11 +63,11 @@ export async function fetchProject(code: string): Promise<Project | null> {
 }
 
 export async function fetchDeliverable(code: string, phase: PhaseId): Promise<PhaseDeliverable> {
-  const proyecto = PROJECTS.find((x) => x.code === code);
-  if (!proyecto) return { phase, frozenVersion: null, fields: [] };
+  const project = PROJECTS.find((x) => x.code === code);
+  if (!project) return { phase, frozenVersion: null, fields: [] };
   return {
     phase,
-    frozenVersion: phase < proyecto.currentPhase ? "v1" : null,
+    frozenVersion: phase < project.currentPhase ? "v1" : null,
     fields: sampleFields(phase),
   };
 }

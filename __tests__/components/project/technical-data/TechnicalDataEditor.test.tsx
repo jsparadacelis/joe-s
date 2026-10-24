@@ -16,11 +16,11 @@ const VALUES: Record<string, string> = {
 };
 
 /** Datos construidos en el test (no dependen de los datos de ejemplo de la librería). */
-function data(sobre: Record<string, Partial<TechnicalDatum>> = {}, values: Record<string, string> = {}): TechnicalData {
+function data(overrides: Record<string, Partial<TechnicalDatum>> = {}, values: Record<string, string> = {}): TechnicalData {
   const list: TechnicalDatum[] = DEFINITIONS.map((d) => {
     const value = values[d.id] ?? VALUES[d.id];
     const base: TechnicalDatum = { id: d.id, value, original: d.group === "planning" ? null : value, verified: false };
-    return { ...base, ...sobre[d.id] };
+    return { ...base, ...overrides[d.id] };
   });
   return { cadastralReference: REF, queriedOn: "2026-10-18", data: list };
 }
@@ -32,12 +32,12 @@ function row(control: HTMLElement): HTMLElement {
   if (!el) throw new Error("fila sin casilla");
   return el;
 }
-const escapar = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const control = (label: string) => screen.getByLabelText(new RegExp(`^${escapar(label)}`));
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const control = (label: string) => screen.getByLabelText(new RegExp(`^${escapeRegex(label)}`));
 const rowOf = (label: string) => row(control(label));
 const checkbox = (label: string) => within(rowOf(label)).getByRole("checkbox");
 
-async function escribir(user: ReturnType<typeof userEvent.setup>, label: string, text: string) {
+async function typeInto(user: ReturnType<typeof userEvent.setup>, label: string, text: string) {
   const c = control(label);
   await user.clear(c);
   if (text) await user.type(c, text);
@@ -90,7 +90,7 @@ describe("DatosTecnicosEditor · referencia inválida", () => {
     ["vacía", ""],
   ])("referencia %s: aviso y no se consulta", async (_n, ref) => {
     const { user, query } = mount();
-    await escribir(user, "Referencia catastral", ref);
+    await typeInto(user, "Referencia catastral", ref);
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     expect(screen.getByText("La referencia catastral debe tener 20 caracteres.")).toBeInTheDocument();
     expect(query).not.toHaveBeenCalled();
@@ -105,9 +105,9 @@ describe("DatosTecnicosEditor · referencia inválida", () => {
 
   it("al corregir la referencia y volver a pulsar, se consulta", async () => {
     const { user, query } = mount();
-    await escribir(user, "Referencia catastral", "123");
+    await typeInto(user, "Referencia catastral", "123");
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
-    await escribir(user, "Referencia catastral", REF);
+    await typeInto(user, "Referencia catastral", REF);
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     expect(query).toHaveBeenCalledTimes(1);
     expect(query).toHaveBeenCalledWith(REF);
@@ -117,15 +117,15 @@ describe("DatosTecnicosEditor · referencia inválida", () => {
 
 describe("DatosTecnicosEditor · consulta", () => {
   it("muestra «Consultando…» con el botón deshabilitado y luego los datos", async () => {
-    let resolver!: (d: TechnicalData) => void;
-    const query = jest.fn(() => new Promise<TechnicalData>((r) => (resolver = r)));
+    let resolveFetch!: (d: TechnicalData) => void;
+    const query = jest.fn(() => new Promise<TechnicalData>((r) => (resolveFetch = r)));
     const { user } = mount({ query });
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     const b = screen.getByRole("button", { name: "Consultando…" });
     expect(b).toBeDisabled();
     expect(query).toHaveBeenCalledWith(REF);
     expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
-    resolver(data());
+    resolveFetch(data());
     await screen.findByRole("heading", { name: "Parcela" });
     expect(screen.queryByRole("button", { name: "Consultando…" })).not.toBeInTheDocument();
   });
@@ -180,9 +180,9 @@ describe("DatosTecnicosEditor · consulta", () => {
 
   it("anuncia el resultado en una región aria-live", async () => {
     const { container } = await queried();
-    const vivas = Array.from(container.querySelectorAll("[aria-live]"));
-    expect(vivas.length).toBeGreaterThan(0);
-    expect(vivas.some((el) => /26 sin verificar/.test(el.textContent ?? ""))).toBe(true);
+    const liveRegions = Array.from(container.querySelectorAll("[aria-live]"));
+    expect(liveRegions.length).toBeGreaterThan(0);
+    expect(liveRegions.some((el) => /26 sin verificar/.test(el.textContent ?? ""))).toBe(true);
   });
 
   it("con `inicial` muestra los datos sin consultar", () => {
@@ -200,7 +200,7 @@ describe("DatosTecnicosEditor · edición y restaurar", () => {
     expect(within(rowOf("Dirección")).queryByText("Editado")).not.toBeInTheDocument();
     expect(within(rowOf("Dirección")).queryByRole("button", { name: /Restaurar/ })).not.toBeInTheDocument();
 
-    await escribir(user, "Dirección", "CL NUEVA 2");
+    await typeInto(user, "Dirección", "CL NUEVA 2");
     const f = rowOf("Dirección");
     expect(within(f).getByText("Editado")).toBeInTheDocument();
     expect(f).toHaveTextContent("Valor de Catastro: CL PRUEBA 1");
@@ -225,21 +225,21 @@ describe("DatosTecnicosEditor · edición y restaurar", () => {
 
   it("si el original estaba vacío, el aviso de origen dice «vacío»", async () => {
     const m = mount({ initial: data({ altitude: { original: "" } }, { altitude: "" }) });
-    await escribir(m.user, "Altitud", "55");
+    await typeInto(m.user, "Altitud", "55");
     expect(rowOf("Altitud")).toHaveTextContent(/Valor de Open-Meteo: vacío/);
   });
 
   it("volver a escribir el valor original quita la marca de editado", async () => {
     const { user } = await queried();
-    await escribir(user, "Municipio", "OTRO");
+    await typeInto(user, "Municipio", "OTRO");
     expect(within(rowOf("Municipio")).getByText("Editado")).toBeInTheDocument();
-    await escribir(user, "Municipio", "MUNI PRUEBA");
+    await typeInto(user, "Municipio", "MUNI PRUEBA");
     expect(within(rowOf("Municipio")).queryByText("Editado")).not.toBeInTheDocument();
   });
 
   it("un dato manual (sin original) editado NO muestra «Editado» ni «Restaurar»", async () => {
     const { user } = await queried();
-    await escribir(user, "Edificabilidad", "2");
+    await typeInto(user, "Edificabilidad", "2");
     expect(control("Edificabilidad")).toHaveValue("2");
     const f = rowOf("Edificabilidad");
     expect(within(f).queryByText("Editado")).not.toBeInTheDocument();
@@ -250,9 +250,9 @@ describe("DatosTecnicosEditor · edición y restaurar", () => {
   it("el contador «{n} editados» sube al editar y baja al restaurar", async () => {
     const { user } = await queried();
     expect(screen.queryByText("1 editados")).not.toBeInTheDocument();
-    await escribir(user, "Dirección", "X");
+    await typeInto(user, "Dirección", "X");
     expect(screen.getByText("1 editados")).toBeInTheDocument();
-    await escribir(user, "Municipio", "Y");
+    await typeInto(user, "Municipio", "Y");
     expect(screen.getByText("2 editados")).toBeInTheDocument();
     await user.click(within(rowOf("Dirección")).getByRole("button", { name: /Restaurar/ }));
     expect(screen.getByText("1 editados")).toBeInTheDocument();
@@ -295,7 +295,7 @@ describe("DatosTecnicosEditor · verificación", () => {
   it("editar un dato no cambia su casilla de verificado", async () => {
     const { user } = await queried();
     await user.click(checkbox("Municipio"));
-    await escribir(user, "Municipio", "OTRO");
+    await typeInto(user, "Municipio", "OTRO");
     expect(checkbox("Municipio")).toBeChecked();
   });
 
@@ -307,20 +307,20 @@ describe("DatosTecnicosEditor · verificación", () => {
 });
 
 describe("DatosTecnicosEditor · capacidad", () => {
-  const AVISO = "Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.";
+  const NOTICE = "Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.";
 
   it("sin planeamiento muestra el aviso en lugar de cifras", async () => {
     await queried();
-    expect(screen.getByText(AVISO)).toBeInTheDocument();
+    expect(screen.getByText(NOTICE)).toBeInTheDocument();
   });
 
   it("se calcula en vivo cuando existen edificabilidad, ocupación y plantas", async () => {
     const { user, container } = await queried();
-    await escribir(user, "Edificabilidad", "2");
-    await escribir(user, "Ocupación máxima", "50");
-    expect(screen.getByText(AVISO)).toBeInTheDocument();
+    await typeInto(user, "Edificabilidad", "2");
+    await typeInto(user, "Ocupación máxima", "50");
+    expect(screen.getByText(NOTICE)).toBeInTheDocument();
     await user.selectOptions(control("Número de plantas"), "PB+2");
-    expect(screen.queryByText(AVISO)).not.toBeInTheDocument();
+    expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
     // superficie 100: techo 200, huella 50, huella × plantas 150 → limita ocupación × plantas
     expect(container).toHaveTextContent(/200 m²t/);
     expect(container).toHaveTextContent(/150 m²t/);
@@ -329,11 +329,11 @@ describe("DatosTecnicosEditor · capacidad", () => {
 
   it("se recalcula al editar: edificabilidad 1 pasa a limitar la edificabilidad", async () => {
     const { user, container } = await queried();
-    await escribir(user, "Edificabilidad", "2");
-    await escribir(user, "Ocupación máxima", "50");
+    await typeInto(user, "Edificabilidad", "2");
+    await typeInto(user, "Ocupación máxima", "50");
     await user.selectOptions(control("Número de plantas"), "PB+2");
     expect(container).toHaveTextContent("limita: Ocupación × plantas");
-    await escribir(user, "Edificabilidad", "1");
+    await typeInto(user, "Edificabilidad", "1");
     expect(container).toHaveTextContent("limita: Edificabilidad");
     expect(container).not.toHaveTextContent("limita: Ocupación × plantas");
     expect(container).toHaveTextContent(/100 m²t/);
@@ -341,17 +341,17 @@ describe("DatosTecnicosEditor · capacidad", () => {
 
   it("vuelve al aviso si se vacía un dato necesario", async () => {
     const { user } = await queried();
-    await escribir(user, "Edificabilidad", "2");
-    await escribir(user, "Ocupación máxima", "50");
+    await typeInto(user, "Edificabilidad", "2");
+    await typeInto(user, "Ocupación máxima", "50");
     await user.selectOptions(control("Número de plantas"), "PB+2");
-    await escribir(user, "Ocupación máxima", "");
-    expect(screen.getByText(AVISO)).toBeInTheDocument();
+    await typeInto(user, "Ocupación máxima", "");
+    expect(screen.getByText(NOTICE)).toBeInTheDocument();
   });
 
   it("usa la superficie del polígono cuando la superficie de cálculo es «Polígono»", async () => {
     const { user, container } = await queried();
-    await escribir(user, "Edificabilidad", "2");
-    await escribir(user, "Ocupación máxima", "50");
+    await typeInto(user, "Edificabilidad", "2");
+    await typeInto(user, "Ocupación máxima", "50");
     await user.selectOptions(control("Número de plantas"), "PB+2");
     await user.selectOptions(control("Superficie de cálculo"), "Polígono");
     // superficie 98: techo 196, huella 49, ×3 = 147
@@ -361,13 +361,13 @@ describe("DatosTecnicosEditor · capacidad", () => {
 
   it("indica si se cumple la parcela mínima", async () => {
     const { user, container } = await queried();
-    await escribir(user, "Edificabilidad", "2");
-    await escribir(user, "Ocupación máxima", "50");
+    await typeInto(user, "Edificabilidad", "2");
+    await typeInto(user, "Ocupación máxima", "50");
     await user.selectOptions(control("Número de plantas"), "PB+2");
-    await escribir(user, "Parcela mínima", "80");
+    await typeInto(user, "Parcela mínima", "80");
     expect(container).toHaveTextContent(/Cumple/);
     expect(container).not.toHaveTextContent(/No cumple/);
-    await escribir(user, "Parcela mínima", "150");
+    await typeInto(user, "Parcela mínima", "150");
     expect(container).toHaveTextContent(/No cumple/);
   });
 
@@ -375,7 +375,7 @@ describe("DatosTecnicosEditor · capacidad", () => {
     const { container } = mount({
       initial: data({}, { buildability: "2", maxOccupancy: "50", floors: "PB+2" }),
     });
-    expect(screen.queryByText(AVISO)).not.toBeInTheDocument();
+    expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
     expect(container).toHaveTextContent(/150 m²t/);
   });
 });
@@ -388,9 +388,9 @@ describe("DatosTecnicosEditor · volver a consultar", () => {
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     await screen.findByRole("heading", { name: "Parcela" });
 
-    await escribir(user, "Dirección", "CL EDITADA 9");
+    await typeInto(user, "Dirección", "CL EDITADA 9");
     await user.click(checkbox("Municipio"));
-    await escribir(user, "Edificabilidad", "1,5");
+    await typeInto(user, "Edificabilidad", "1,5");
     await user.selectOptions(control("Superficie de cálculo"), "Polígono");
 
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
@@ -407,23 +407,23 @@ describe("DatosTecnicosEditor · volver a consultar", () => {
   });
 
   it("mientras vuelve a consultar el botón dice «Consultando…» y está deshabilitado", async () => {
-    let resolver!: (d: TechnicalData) => void;
+    let resolveFetch!: (d: TechnicalData) => void;
     const query = jest
       .fn()
       .mockResolvedValueOnce(data())
-      .mockImplementationOnce(() => new Promise<TechnicalData>((r) => (resolver = r)));
+      .mockImplementationOnce(() => new Promise<TechnicalData>((r) => (resolveFetch = r)));
     const { user } = mount({ query });
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     await screen.findByRole("heading", { name: "Parcela" });
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
     expect(screen.getByRole("button", { name: "Consultando…" })).toBeDisabled();
-    resolver(data());
+    resolveFetch(data());
     await screen.findByRole("button", { name: "Volver a consultar" });
   });
 
   it("volver a consultar con la referencia inválida avisa y no consulta", async () => {
     const { user, query } = await queried();
-    await escribir(user, "Referencia catastral", "123");
+    await typeInto(user, "Referencia catastral", "123");
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
     expect(screen.getByText("La referencia catastral debe tener 20 caracteres.")).toBeInTheDocument();
     expect(query).toHaveBeenCalledTimes(1);

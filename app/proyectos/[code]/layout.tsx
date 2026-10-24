@@ -7,12 +7,12 @@ type Props = { params: Promise<{ code: string }>; children: ReactNode };
 
 export default async function Layout({ params, children }: Props) {
   const { code } = await params;
-  const proyecto = await fetchProject(code);
-  if (!proyecto) notFound();
+  const project = await fetchProject(code);
+  if (!project) notFound();
   // Fragmento: el `main` del shell ya aplica el espaciado entre bloques.
   return (
     <>
-      <ProjectTabs code={proyecto.code} currentPhase={proyecto.currentPhase} />
+      <ProjectTabs code={project.code} currentPhase={project.currentPhase} />
       {children}
     </>
   );

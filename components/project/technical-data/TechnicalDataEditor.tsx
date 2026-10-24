@@ -61,8 +61,8 @@ export function TechnicalDataEditor({
   const [querying, setQuerying] = useState(false);
   const [notice, setNotice] = useState<"reference" | "failure" | null>(null);
 
-  const update = useCallback((id: string, cambio: (d: TechnicalDatum) => TechnicalDatum) => {
-    setData((prev) => (prev ? prev.map((d) => (d.id === id ? cambio(d) : d)) : prev));
+  const update = useCallback((id: string, change: (d: TechnicalDatum) => TechnicalDatum) => {
+    setData((prev) => (prev ? prev.map((d) => (d.id === id ? change(d) : d)) : prev));
   }, []);
   const onValueChange = useCallback((id: string, value: string) => update(id, (d) => ({ ...d, value })), [update]);
   const onVerify = useCallback(
@@ -72,7 +72,7 @@ export function TechnicalDataEditor({
   const onRestore = useCallback((id: string) => update(id, restoreDatum), [update]);
   const onMarkAll = useCallback(() => setData((prev) => (prev ? markAllVerified(prev) : prev)), []);
 
-  async function pedirDatos() {
+  async function requestData() {
     if (!editable || querying) return;
     if (!isValidCadastralReference(reference)) {
       setNotice("reference");
@@ -133,7 +133,7 @@ export function TechnicalDataEditor({
             className="w-full rounded-base border border-hair bg-surface px-3 py-2 text-m tracking-wide text-ink tabular-nums uppercase disabled:bg-surface-2 disabled:text-muted"
           />
         </div>
-        <Button variant="primary" disabled={!editable || querying} onClick={pedirDatos}>
+        <Button variant="primary" disabled={!editable || querying} onClick={requestData}>
           {querying ? "Consultando…" : data ? "Volver a consultar" : "Obtener datos técnicos"}
         </Button>
       </div>

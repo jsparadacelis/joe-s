@@ -25,8 +25,8 @@ describe("porcentajeConsumo", () => {
     [29, 36, 81],
     [30, 36, 83],
     [4, 3, 133],
-  ])("%i activas de %i de plan = %i %%", (active, plan, esperado) => {
-    expect(consumptionPercent(active, plan)).toBe(esperado);
+  ])("%i activas de %i de plan = %i %%", (active, plan, expected) => {
+    expect(consumptionPercent(active, plan)).toBe(expected);
   });
 
   it("redondea al entero más cercano (0,5 sube)", () => {
@@ -71,8 +71,8 @@ describe("semaforoConsumo: fronteras", () => {
     ["plan 0 sin activas", 0, 0, "green"],
     ["plan 0 con activas", 3, 0, "green"],
     ["plan negativo", 2, -1, "green"],
-  ])("%s", (_n, active, plan, esperado) => {
-    expect(consumptionTrafficLight(active, plan)).toBe(esperado);
+  ])("%s", (_n, active, plan, expected) => {
+    expect(consumptionTrafficLight(active, plan)).toBe(expected);
   });
 
   it("79 % es verde, 80 % es ámbar y 101 % es rojo (plan 100 para ver el porcentaje exacto)", () => {
@@ -102,13 +102,13 @@ describe("etiquetas", () => {
   });
 
   it("ETIQUETA_MOTIVO tiene los textos exactos", () => {
-    const esperado: Record<PauseReason, string> = {
+    const expected: Record<PauseReason, string> = {
       "client-wait": "Espera del cliente",
       "authority-wait": "Espera de organismo",
       "internal-decision": "Decisión interna",
       other: "Otra",
     };
-    expect(REASON_LABEL).toEqual(esperado);
+    expect(REASON_LABEL).toEqual(expected);
   });
 });
 
@@ -129,7 +129,7 @@ describe("obtenerPlanTiempos", () => {
     expect(p.totalActiveWeeks).toBe(11);
     expect(p.totalPlannedWeeks).toBe(64);
     expect(p.totalPausedWeeks).toBe(4);
-    expect(p.calendarioSemanas).toBe(15);
+    expect(p.calendarWeeks).toBe(15);
     expect(p.deviationWeeks).toBe(1);
   });
 
@@ -162,7 +162,7 @@ describe("obtenerPlanTiempos", () => {
   it("PRY-EJ-003: tiene pausa activa por espera de organismo con reanudación posterior al inicio", async () => {
     const p = (await fetchTimingPlan("PRY-EJ-003"))!;
     expect(p.activePause).not.toBeNull();
-    expect(p.activePause!.motivo).toBe("authority-wait");
+    expect(p.activePause!.reason).toBe("authority-wait");
     expect(isIsoDate(p.activePause!.from)).toBe(true);
     expect(isIsoDate(p.activePause!.expectedResumption)).toBe(true);
     expect(p.activePause!.expectedResumption > p.activePause!.from).toBe(true);
@@ -214,11 +214,11 @@ describe("coherencia de los datos de ejemplo", () => {
         expect(x.to >= x.from).toBe(true);
       }
       expect(x.weeks).toBeGreaterThanOrEqual(0);
-      expect(Object.keys(REASON_LABEL)).toContain(x.motivo);
+      expect(Object.keys(REASON_LABEL)).toContain(x.reason);
       expect([1, 2, 3, 4, 5, 6, 7]).toContain(x.phase);
     }
-    const desdes = p.pauses.map((x) => x.from);
-    expect(desdes).toEqual([...desdes].sort().reverse());
+    const froms = p.pauses.map((x) => x.from);
+    expect(froms).toEqual([...froms].sort().reverse());
   });
 
   it.each(codes)("%s: datos ficticios (código PRY-EJ-NNN, sin correos ni teléfonos)", async (c) => {
@@ -253,7 +253,7 @@ describe("obtenerPlanTiempos · PRY-EJ-004 (RGB-29)", () => {
     expect(p.totalPlannedWeeks).toBe(sum("plannedWeeks"));
     expect(p.totalActiveWeeks).toBe(sum("activeWeeks"));
     expect(p.totalPausedWeeks).toBe(sum("pausedWeeks"));
-    expect(p.calendarioSemanas).toBe(p.totalActiveWeeks + p.totalPausedWeeks);
+    expect(p.calendarWeeks).toBe(p.totalActiveWeeks + p.totalPausedWeeks);
     expect(Number.isInteger(p.deviationWeeks)).toBe(true);
   });
 

@@ -5,7 +5,7 @@ type Props = { params: Promise<{ code: string }> };
 
 export default async function Page({ params }: Props) {
   const { code } = await params;
-  const proyecto = await fetchProject(code);
-  if (!proyecto) notFound();
-  redirect(`/proyectos/${proyecto.code}/fase/${proyecto.currentPhase}`);
+  const project = await fetchProject(code);
+  if (!project) notFound();
+  redirect(`/proyectos/${project.code}/fase/${project.currentPhase}`);
 }

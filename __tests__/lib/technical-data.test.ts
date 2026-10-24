@@ -68,13 +68,13 @@ describe("DEFINICIONES", () => {
   });
 
   it("tipos: lista, número o texto según el borrador", () => {
-    const listas = ["propertyClass", "use", "slopeType", "climateZone", "seismicAcceleration", "kCoefficient", "windZone", "snowZone", "floors", "calcArea"];
+    const lists = ["propertyClass", "use", "slopeType", "climateZone", "seismicAcceleration", "kCoefficient", "windZone", "snowZone", "floors", "calcArea"];
     const numbers = ["year", "builtArea", "cadastralPlotArea", "polygonPlotArea", "altitude", "slope", "pvProduction", "buildability", "maxOccupancy", "maxHeight", "streetSetback", "boundarySetback", "minPlot"];
     const texts = ["address", "municipality", "coords"];
-    for (const id of listas) expect(def(id).type).toBe("list");
+    for (const id of lists) expect(def(id).type).toBe("list");
     for (const id of numbers) expect(def(id).type).toBe("number");
     for (const id of texts) expect(def(id).type).toBe("text");
-    expect(listas.length + numbers.length + texts.length).toBe(26);
+    expect(lists.length + numbers.length + texts.length).toBe(26);
   });
 
   it("solo las listas tienen opciones", () => {
@@ -130,12 +130,12 @@ describe("DEFINICIONES", () => {
 
   it("aceleración sísmica: «< 0,04 g» y de 0,04 g a 0,24 g (22 opciones)", () => {
     const ab = def("seismicAcceleration").options!;
-    const esperado = ["< 0,04 g", ...Array.from({ length: 21 }, (_, i) => `0,${String(4 + i).padStart(2, "0")} g`)];
+    const expected = ["< 0,04 g", ...Array.from({ length: 21 }, (_, i) => `0,${String(4 + i).padStart(2, "0")} g`)];
     expect(ab).toHaveLength(22);
     expect(ab[0]).toBe("< 0,04 g");
     expect(ab[1]).toBe("0,04 g");
     expect(ab[21]).toBe("0,24 g");
-    expect(ab).toEqual(esperado);
+    expect(ab).toEqual(expected);
   });
 });
 
@@ -240,10 +240,10 @@ describe("reconsultar", () => {
 
   it("sustituye los datos de origen por los nuevos, con su original y sin verificar", () => {
     const r = requery(current, incoming);
-    const por = (id: string) => r.find((d) => d.id === id)!;
-    expect(por("address")).toEqual({ id: "address", value: "CL NUEVA 2", original: "CL NUEVA 2", verified: false });
-    expect(por("municipality")).toEqual({ id: "municipality", value: "MUNI NUEVO", original: "MUNI NUEVO", verified: false });
-    expect(isEdited(por("address"))).toBe(false);
+    const byId = (id: string) => r.find((d) => d.id === id)!;
+    expect(byId("address")).toEqual({ id: "address", value: "CL NUEVA 2", original: "CL NUEVA 2", verified: false });
+    expect(byId("municipality")).toEqual({ id: "municipality", value: "MUNI NUEVO", original: "MUNI NUEVO", verified: false });
+    expect(isEdited(byId("address"))).toBe(false);
   });
 
   it("conserva los datos manuales tal como estaban (valor y verificado)", () => {
@@ -253,12 +253,12 @@ describe("reconsultar", () => {
   });
 
   it("devuelve un dato por id de los nuevos, en su orden, sin mutar las entradas", () => {
-    const copiaActual = JSON.parse(JSON.stringify(current));
-    const copiaNuevos = JSON.parse(JSON.stringify(incoming));
+    const currentCopy = JSON.parse(JSON.stringify(current));
+    const incomingCopy = JSON.parse(JSON.stringify(incoming));
     const r = requery(current, incoming);
     expect(r.map((d) => d.id)).toEqual(["address", "municipality", "buildability", "calcArea"]);
-    expect(current).toEqual(copiaActual);
-    expect(incoming).toEqual(copiaNuevos);
+    expect(current).toEqual(currentCopy);
+    expect(incoming).toEqual(incomingCopy);
   });
 
   it("un dato que no estaba en el estado actual se toma de los nuevos", () => {

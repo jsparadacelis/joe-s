@@ -47,8 +47,8 @@ describe("PhaseTimeline", () => {
 
   it("indica con texto accesible hecha / actual / vista según la fase actual", () => {
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
-    const esperado = ["done", "done", "done", "current", "upcoming", "upcoming", "upcoming", "upcoming"];
-    links().forEach((l, i) => expect(stateOf(l)).toEqual([esperado[i]]));
+    const expected = ["done", "done", "done", "current", "upcoming", "upcoming", "upcoming", "upcoming"];
+    links().forEach((l, i) => expect(stateOf(l)).toEqual([expected[i]]));
   });
 
   it("el nombre accesible de cada enlace incluye su estado", () => {
@@ -92,16 +92,16 @@ describe("PhaseTimeline", () => {
   it("Enter sobre una fase enfocada activa su enlace", async () => {
     const user = userEvent.setup();
     render(<PhaseTimeline code="PRY-EJ-001" currentPhase={3} viewedPhase={3} />);
-    const destino = links()[5];
+    const target = links()[5];
     const onClick = jest.fn((e: Event) => e.preventDefault());
-    destino.addEventListener("click", onClick);
+    target.addEventListener("click", onClick);
     await user.tab();
     await user.tab();
     await user.tab();
     await user.tab();
     await user.tab();
     await user.tab();
-    expect(destino).toHaveFocus();
+    expect(target).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(onClick).toHaveBeenCalledTimes(1);
   });

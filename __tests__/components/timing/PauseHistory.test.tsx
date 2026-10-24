@@ -4,8 +4,8 @@ import { PauseHistory } from "@/components/timing/PauseHistory";
 import type { Pause } from "@/lib/timing";
 
 const PAUSES: Pause[] = [
-  { from: "2026-08-03", to: null, phase: 3, motivo: "client-wait", weeks: 1 },
-  { from: "2026-06-01", to: "2026-06-22", phase: 2, motivo: "internal-decision", weeks: 3 },
+  { from: "2026-08-03", to: null, phase: 3, reason: "client-wait", weeks: 1 },
+  { from: "2026-06-01", to: "2026-06-22", phase: 2, reason: "internal-decision", weeks: 3 },
 ];
 
 const rows = () => screen.getAllByRole("row").slice(1);
@@ -57,10 +57,10 @@ describe("HistorialPausas", () => {
     ["authority-wait", "Espera de organismo"],
     ["internal-decision", "Decisión interna"],
     ["other", "Otra"],
-  ] as const)("el motivo %s se muestra como «%s», nunca el identificador", (motivo, label) => {
-    render(<PauseHistory pauses={[{ from: "2026-01-05", to: "2026-01-12", phase: 1, motivo, weeks: 1 }]} />);
+  ] as const)("el motivo %s se muestra como «%s», nunca el identificador", (reason, label) => {
+    render(<PauseHistory pauses={[{ from: "2026-01-05", to: "2026-01-12", phase: 1, reason, weeks: 1 }]} />);
     expect(rows()[0]).toHaveTextContent(label);
-    if (motivo.includes("-")) expect(rows()[0]).not.toHaveTextContent(motivo);
+    if (reason.includes("-")) expect(rows()[0]).not.toHaveTextContent(reason);
   });
 
   it("sin pausas muestra «Sin pausas registradas»", () => {

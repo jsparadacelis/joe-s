@@ -26,11 +26,11 @@ describe("arquitectura del visor 3D (RGB-34)", () => {
   });
 
   it("three solo se importa en lib/relief-scene.ts", () => {
-    const infractores = sources
+    const offenders = sources
       .filter((f) => f !== SCENE)
       .filter((f) => THREE_IMPORT.test(readFileSync(f, "utf8")))
       .map((f) => relative(root, f));
-    expect(infractores).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 
   it("VisorRelieve carga la escena con import() dinámico", () => {
@@ -39,18 +39,18 @@ describe("arquitectura del visor 3D (RGB-34)", () => {
   });
 
   it("ningún archivo importa de forma estática el módulo de la escena (solo se permite `import type`)", () => {
-    const infractores = sources
+    const offenders = sources
       .filter((f) => f !== SCENE)
       .filter((f) => STATIC_SCENE_IMPORT.test(readFileSync(f, "utf8")))
       .map((f) => relative(root, f));
-    expect(infractores).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 
   it("la escena no se usa desde la página (render de servidor): app/ no la referencia", () => {
-    const infractores = sources
+    const offenders = sources
       .filter((f) => f.startsWith(join(root, "app")))
       .filter((f) => /relief-scene/.test(readFileSync(f, "utf8")))
       .map((f) => relative(root, f));
-    expect(infractores).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 });

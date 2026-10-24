@@ -9,16 +9,16 @@ import { listProjects } from "@/lib/projects";
 export const metadata: Metadata = { title: "Proyectos" };
 
 export default async function Page() {
-  const proyectos = await listProjects();
+  const projects = await listProjects();
   return (
     <>
       <PageHead title="Proyectos" description="Listado de todos los proyectos y su fase actual." />
-      {proyectos.length === 0 ? (
+      {projects.length === 0 ? (
         <EmptyState title="Aún no hay proyectos" description="Los proyectos se mostrarán aquí cuando existan." />
       ) : (
         <Panel title="Proyectos de ejemplo" description="Datos ficticios para navegar por las fases.">
           <ul className="flex flex-col">
-            {proyectos.map((p) => (
+            {projects.map((p) => (
               <li key={p.code} className="border-b border-hair">
                 <Link
                   href={`/proyectos/${p.code}/fase/${p.currentPhase}`}

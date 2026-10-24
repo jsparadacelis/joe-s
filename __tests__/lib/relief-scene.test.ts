@@ -12,7 +12,7 @@ const renderer = {
   forceContextLoss: jest.fn(),
   outputColorSpace: "",
 };
-const controles = {
+const controls = {
   target: { set: jest.fn(), x: 0, y: 0, z: 0 },
   update: jest.fn(),
   dispose: jest.fn(),
@@ -32,7 +32,7 @@ jest.mock("three", () => {
   };
 });
 jest.mock("three/examples/jsm/controls/OrbitControls.js", () => ({
-  OrbitControls: jest.fn(() => controles),
+  OrbitControls: jest.fn(() => controls),
 }));
 
 const COLORS = { background: "", accent: "", border: "" };
@@ -41,7 +41,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   failWebGL = false;
   renderer.domElement = document.createElement("canvas");
-  controles.target.x = controles.target.y = controles.target.z = 0;
+  controls.target.x = controls.target.y = controls.target.z = 0;
   jest.spyOn(window, "requestAnimationFrame").mockReturnValue(42);
   jest.spyOn(window, "cancelAnimationFrame").mockImplementation(() => undefined);
 });
@@ -52,7 +52,7 @@ describe("montarEscena", () => {
     const host = document.createElement("div");
     mountScene(host, slopedPlane(), 2, COLORS);
     expect(host.contains(renderer.domElement)).toBe(true);
-    expect(controles.listenToKeyEvents).toHaveBeenCalledWith(host);
+    expect(controls.listenToKeyEvents).toHaveBeenCalledWith(host);
     expect(renderer.render).toHaveBeenCalled();
   });
 
@@ -70,8 +70,8 @@ describe("montarEscena", () => {
     scene.release();
     scene.release();
     expect(window.cancelAnimationFrame).toHaveBeenCalledWith(42);
-    expect(controles.stopListenToKeyEvents).toHaveBeenCalledTimes(1);
-    expect(controles.dispose).toHaveBeenCalledTimes(1);
+    expect(controls.stopListenToKeyEvents).toHaveBeenCalledTimes(1);
+    expect(controls.dispose).toHaveBeenCalledTimes(1);
     expect(renderer.dispose).toHaveBeenCalledTimes(1);
     expect(renderer.forceContextLoss).toHaveBeenCalledTimes(1);
     expect(dispose).toHaveBeenCalled(); // terreno + parcela
@@ -90,11 +90,11 @@ describe("montarEscena", () => {
 
   it("acercar, alejar y reiniciar actualizan los controles; tras liberar, actualizarExageracion no hace nada", () => {
     const scene = mountScene(document.createElement("div"), slopedPlane(), 1, COLORS);
-    controles.update.mockClear();
+    controls.update.mockClear();
     scene.zoomIn();
     scene.zoomOut();
     scene.reset();
-    expect(controles.update).toHaveBeenCalledTimes(3);
+    expect(controls.update).toHaveBeenCalledTimes(3);
     scene.release();
     const dispose = jest.spyOn(MeshStandardMaterial.prototype, "dispose");
     scene.updateExaggeration(2);

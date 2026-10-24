@@ -10,19 +10,19 @@ export type HeightRamp = readonly [string, string, string, string];
 
 const RAMP_TOKENS = ["--relieve-bajo", "--relieve-medio-bajo", "--relieve-medio-alto", "--relieve-alto"] as const;
 
-function read(estilo: CSSStyleDeclaration, token: string): string {
-  return estilo.getPropertyValue(token).trim();
+function read(computedStyle: CSSStyleDeclaration, token: string): string {
+  return computedStyle.getPropertyValue(token).trim();
 }
 
 /** Lee fondo, acento y borde del documento. En entornos sin estilos (tests) devuelve cadenas vacías. */
-export function readSceneColors(raiz: Element = document.documentElement): SceneColors {
-  const estilo = getComputedStyle(raiz);
-  return { background: read(estilo, "--surface-2"), accent: read(estilo, "--point"), border: read(estilo, "--line") };
+export function readSceneColors(root: Element = document.documentElement): SceneColors {
+  const computedStyle = getComputedStyle(root);
+  return { background: read(computedStyle, "--surface-2"), accent: read(computedStyle, "--point"), border: read(computedStyle, "--line") };
 }
 
 /** Lee la rampa de alturas de los tokens `--relieve-*`. */
-export function readHeightRamp(raiz: Element = document.documentElement): HeightRamp {
-  const estilo = getComputedStyle(raiz);
-  const [a, b, c, d] = RAMP_TOKENS.map((t) => read(estilo, t));
+export function readHeightRamp(root: Element = document.documentElement): HeightRamp {
+  const computedStyle = getComputedStyle(root);
+  const [a, b, c, d] = RAMP_TOKENS.map((t) => read(computedStyle, t));
   return [a, b, c, d];
 }

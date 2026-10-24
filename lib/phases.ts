@@ -6,18 +6,18 @@ export interface Phase {
   /** Entregable de salida con el que se cierra la fase. */
   deliverable: string;
   /** Rol con autoridad para promover a la fase siguiente (PRD). */
-  promueve: string;
+  promoter: string;
 }
 
 export const PHASES: readonly Phase[] = [
-  { id: 0, name: "Oportunidad", deliverable: "Scoring (7 criterios de 1 a 5, nota sobre 100, umbral) + tipología y escala → plan de semanas", promueve: "Socio y director" },
-  { id: 1, name: "Inicio", deliverable: "Ficha del proyecto completa (incluye referencia catastral, contrato, gobierno, repositorio)", promueve: "Socio y director" },
-  { id: 2, name: "Briefing y concepto", deliverable: "Datos técnicos del inmueble verificados + brief manual (con topográfico y alineación) + aprobación del cliente registrada", promueve: "Director de proyecto" },
-  { id: 3, name: "Anteproyecto", deliverable: "Paquete de anteproyecto aprobado y congelado; visor de relieve 3D como apoyo", promueve: "Director de proyecto" },
-  { id: 4, name: "Proyecto básico", deliverable: "Básico emitido y licencia concedida con condiciones", promueve: "Firmante habilitado" },
-  { id: 5, name: "Proyecto de ejecución", deliverable: "Ejecución coordinada, visada y emitida", promueve: "Firmante habilitado" },
-  { id: 6, name: "Obra", deliverable: "Registro de obra completo y recepción", promueve: "Dirección facultativa" },
-  { id: 7, name: "Cierre", deliverable: "Certificado final, Libro del Edificio y lecciones", promueve: "Sponsor" },
+  { id: 0, name: "Oportunidad", deliverable: "Scoring (7 criterios de 1 a 5, nota sobre 100, umbral) + tipología y escala → plan de semanas", promoter: "Socio y director" },
+  { id: 1, name: "Inicio", deliverable: "Ficha del proyecto completa (incluye referencia catastral, contrato, gobierno, repositorio)", promoter: "Socio y director" },
+  { id: 2, name: "Briefing y concepto", deliverable: "Datos técnicos del inmueble verificados + brief manual (con topográfico y alineación) + aprobación del cliente registrada", promoter: "Director de proyecto" },
+  { id: 3, name: "Anteproyecto", deliverable: "Paquete de anteproyecto aprobado y congelado; visor de relieve 3D como apoyo", promoter: "Director de proyecto" },
+  { id: 4, name: "Proyecto básico", deliverable: "Básico emitido y licencia concedida con condiciones", promoter: "Firmante habilitado" },
+  { id: 5, name: "Proyecto de ejecución", deliverable: "Ejecución coordinada, visada y emitida", promoter: "Firmante habilitado" },
+  { id: 6, name: "Obra", deliverable: "Registro de obra completo y recepción", promoter: "Dirección facultativa" },
+  { id: 7, name: "Cierre", deliverable: "Certificado final, Libro del Edificio y lecciones", promoter: "Sponsor" },
 ];
 
 export type PhaseState = "done" | "current" | "upcoming";
@@ -36,7 +36,7 @@ const MODE_BY_STATE: Record<PhaseState, PhaseMode> = {
 };
 
 /** Única fuente de verdad del modo de pantalla de una fase. */
-export function modoFase(phase: PhaseId, current: PhaseId): PhaseMode {
+export function phaseMode(phase: PhaseId, current: PhaseId): PhaseMode {
   return MODE_BY_STATE[phaseState(phase, current)];
 }
 

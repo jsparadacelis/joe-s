@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
-import type { Exageracion, MaxSide, Margin } from "@/lib/relief";
+import type { Exaggeration, MaxSide, Margin } from "@/lib/relief";
 import { EXAGGERATIONS, MAX_SIDES, MARGINS } from "@/lib/relief";
 
 export type ReliefShortcut = { id: string; label: string; reference: string };
@@ -9,13 +9,13 @@ export type ReliefControlsProps = {
   reference: string;
   margin: Margin;
   maxSide: MaxSide;
-  exaggeration: Exageracion;
+  exaggeration: Exaggeration;
   atajos: readonly ReliefShortcut[];
   errorId?: string;
   onReference: (value: string) => void;
   onMargin: (value: Margin) => void;
   onMaxSide: (value: MaxSide) => void;
-  onExaggeration: (value: Exageracion) => void;
+  onExaggeration: (value: Exaggeration) => void;
   onShortcut: (reference: string) => void;
   onView: () => void;
 };
@@ -23,7 +23,7 @@ export type ReliefControlsProps = {
 const CONTROL = "rounded-base border border-hair bg-surface px-2.5 py-1.5 text-s text-ink";
 
 const marginLabel = (m: Margin) => (m === 0 ? "Solo la parcela" : `Parcela + ${m} m`);
-const exaggerationLabel = (e: Exageracion) => (e === 1 ? "×1 (real)" : `×${e}`);
+const exaggerationLabel = (e: Exaggeration) => (e === 1 ? "×1 (real)" : `×${e}`);
 
 export function ReliefControls({
   reference,
@@ -39,13 +39,13 @@ export function ReliefControls({
   onShortcut,
   onView,
 }: ReliefControlsProps) {
-  const enviar = (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     onView();
   };
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-3">
+    <form onSubmit={submit} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex min-w-[260px] flex-col gap-1">
           <label htmlFor="relieve-referencia" className="text-s font-medium">
@@ -111,7 +111,7 @@ export function ReliefControls({
             id="relieve-exageracion"
             className={CONTROL}
             value={exaggeration}
-            onChange={(e) => onExaggeration(Number(e.target.value) as Exageracion)}
+            onChange={(e) => onExaggeration(Number(e.target.value) as Exaggeration)}
           >
             {EXAGGERATIONS.map((x) => (
               <option key={x} value={x}>

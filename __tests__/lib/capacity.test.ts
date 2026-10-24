@@ -17,12 +17,12 @@ describe("parseNumero", () => {
     ["70", 70],
     ["0", 0],
     [" 12 ", 12],
-  ])("%j -> %p", (entrada, esperado) => {
-    expect(parseNumber(entrada)).toBe(esperado);
+  ])("%j -> %p", (input, expected) => {
+    expect(parseNumber(input)).toBe(expected);
   });
 
-  it.each([[""], ["   "], ["abc"], ["m²"]])("%j -> null", (entrada) => {
-    expect(parseNumber(entrada)).toBeNull();
+  it.each([[""], ["   "], ["abc"], ["m²"]])("%j -> null", (input) => {
+    expect(parseNumber(input)).toBeNull();
   });
 
   it("null o undefined -> null sin lanzar", () => {

@@ -73,12 +73,12 @@ describe("ProyectoTabs", () => {
   it("Enter sobre una pestaña enfocada activa su enlace", async () => {
     const user = userEvent.setup();
     render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
-    const destino = screen.getByRole("link", { name: PLAN });
+    const target = screen.getByRole("link", { name: PLAN });
     const onClick = jest.fn((e: Event) => e.preventDefault());
-    destino.addEventListener("click", onClick);
+    target.addEventListener("click", onClick);
     await user.tab();
     await user.tab();
-    expect(destino).toHaveFocus();
+    expect(target).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(onClick).toHaveBeenCalledTimes(1);
   });

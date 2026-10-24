@@ -4,8 +4,8 @@ import { TimingSummary } from "@/components/timing/TimingSummary";
 import type { TimingPlan } from "@/lib/timing";
 
 const PLAN: readonly number[] = [2, 3, 5, 6, 8, 36, 4];
-const ACT: readonly number[] = [3, 4, 4, 0, 0, 0, 0];
-const PAU: readonly number[] = [0, 3, 1, 0, 0, 0, 0];
+const ACTIVE: readonly number[] = [3, 4, 4, 0, 0, 0, 0];
+const PAUSED: readonly number[] = [0, 3, 1, 0, 0, 0, 0];
 
 function plan(extra: Partial<TimingPlan> = {}): TimingPlan {
   return {
@@ -14,15 +14,15 @@ function plan(extra: Partial<TimingPlan> = {}): TimingPlan {
     phases: PLAN.map((p, i) => ({
       phase: (i + 1) as 1,
       plannedWeeks: p,
-      activeWeeks: ACT[i],
-      pausedWeeks: PAU[i],
+      activeWeeks: ACTIVE[i],
+      pausedWeeks: PAUSED[i],
     })),
     pauses: [],
     activePause: null,
     totalActiveWeeks: 11,
     totalPlannedWeeks: 64,
     totalPausedWeeks: 4,
-    calendarioSemanas: 15,
+    calendarWeeks: 15,
     deviationWeeks: 1,
     ...extra,
   };
@@ -46,7 +46,7 @@ describe("ResumenTiempos", () => {
           totalActiveWeeks: 27,
           totalPlannedWeeks: 90,
           totalPausedWeeks: 9,
-          calendarioSemanas: 41,
+          calendarWeeks: 41,
           deviationWeeks: 5,
         })}
       />,
@@ -102,7 +102,7 @@ describe("ResumenTiempos", () => {
     render(
       <TimingSummary
         plan={plan({
-          activePause: { from: "2026-09-01", motivo: "authority-wait", expectedResumption: "2026-12-14" },
+          activePause: { from: "2026-09-01", reason: "authority-wait", expectedResumption: "2026-12-14" },
         })}
       />,
     );
@@ -117,19 +117,19 @@ describe("ResumenTiempos", () => {
     ["client-wait", "Espera del cliente"],
     ["internal-decision", "Decisión interna"],
     ["other", "Otra"],
-  ] as const)("el aviso de pausa muestra la etiqueta en español del motivo %s", (motivo, label) => {
+  ] as const)("el aviso de pausa muestra la etiqueta en español del motivo %s", (reason, label) => {
     render(
       <TimingSummary
-        plan={plan({ activePause: { from: "2026-09-01", motivo, expectedResumption: "2026-12-14" } })}
+        plan={plan({ activePause: { from: "2026-09-01", reason, expectedResumption: "2026-12-14" } })}
       />,
     );
     expect(screen.getByRole("status")).toHaveTextContent(label);
-    expect(screen.getByRole("status")).not.toHaveTextContent(motivo.includes("-") ? motivo : "__nada__");
+    expect(screen.getByRole("status")).not.toHaveTextContent(reason.includes("-") ? reason : "__nada__");
   });
 
   it.each([
     ["sin pausa", null],
-    ["con pausa activa", { from: "2026-09-01", motivo: "authority-wait", expectedResumption: "2026-12-14" }],
+    ["con pausa activa", { from: "2026-09-01", reason: "authority-wait", expectedResumption: "2026-12-14" }],
   ] as const)("sin violaciones de accesibilidad %s", async (_n, activePause) => {
     const { container } = render(<TimingSummary plan={plan({ activePause: activePause as TimingPlan["activePause"] })} />);
     expect(await axe(container)).toHaveNoViolations();

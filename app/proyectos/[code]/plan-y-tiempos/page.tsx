@@ -15,13 +15,13 @@ export const metadata: Metadata = { title: "Plan y tiempos" };
 
 export default async function Page({ params }: Props) {
   const { code } = await params;
-  const proyecto = await fetchProject(code);
-  if (!proyecto) notFound();
-  const plan = await fetchTimingPlan(proyecto.code);
+  const project = await fetchProject(code);
+  if (!project) notFound();
+  const plan = await fetchTimingPlan(project.code);
 
   return (
     <>
-      <PageHead title={proyecto.name} description={`${proyecto.code} · Plan y tiempos`} />
+      <PageHead title={project.name} description={`${project.code} · Plan y tiempos`} />
       {plan ? (
         <>
           <TimingSummary plan={plan} />

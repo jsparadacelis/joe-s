@@ -1,4 +1,4 @@
-import { PHASES, phaseState, modoFase, parsePhaseId, type PhaseId } from "@/lib/phases";
+import { PHASES, phaseState, phaseMode, parsePhaseId, type PhaseId } from "@/lib/phases";
 
 const IDS: PhaseId[] = [0, 1, 2, 3, 4, 5, 6, 7];
 
@@ -24,7 +24,7 @@ describe("FASES", () => {
   it.each(IDS)("la fase %i tiene entregable y promueve no vacíos", (id) => {
     const f = PHASES[id];
     expect(f.deliverable.trim().length).toBeGreaterThan(0);
-    expect(f.promueve.trim().length).toBeGreaterThan(0);
+    expect(f.promoter.trim().length).toBeGreaterThan(0);
   });
 
   it("los nombres de fase no se repiten", () => {
@@ -33,18 +33,18 @@ describe("FASES", () => {
 });
 
 describe("estadoFase y modoFase (8x8)", () => {
-  const combos = IDS.flatMap((phase) => IDS.map((current) => [phase, current] as const));
+  const combinations = IDS.flatMap((phase) => IDS.map((current) => [phase, current] as const));
 
-  it.each(combos)("fase %i con actual %i", (phase, current) => {
+  it.each(combinations)("fase %i con actual %i", (phase, current) => {
     const state = phase < current ? "done" : phase === current ? "current" : "upcoming";
     const mode = phase < current ? "read-only" : phase === current ? "edit" : "preview";
     expect(phaseState(phase, current)).toBe(state);
-    expect(modoFase(phase, current)).toBe(mode);
+    expect(phaseMode(phase, current)).toBe(mode);
   });
 
   it("para cada fase actual hay exactamente una fase en edición", () => {
     for (const current of IDS) {
-      expect(IDS.filter((f) => modoFase(f, current) === "edit")).toEqual([current]);
+      expect(IDS.filter((f) => phaseMode(f, current) === "edit")).toEqual([current]);
     }
   });
 });

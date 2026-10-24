@@ -28,13 +28,13 @@ export interface Pause {
   from: string;
   to: string | null;
   phase: PlannedPhase;
-  motivo: PauseReason;
+  reason: PauseReason;
   weeks: number;
 }
 
 export interface ActivePause {
   from: string;
-  motivo: PauseReason;
+  reason: PauseReason;
   expectedResumption: string;
 }
 
@@ -49,7 +49,7 @@ export interface TimingPlan {
   totalActiveWeeks: number;
   totalPlannedWeeks: number;
   totalPausedWeeks: number;
-  calendarioSemanas: number;
+  calendarWeeks: number;
   /** Activas frente a plan acumulado; positivo = retraso. */
   deviationWeeks: number;
 }
@@ -80,8 +80,8 @@ export function consumptionTrafficLight(active: number, plan: number): TrafficLi
 
 /** Fecha ISO yyyy-mm-dd a dd/mm/aaaa, sin pasar por Date (sin husos horarios). */
 export function formatDate(iso: string): string {
-  const [year, mes, day] = iso.split("-");
-  return `${day}/${mes}/${year}`;
+  const [year, month, day] = iso.split("-");
+  return `${day}/${month}/${year}`;
 }
 
 // ---- DATOS DE EJEMPLO (sustituible por el cliente de la API) ----
@@ -103,14 +103,14 @@ const PLANS: readonly TimingPlan[] = [
     currentPhase: 3,
     phases: samplePhases([3, 4, 4, 0, 0, 0, 0], [0, 3, 1, 0, 0, 0, 0]),
     pauses: [
-      { from: "2026-08-03", to: "2026-08-10", phase: 3, motivo: "client-wait", weeks: 1 },
-      { from: "2026-05-04", to: "2026-05-25", phase: 2, motivo: "internal-decision", weeks: 3 },
+      { from: "2026-08-03", to: "2026-08-10", phase: 3, reason: "client-wait", weeks: 1 },
+      { from: "2026-05-04", to: "2026-05-25", phase: 2, reason: "internal-decision", weeks: 3 },
     ],
     activePause: null,
     totalActiveWeeks: 11,
     totalPlannedWeeks: 64,
     totalPausedWeeks: 4,
-    calendarioSemanas: 15,
+    calendarWeeks: 15,
     deviationWeeks: 1,
   },
   {
@@ -118,14 +118,14 @@ const PLANS: readonly TimingPlan[] = [
     currentPhase: 6,
     phases: samplePhases([2, 3, 5, 6, 8, 30, 0], [0, 0, 0, 1, 0, 2, 0]),
     pauses: [
-      { from: "2026-10-12", to: null, phase: 6, motivo: "authority-wait", weeks: 2 },
-      { from: "2026-03-02", to: "2026-03-09", phase: 4, motivo: "client-wait", weeks: 1 },
+      { from: "2026-10-12", to: null, phase: 6, reason: "authority-wait", weeks: 2 },
+      { from: "2026-03-02", to: "2026-03-09", phase: 4, reason: "client-wait", weeks: 1 },
     ],
-    activePause: { from: "2026-10-12", motivo: "authority-wait", expectedResumption: "2026-11-09" },
+    activePause: { from: "2026-10-12", reason: "authority-wait", expectedResumption: "2026-11-09" },
     totalActiveWeeks: 54,
     totalPlannedWeeks: 64,
     totalPausedWeeks: 3,
-    calendarioSemanas: 57,
+    calendarWeeks: 57,
     deviationWeeks: 0,
   },
   {
@@ -137,7 +137,7 @@ const PLANS: readonly TimingPlan[] = [
     totalActiveWeeks: 3,
     totalPlannedWeeks: 64,
     totalPausedWeeks: 0,
-    calendarioSemanas: 3,
+    calendarWeeks: 3,
     deviationWeeks: 0,
   },
 ];

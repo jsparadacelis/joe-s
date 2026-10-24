@@ -21,7 +21,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { Exageracion, Relief } from "@/lib/relief";
+import type { Exaggeration, Relief } from "@/lib/relief";
 import { heightAt } from "@/lib/relief-readings";
 import { readHeightRamp, type SceneColors } from "@/lib/relief-colors";
 
@@ -30,7 +30,7 @@ export interface ReliefScene {
   reset(): void;
   zoomIn(): void;
   zoomOut(): void;
-  updateExaggeration(exaggeration: Exageracion): void;
+  updateExaggeration(exaggeration: Exaggeration): void;
   release(): void;
 }
 
@@ -49,7 +49,7 @@ const SKY_LIGHT = 0xffffff;
 const GROUND_LIGHT = 0x808080;
 const SUN_LIGHT = 0xffffff;
 
-const color = (value: string, reserva: number) => new Color(value || reserva);
+const color = (value: string, fallback: number) => new Color(value || fallback);
 
 type ObjectWithResources = Object3D & { geometry?: BufferGeometry; material?: Material | Material[] };
 
@@ -68,7 +68,7 @@ function releaseObject(object: Object3D) {
 export function mountScene(
   host: HTMLElement,
   relief: Relief,
-  exaggeration: Exageracion,
+  exaggeration: Exaggeration,
   colors: SceneColors,
 ): ReliefScene {
   let renderer: WebGLRenderer;
@@ -194,8 +194,8 @@ export function mountScene(
       const faces = ShapeUtils.triangulateShape(outline, []);
       const fill: number[] = [];
       for (const face of faces) {
-        for (const indice of face) {
-          const [x, y] = perimeter[indice];
+        for (const index of face) {
+          const [x, y] = perimeter[index];
           fill.push(x, yAt(x, y, 0.5), -y);
         }
       }
@@ -239,12 +239,12 @@ export function mountScene(
     controls.minDistance = side * 0.25;
     controls.maxDistance = side * 4;
     const activeControls = controls;
-    const encuadrar = () => {
+    const frameView = () => {
       camera.position.set(centroX + side * 0.45, side * 0.75, -centroY + side * 0.9);
       camera.lookAt(activeControls.target);
       activeControls.update();
     };
-    encuadrar();
+    frameView();
 
     if (typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver(() => {
@@ -266,7 +266,7 @@ export function mountScene(
     loop();
 
     return {
-      reset: encuadrar,
+      reset: frameView,
       zoomIn() {
         camera.position.lerp(activeControls.target, 0.16);
         activeControls.update();

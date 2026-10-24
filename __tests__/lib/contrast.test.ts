@@ -11,9 +11,9 @@ function block(selector: string): Record<string, string> {
 }
 
 const themes = {
-  claro: block(":root"),
-  oscuro: block(':root[data-theme="dark"]'),
-  "oscuro (sistema)": block(':root:not([data-theme="light"])'),
+  light: block(":root"),
+  dark: block(':root[data-theme="dark"]'),
+  "dark (system)": block(':root:not([data-theme="light"])'),
 };
 
 function luminance(hex: string): number {
@@ -25,8 +25,8 @@ function luminance(hex: string): number {
 }
 
 function ratio(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
+  const [hi, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (low + 0.05);
 }
 
 // [texto, fondo] tal como se combinan en los componentes.
@@ -55,11 +55,11 @@ const PAIRS: [string, string][] = [
 
 describe("contraste WCAG AA (4.5:1) de los tokens", () => {
   it("el tema oscuro por media query coincide con data-theme=dark", () => {
-    expect(themes["oscuro (sistema)"]).toEqual(themes.oscuro);
+    expect(themes["dark (system)"]).toEqual(themes.dark);
   });
 
   it("todos los tokens están definidos en ambos temas", () => {
-    expect(Object.keys(themes.oscuro).sort()).toEqual(Object.keys(themes.claro).sort());
+    expect(Object.keys(themes.dark).sort()).toEqual(Object.keys(themes.light).sort());
   });
 
   describe.each(Object.entries(themes))("tema %s", (_themeName, tokens) => {
@@ -103,7 +103,7 @@ const PLAN: Record<string, [string, string]> = {
 
 describe("valores de tokens según la tabla del plan", () => {
   it.each(Object.entries(PLAN))("%s", (name, [light, dark]) => {
-    expect(themes.claro[name]?.toLowerCase()).toBe(light.toLowerCase());
-    expect(themes.oscuro[name]?.toLowerCase()).toBe(dark.toLowerCase());
+    expect(themes.light[name]?.toLowerCase()).toBe(light.toLowerCase());
+    expect(themes.dark[name]?.toLowerCase()).toBe(dark.toLowerCase());
   });
 });
