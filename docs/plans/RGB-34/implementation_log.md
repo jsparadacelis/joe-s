@@ -61,3 +61,30 @@ En `npm run build`, `three` (y `OrbitControls`) queda en un único chunk de 569 
 
 ### Pendiente para el Tester
 Comprobación en navegador real con WebGL: liberación al desmontar/reemplazar (`WEBGL_lose_context`), teclado con flechas, pantallazos claro/oscuro, rampa de colores en el tema oscuro.
+
+## Refactor a inglés
+
+**Alcance.** Regla nueva de `CLAUDE.md`: el código va en inglés. Se ha pasado todo el front (`app/`, `components/`, `lib/`, `__tests__/`, `jest.*`) sin cambiar comportamiento: archivos y directorios (con `git mv`), módulos, tipos, funciones, props, campos, valores internos (modos, estados, semáforo, motivos, ids de datos técnicos, ids del DOM), tokens CSS `--relieve-*` (ahora `--relief-*`), comentarios, JSDoc, nombres de `describe`/`it`/`test` y datos de prueba. No se toca `backend/`, `scripts/` ni migraciones. Tabla antiguo a nuevo en [`docs/front-rename-english.md`](../../front-rename-english.md); el contrato de este plan usa ya los nombres nuevos.
+
+**Cifras.**
+
+| | Antes | Después |
+|---|---|---|
+| `npm test` | 790 tests (789 verdes y 1 rojo: el del `-0`) en 42 suites | 790 tests, 790 verdes, 42 suites |
+| `npm run build` | 10 rutas | las mismas 10 rutas (solo cambian los nombres internos `[code]` y `[phase]`) |
+| `npm run lint` / `typecheck` | verde | verde |
+
+**Decisiones.**
+- Valores con texto visible que se mostraban tal cual: `PhaseTimeline` pinta ahora «hecha»/«actual»/«vista» desde un mapa (`STATE_TEXT`), porque el estado interno es `done|current|upcoming`. Igual con `Capacity.limitedBy` (`buildability|occupancy-floors`) en `CapacityPanel` (`LIMIT_LABEL`) y con el motivo de pausa y el semáforo (ya tenían mapa de etiquetas).
+- `Ventana` se llama `ViewWindow` y el campo `viewWindow` (no `window`, para no sombrear el global del navegador); `Escena` es `ReliefScene` (para no chocar con `Scene` de three); `Grupo` es `DataGroup` (para no chocar con `Group` de three); `contenedor` es `host` (para no chocar con `container` de Testing Library).
+- Parámetros dinámicos internos renombrados: `[codigo]` a `[code]` y `[fase]` a `[phase]`; las URLs no cambian.
+- Datos de prueba traducidos (`CL PRUEBA 1`, `Ejemplo uno`, etc.) solo cuando no son texto de usuario; los textos que los tests comprueban en la interfaz siguen en español.
+
+**Excepción autorizada en un test.** `__tests__/lib/relief.test.ts` (antes `relieve.test.ts`), «margin %i m widens the box on all four sides»: `[-m, -m, 40 + m, 30 + m]` pasa a `[0 - m, 0 - m, 40 + m, 30 + m]` porque con `m = 0` el primero produce `-0` y `toEqual` distingue `-0` de `0`. Es el fallo que ya se documentó más arriba; con este cambio los 790 tests pasan. No se cambió ninguna otra aserción.
+
+**Se conserva en español (a propósito).**
+- Textos de interfaz, `aria-label`, mensajes de error, etiquetas y avisos; nombres y entregables de las fases del PRD (`lib/phases.ts`); nombres de proyectos de ejemplo («… (ejemplo)»); códigos `PRY-EJ-00N`; referencias catastrales de ejemplo; opciones y orígenes de los datos técnicos (Catastro, CTE…).
+- **URLs de las páginas** (decisión a confirmar): `app/proyectos`, `app/cartera`, `app/por-promover`, `app/reporte-semanal`, `app/ajustes`, `fase`, `plan-y-tiempos`, y el ancla `#contenido` del enlace «Saltar al contenido» (se ve en la barra de direcciones). Si se quieren en inglés, es un cambio aparte porque afecta a enlaces, tests y marcadores.
+- Palabras que existen igual en inglés (`plan`, `area`, `base`, `error`, `control`, `color`, `info`).
+
+**Comprobación.** Se buscó con un recorrido del AST que no quedan identificadores en español (fase, proyecto, entregable, tiempo, pausa, relieve, consumo, datos, capacidad, referencia, ventana, etc.) fuera de cadenas de usuario; los comentarios y títulos de tests se revisaron con una búsqueda de palabras españolas.

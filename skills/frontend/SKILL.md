@@ -15,7 +15,7 @@ description: Convenciones de frontend para RGB Proyectos (React con SSR, TypeScr
 
 ## Reglas
 
-1. **Idioma:** todo texto de la interfaz en español.
+1. **Idioma:** todo texto de la interfaz en español; el código (archivos, identificadores, comentarios, nombres de tests y datos de prueba) en inglés (ver `docs/front-rename-english.md`).
 2. **Fases navegables:**
    - fases anteriores: entregable congelado, solo lectura;
    - fases siguientes: vista previa;
