@@ -4,15 +4,16 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 [ -f .env ] || cp .env.example .env
+[ -f frontend/.env.local ] || cp frontend/.env.example frontend/.env.local
 [ -d .venv-back ] || python3 -m venv .venv-back
 # shellcheck disable=SC1091
 . .venv-back/bin/activate
-pip install -q -r requirements-dev.txt
+pip install -q -r backend/requirements-dev.txt
 
-[ -d node_modules ] || npm ci
+[ -d frontend/node_modules ] || npm --prefix frontend ci
 docker compose up -d --wait db
 python -m backend.app.shared.migrate
 
 trap 'kill 0' EXIT
 uvicorn backend.app.api.main:app --reload --port 8000 &
-npm run dev:front
+npm --prefix frontend run dev:front
