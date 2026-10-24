@@ -88,3 +88,74 @@ Comprobación en navegador real con WebGL: liberación al desmontar/reemplazar (
 - Palabras que existen igual en inglés (`plan`, `area`, `base`, `error`, `control`, `color`, `info`).
 
 **Comprobación.** Se buscó con un recorrido del AST que no quedan identificadores en español (fase, proyecto, entregable, tiempo, pausa, relieve, consumo, datos, capacidad, referencia, ventana, etc.) fuera de cadenas de usuario; los comentarios y títulos de tests se revisaron con una búsqueda de palabras españolas.
+
+## Tester
+
+Fecha: 2026-10-24. Navegador real: Chromium (Playwright, `playwright-core` en el directorio temporal de la sesión, fuera del repo) con WebGL por software (`--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`), locale `es-ES`, 1440 px, claro y oscuro, build de producción en un puerto libre (los procesos se mataron al terminar).
+
+### Qué se ejecutó
+- `npm run lint`, `typecheck`, `test` (42 suites, 790 tests) y `build` en verde. `test` tarda 40-41 s (dos pasadas completas antes de tocar nada y una tercera tras el cambio, sin ningún test inestable). `build`: las mismas 10 rutas.
+- `three` queda en un solo chunk diferido (`static/chunks/3fl1g5p746oap.js`, 569 KB, único que contiene `WebGLRenderer`/`forceContextLoss`). Ningún `page_client-reference-manifest` de las 11 rutas lo lista; el HTML de la fase 3 no lo referencia; en el navegador no se pide al cargar la página y se pide una sola vez al pulsar «Ver relieve». Solo lo referencia el chunk del `ReliefViewer` (`import()`). Existe además una copia del módulo para SSR en `.next/server/chunks/ssr/` (compilación del `import()` en servidor): no se ejecuta en el render (los efectos no corren en servidor).
+- Rutas y regresión (build real): `/proyectos`, `/cartera`, `/por-promover`, `/reporte-semanal`, `/ajustes` 200; `/` redirige a `/cartera`; `/proyectos/PRY-EJ-00{1..4}` redirige a su fase actual (3, 0, 6, 2); fases 0..7 de las cuatro: 200 y un único h1; «hecha/actual/vista» correctos; el panel «Datos técnicos del inmueble» solo en la fase 2 y «Relieve 3D del terreno» solo en la fase 3; `/plan-y-tiempos` 200 (EJ-002 sin tablas: «Sin plan hasta promover»); 404 en `NOEXISTE`, `/fase/8`, `/fase/x` y `/nada`. Fase 2 (EJ-004): consulta, 56 etiquetas, «Editado» con «Valor de Catastro: 142», «Restaurar», «Todo verificado», capacidad. Plan y tiempos de EJ-001: resumen (11 / 64 sem, 4 sem en pausa, +1 sem), tabla por fase e historial. Fase 1 en solo lectura (`readOnly`, sin cambios).
+- Revisión de nombres: sin identificadores, comentarios ni títulos de tests en español fuera de cadenas de interfaz, nombres de fases, `PRY-EJ-00N` y las URLs (`proyectos`, `fase`, `plan-y-tiempos`, ya documentadas como excepción). Se escaparon `atajos` (prop de `ReliefControls` y constante de `ReliefViewer`, la tabla decía `shortcuts`) y `centroX`/`centroY` de `lib/relief-scene.ts`: corregidos (ver «Cambios del Tester»).
+
+### Visor en el navegador
+- Referencia de la ficha (`1234567DG3413S0001AB`): el lienzo renderiza (1858 colores distintos en el lienzo, no vacío), Superficie 503 m², altitud 170,4–173,3 m, desnivel 2,9 m, pendiente 12,1 %, Vista 73 × 78 m, solo «Orientativo… Fuente: Relieve simulado». Residencial (`9876543DF3897N0001XY`): 1025 m², 228,1–231,7 m, 3,6 m, 9,4 %, 90 × 87 m, sin avisos de recorte. Rústica (`08187A005001230000OK`): 87.002 m², 314,6–349,9 m, 35,2 m, 13,2 %, Vista 200 × 200 m, avisos «Parcela mayor que la ventana…» y «El borde se corta…».
+- Lado máximo en la rústica: 100 → 100 × 100 con ambos avisos; 300 → 300 × 300 con ambos; 500 → 388 × 405 sin avisos; 200 → 200 × 200 con ambos. Recorte 0/10/25/50/100 con lado 200: sigue 200 × 200 (la ventana está limitada). Cada cambio vuelve a consultar y redibuja (1 contexto nuevo por cambio).
+- Exageración ×1/×2/×3: la escena cambia (el hash del lienzo cambia), la lectura «Relieve» pasa a ×N, no aparece «Cargando…» y no se crea ningún contexto nuevo (14 antes, 14 después): no consulta.
+- Controles antes de mostrar nada: no hay lienzo ni error; al pulsar «Ver relieve» se usan los valores elegidos (300 m, ×3).
+- Botones: «Acercar», «Alejar» y «Restablecer vista» cambian la vista; «Restablecer» deja exactamente el encuadre inicial (la diferencia de hash con el primer cuadro es solo el anillo de foco del botón). Rotación con ratón (arrastrar), rueda y flechas (←, →, ↑, ↓ con el lienzo enfocado): todas cambian la escena.
+- Referencia inválida: 19, 21 (quitando `maxlength` desde la consola), con `!`, vacía y con espacio interior: aviso «La referencia catastral debe tener 20 caracteres.», `aria-describedby` apuntando al aviso, 0 contextos nuevos (no se consulta). El aviso desaparece al enviar una válida. Minúsculas (`08187a…ok`): mismas lecturas que en mayúsculas y `aria-label` en mayúsculas. Un pegado de 20 caracteres con espacio inicial se rechaza (el espacio cuenta para el `maxLength`): baja.
+- Casos borde: 6 referencias distintas pulsadas sin esperar: gana la última (aria-label y 1 sola escena viva); 12 clics síncronos en «Ver relieve»: 1 escena; cambiar Lado máximo 10 veces seguidas: 1 escena viva; redimensionar la ventana 1440 → 1000 → 700 → 1440: el lienzo sigue al contenedor (672/372/1112 px de ancho, sin barra horizontal, sin quedar vacío); cambiar de pestaña y volver: sin errores. Un sondeo con otra pestaña al frente no cambia `visibilityState` en Chromium headless (no probado de verdad).
+
+### Liberación de WebGL (criterio clave)
+Se parchea `HTMLCanvasElement.prototype.getContext` antes de cargar la página: se guarda cada contexto WebGL creado, se escucha `webglcontextlost` y se consulta `gl.isContextLost()` y `canvas.isConnected`.
+
+| Situación | Creados | Vivos | Canvas en el DOM |
+|---|---|---|---|
+| Tras «Ver relieve» | 1 | 1 | 1 |
+| 5 ciclos «ver relieve → enlace a Cartera → Proyectos → proyecto» (y «Ver relieve» repetido en cada vuelta) | 6 | 1 en pantalla; **0 al salir** en los 5 | 0 al salir |
+| 5 veces «pulsar Ver relieve e ir a Cartera en el acto» | 11 | 0 al salir | 0 |
+| Atrás / Adelante del historial | 12 | 0 al salir | 0 |
+| Reemplazo: 3 referencias seguidas + 10 cambios de Lado máximo | 25 en total | **1** | 1 |
+
+Máximo de contextos vivos simultáneos en toda la sesión: **1** (el límite de Chromium es 16 y se crearon 25 sin ningún aviso «Too many active WebGL contexts»; la consola no tuvo errores ni avisos). Al final, 24 eventos `webglcontextlost` por 25 creados (el último sigue vivo). Desmontaje con la importación dinámica en curso (el chunk de `three` retrasado 2,5 s con `page.route`): al llegar el chunk tras salir de la página, 0 contextos creados y 0 canvas; volver y pulsar crea 1 normal. Dos consultas con la importación pendiente: 1 contexto creado y la escena es la de la última. Con `next dev` (React StrictMode, doble efecto) 4 ciclos: máximo 1 vivo, 0 al salir.
+
+### Sin WebGL
+Con `getContext('webgl'|'webgl2')` devolviendo `null` (script de inicio), claro y oscuro: aviso «Este navegador no puede mostrar el modelo 3D (WebGL no disponible).», sin lienzo, la página sigue entera (h1, entregable, controles). Las lecturas y el aviso «Orientativo» se siguen mostrando; Recorte, Lado y Exageración funcionan (la lectura pasa a ×3, 300 × 300…), la validación de la referencia sigue avisando y se puede reintentar. Three escribe en consola «THREE.WebGLRenderer: Error creating WebGL context.» (ruido de la librería, esperado).
+
+### Accesibilidad y contraste
+- axe-core real (wcag2a/aa, 21aa, best-practice): 0 violaciones en estado inicial, con relieve y sin WebGL, en claro y en oscuro.
+- Una `label` por control; foco visible: outline sólido de 2 px con offset 2 px en `--focus` (11,3:1 sobre `surface` en claro, 5,6:1 en oscuro) tanto en los botones como en el contenedor del lienzo (`role="img"`, `aria-label`, `tabIndex=0`); lecturas y avisos en el DOM.
+- Contraste con los tokens. Texto: `muted` sobre `surface` (ayuda y «↑ N») 5,59 claro / 6,92 oscuro; `muted` sobre `surface-2` (etiquetas de lecturas) 4,64 / 5,94; `ink` sobre `surface-2` 14,0 / 11,8; `warn` sobre `warn-soft` 4,77 / 6,83. No textual: línea de acento de la parcela sobre el fondo 9,39 / 4,81. Por debajo de 3:1 (ver hallazgos 3 y 4): borde del recorte (`--line` sobre `surface-2`) 1,98 / 1,93; extremos de la rampa `--relief-*` contra el fondo (1,09 en el tono más alto en claro; 2,22 en el más bajo en oscuro), y el relleno de la parcela (acento al 45 %) contra los tonos de la rampa (1,03-2,3). El borde de los controles (`--hair`) está en 1,47 / 1,35 sobre `surface`: patrón heredado de la app.
+
+### Criterios
+
+| Criterio | Resultado | Evidencia |
+|---|---|---|
+| Libera WebGL al salir y al reemplazar | Cumple | tabla anterior: máx. 1 vivo, 0 al salir, 0 canvas huérfanos, sin avisos de contextos |
+| Mensaje sin WebGL | Cumple | mensaje exacto, página intacta, controles operativos |
+| Recorte, lado máximo, exageración; rústica centrada y recortada | Cumple | 200 × 200 con ambos avisos; exageración sin consulta |
+| Lecturas y avisos | Cumple | valores coherentes en el DOM; avisos solo en la rústica con lado ≤ 300 |
+| Referencia inválida | Cumple | aviso, 0 consultas |
+| Accesible con teclado, DOM, español, tokens | Cumple (con hallazgos de contraste visual, 3 y 4) | axe 0, foco 2 px, flechas |
+| lint, typecheck, test, build; three solo en su chunk | Cumple | ver arriba |
+| Pantallazos | Cumple | ver abajo |
+
+### Hallazgos
+1. **Media, sin corregir.** El relleno translúcido de la parcela se triangula solo con los vértices del perímetro (como el borrador) y queda plano frente al terreno: el terreno asoma por «agujeros» dentro de la parcela (visible en `residential-light.png`, y en la rústica casi toda la ventana se ve moteada). Propuesta: remuestrear el relleno sobre la rejilla de la malla recortada al polígono, o subdividir los triángulos.
+2. **Baja.** El encuadre inicial en un contenedor ancho y bajo (1114 × 460) recorta el borde sur de la malla (la esquina más cercana sale del lienzo); con «−» o la rueda se ve entera. Mismo encuadre que el borrador, que usa 500 px de alto.
+3. **Baja (visual).** En claro, los tonos altos de la rampa (`--relief-mid-high` 1,50:1 y `--relief-high` 1,09:1 frente al fondo `surface-2`) se funden con el fondo en las zonas más iluminadas del borde; lo mitiga el sombreado de la luz. En oscuro, el relleno de acento al 45 % sobre los tonos medios y altos de la rampa se distingue poco del terreno (1,03-1,12); la parcela se reconoce por el tono rosado y la línea de acento (4,81:1 sobre el fondo, pero contra el terreno menos).
+4. **Baja.** El borde del recorte (`--line`) no llega a 3:1 contra el fondo (1,98 claro / 1,93 oscuro); es un trazo de apoyo y la ventana también la dan «Vista» y los avisos en texto.
+5. **Baja.** Si el navegador pierde el contexto WebGL (`webglcontextlost` por la GPU), el lienzo se queda en blanco sin mensaje ni restauración. No lo exige el plan.
+6. **Baja.** Un pegado de la referencia con un espacio inicial se corta a 20 caracteres con el espacio y da «debe tener 20 caracteres». Quitar `maxLength` y recortar al validar lo resolvería (el contrato ya recorta).
+7. **Info.** El campo de referencia no marca `aria-invalid` (usa `aria-describedby` al aviso; el aviso está en una región `aria-live`).
+
+### Cambios del Tester
+- Renombres que faltaban del refactor a inglés, sin cambio de comportamiento: `atajos` a `shortcuts` (`ReliefControls`, `ReliefViewer`) y `centroX`/`centroY` a `centerX`/`centerY` (`lib/relief-scene.ts`). Tras el cambio: lint, typecheck, test (790/790) y build en verde.
+- Pantallazos nuevos. Ningún test añadido (no apareció ningún hueco que no cubra ya la suite).
+
+### Pantallazos (`docs/plans/RGB-34/screenshots/`, 1440 px, build real, datos ficticios, claro `-light` y oscuro `-dark`)
+`residential-*.png` (parcela residencial con relieve), `rural-clipped-*.png` (rústica 200 × 200 recortada con los dos avisos), `exaggeration-x3-*.png` (rústica ×3), `invalid-reference-*.png`, `no-webgl-*.png`, `focus-canvas-*.png` (foco de teclado en el lienzo tras girar con la flecha), `focus-control-*.png` (foco en un botón del visor).
+
+Defectos visuales: hallazgos 1 (agujeros en el relleno), 2 (borde sur recortado por el lienzo) y 3 (poco contraste de la rampa y del relleno en el modo oscuro). Sin solapes, sin lecturas cortadas ni controles desbordados; la escena nunca queda vacía.

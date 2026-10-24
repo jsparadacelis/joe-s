@@ -115,7 +115,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
     if (relief) void query({ reference: relief.reference, ...next });
   };
 
-  const atajos: readonly ReliefShortcut[] = [
+  const shortcuts: readonly ReliefShortcut[] = [
     { id: "sheet", label: "La de la ficha", reference: initialReference },
     { id: "rural", label: "Parcela rústica grande (simulada)", reference: RURAL_REFERENCE },
     { id: "residential", label: "Parcela residencial (simulada)", reference: RESIDENTIAL_REFERENCE },
@@ -130,7 +130,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
         margin={margin}
         maxSide={maxSide}
         exaggeration={exaggeration}
-        atajos={atajos}
+        shortcuts={shortcuts}
         errorId={referenceError ? REFERENCE_ERROR_ID : undefined}
         onReference={setReference}
         onMargin={(m) => changeViewWindow({ margin: m, maxSide })}

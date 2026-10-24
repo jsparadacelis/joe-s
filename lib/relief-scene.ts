@@ -233,14 +233,14 @@ export function mountScene(
     build(exaggeration);
 
     const side = Math.max(x1 - x0, y1 - y0);
-    const centroX = (x0 + x1) / 2;
-    const centroY = (y0 + y1) / 2;
-    controls.target.set(centroX, 0, -centroY);
+    const centerX = (x0 + x1) / 2;
+    const centerY = (y0 + y1) / 2;
+    controls.target.set(centerX, 0, -centerY);
     controls.minDistance = side * 0.25;
     controls.maxDistance = side * 4;
     const activeControls = controls;
     const frameView = () => {
-      camera.position.set(centroX + side * 0.45, side * 0.75, -centroY + side * 0.9);
+      camera.position.set(centerX + side * 0.45, side * 0.75, -centerY + side * 0.9);
       camera.lookAt(activeControls.target);
       activeControls.update();
     };

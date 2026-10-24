@@ -10,7 +10,7 @@ export type ReliefControlsProps = {
   margin: Margin;
   maxSide: MaxSide;
   exaggeration: Exaggeration;
-  atajos: readonly ReliefShortcut[];
+  shortcuts: readonly ReliefShortcut[];
   errorId?: string;
   onReference: (value: string) => void;
   onMargin: (value: Margin) => void;
@@ -30,7 +30,7 @@ export function ReliefControls({
   margin,
   maxSide,
   exaggeration,
-  atajos,
+  shortcuts,
   errorId,
   onReference,
   onMargin,
@@ -124,7 +124,7 @@ export function ReliefControls({
 
       <div className="flex flex-wrap items-center gap-2 text-s text-muted">
         <span>Probar con:</span>
-        {atajos.map((a) => (
+        {shortcuts.map((a) => (
           <Button key={a.id} size="sm" disabled={a.reference === ""} onClick={() => onShortcut(a.reference)}>
             {a.label}
           </Button>
