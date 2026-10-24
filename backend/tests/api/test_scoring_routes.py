@@ -144,11 +144,19 @@ class TestPutSettings:
         assert response.status_code == 204
         assert settings_service.update.call_args.args[1] == body
 
-    def test_a_null_body_is_rejected_by_the_framework_as_an_invalid_request(
-        self, client, settings_service
-    ):
-        # FastAPI treats a JSON `null` as a missing body, so it never reaches the domain; the
-        # answer is still the project's 422 `invalid_request` in Spanish.
+    def test_a_json_null_body_reaches_the_domain(self, client, settings_service):
+        response = client.put(
+            "/api/settings/scoring",
+            content=b"null",
+            headers={"content-type": "application/json"},
+        )
+
+        assert response.status_code == 204
+        assert settings_service.update.call_args.args[1] is None
+
+    def test_a_missing_body_is_an_invalid_request(self, client, settings_service):
+        # The earlier version of this test sent `json=None`, which the test client turns into
+        # NO body at all (not a JSON null): the framework answers 422 `invalid_request`.
         response = client.put("/api/settings/scoring", json=None)
 
         assert response.status_code == 422
