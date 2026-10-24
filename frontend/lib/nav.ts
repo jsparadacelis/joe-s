@@ -7,11 +7,11 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/cartera", label: "Cartera", icon: Wallet },
-  { href: "/proyectos", label: "Proyectos", icon: FolderKanban },
-  { href: "/por-promover", label: "Por promover", icon: TrendingUp },
-  { href: "/reporte-semanal", label: "Reporte semanal", icon: BarChart3 },
-  { href: "/ajustes", label: "Ajustes y equipo", icon: Settings },
+  { href: "/portfolio", label: "Cartera", icon: Wallet },
+  { href: "/projects", label: "Proyectos", icon: FolderKanban },
+  { href: "/to-promote", label: "Por promover", icon: TrendingUp },
+  { href: "/weekly-report", label: "Reporte semanal", icon: BarChart3 },
+  { href: "/settings", label: "Ajustes y equipo", icon: Settings },
 ];
 
 /** Returns the item whose route matches `pathname` (exactly or as a segment prefix). */

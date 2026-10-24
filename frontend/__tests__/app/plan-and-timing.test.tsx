@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
-import PlanAndTimingPage from "@/app/proyectos/[code]/plan-y-tiempos/page";
-import ProjectLayout from "@/app/proyectos/[code]/layout";
+import PlanAndTimingPage from "@/app/projects/[code]/plan-and-timing/page";
+import ProjectLayout from "@/app/projects/[code]/layout";
 
 const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -18,9 +18,9 @@ const page = (code: string) => PlanAndTimingPage({ params: Promise.resolve({ cod
 const layout = (code: string) =>
   ProjectLayout({ params: Promise.resolve({ code }), children: <p>Contenido hijo</p> });
 
-beforeEach(() => mockPathname.mockReturnValue("/proyectos/PRY-EJ-001/plan-y-tiempos"));
+beforeEach(() => mockPathname.mockReturnValue("/projects/PRY-EJ-001/plan-and-timing"));
 
-describe("/proyectos/[code]/plan-y-tiempos", () => {
+describe("/projects/[code]/plan-and-timing", () => {
   it("returns 404 if the project does not exist", async () => {
     await expect(page("NO-EXISTE")).rejects.toThrow("NEXT_NOT_FOUND");
   });
@@ -50,7 +50,7 @@ describe("/proyectos/[code]/plan-y-tiempos", () => {
   });
 
   it("PRY-EJ-003: shows the active-pause notice with its reason", async () => {
-    mockPathname.mockReturnValue("/proyectos/PRY-EJ-003/plan-y-tiempos");
+    mockPathname.mockReturnValue("/projects/PRY-EJ-003/plan-and-timing");
     render(await page("PRY-EJ-003"));
     expect(screen.getByRole("status")).toHaveTextContent("Espera de organismo");
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
@@ -58,7 +58,7 @@ describe("/proyectos/[code]/plan-y-tiempos", () => {
   });
 
   it("PRY-EJ-004 (phase 2, RGB-29): shows its plan with seven bars and a single h1", async () => {
-    mockPathname.mockReturnValue("/proyectos/PRY-EJ-004/plan-y-tiempos");
+    mockPathname.mockReturnValue("/projects/PRY-EJ-004/plan-and-timing");
     render(await page("PRY-EJ-004"));
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getAllByRole("progressbar")).toHaveLength(7);
@@ -66,7 +66,7 @@ describe("/proyectos/[code]/plan-y-tiempos", () => {
   });
 
   it("PRY-EJ-002 (phase 0): empty state «Sin plan hasta promover», no table or bars", async () => {
-    mockPathname.mockReturnValue("/proyectos/PRY-EJ-002/plan-y-tiempos");
+    mockPathname.mockReturnValue("/projects/PRY-EJ-002/plan-and-timing");
     render(await page("PRY-EJ-002"));
     expect(screen.getByText("Sin plan hasta promover")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
@@ -80,9 +80,9 @@ describe("/proyectos/[code]/plan-y-tiempos", () => {
   });
 });
 
-describe("/proyectos/[code]/layout", () => {
+describe("/projects/[code]/layout", () => {
   it("renders the project tabs above children", async () => {
-    mockPathname.mockReturnValue("/proyectos/PRY-EJ-001/fase/3");
+    mockPathname.mockReturnValue("/projects/PRY-EJ-001/phase/3");
     render(await layout("PRY-EJ-001"));
     const nav = screen.getByRole("navigation", { name: "Secciones del proyecto" });
     expect(nav).toBeInTheDocument();
@@ -93,16 +93,16 @@ describe("/proyectos/[code]/layout", () => {
 
   it("the tabs point to the project's current phase and to Plan y tiempos", async () => {
     render(await layout("PRY-EJ-003"));
-    expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/proyectos/PRY-EJ-003/fase/6");
+    expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/projects/PRY-EJ-003/phase/6");
     expect(screen.getByRole("link", { name: "Plan y tiempos" })).toHaveAttribute(
       "href",
-      "/proyectos/PRY-EJ-003/plan-y-tiempos",
+      "/projects/PRY-EJ-003/plan-and-timing",
     );
   });
 
   it("even a project in phase 0 shows both tabs", async () => {
     render(await layout("PRY-EJ-002"));
-    expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/proyectos/PRY-EJ-002/fase/0");
+    expect(screen.getByRole("link", { name: "Fase y promoción" })).toHaveAttribute("href", "/projects/PRY-EJ-002/phase/0");
     expect(screen.getByRole("link", { name: "Plan y tiempos" })).toBeInTheDocument();
   });
 

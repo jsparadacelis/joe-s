@@ -7,7 +7,7 @@ Plataforma web de escritorio para que RGB Arquitectos gestione proyectos como un
 - `frontend/`: Next.js (rutas en `app/`, `components/`, `lib/`, `__tests__/`, configuración y `package.json`). Comandos con `npm --prefix frontend <script>` o desde esa carpeta.
 - `backend/`: FastAPI. Código en `app/`, `migrations/`, `tests/`; `Dockerfile`, `requirements*.txt` y `pyproject.toml` en la misma carpeta. Comandos desde la raíz: `ruff check backend`, `pytest backend`, `python -m backend.app.shared.migrate`.
 - `docs/` (arquitectura, despliegue, estado y planes por tarea), `skills/`, `scripts/` y `docker-compose.yml` (Postgres local) en la raíz, junto a `.github/` (CI).
-- Los planes antiguos de `docs/plans/` citan rutas anteriores al reordenado (`app/`, `lib/`... ahora bajo `frontend/`).
+- Los planes antiguos de `docs/plans/` citan rutas y URLs anteriores al reordenado (`app/`, `lib/`... ahora bajo `frontend/`) y a su paso a inglés (`/proyectos` → `/projects`).
 
 ## Reglas
 

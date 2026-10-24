@@ -11,7 +11,7 @@ const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 describe("keyboard navigation", () => {
-  beforeEach(() => mockPathname.mockReturnValue("/cartera"));
+  beforeEach(() => mockPathname.mockReturnValue("/portfolio"));
 
   it("Tab goes through skip link, sidebar items and content buttons in order", async () => {
     const user = userEvent.setup();
@@ -34,11 +34,11 @@ describe("keyboard navigation", () => {
     expect(screen.getByRole("button", { name: "Last" })).toHaveFocus();
   });
 
-  it("the skip link points to an existing target (#contenido)", () => {
+  it("the skip link points to an existing target (#content)", () => {
     render(<AppShell>x</AppShell>);
     const href = screen.getByRole("link", { name: "Saltar al contenido" }).getAttribute("href");
-    expect(href).toBe("#contenido");
-    expect(document.getElementById("contenido")?.tagName).toBe("MAIN");
+    expect(href).toBe("#content");
+    expect(document.getElementById("content")?.tagName).toBe("MAIN");
   });
 
   it("Shift+Tab goes back through the sidebar", async () => {
@@ -70,7 +70,7 @@ describe("aria-current by route", () => {
   });
 
   it("on a subroute the parent item is marked", () => {
-    mockPathname.mockReturnValue("/proyectos/abc");
+    mockPathname.mockReturnValue("/projects/abc");
     render(<Sidebar />);
     expect(screen.getByRole("link", { name: "Proyectos" })).toHaveAttribute("aria-current", "page");
   });
@@ -81,8 +81,8 @@ describe("aria-current by route", () => {
     expect(document.querySelector('[aria-current]')).toBeNull();
   });
 
-  it("a partial prefix (/proyectosX) does not mark /proyectos", () => {
-    mockPathname.mockReturnValue("/proyectosX");
+  it("a partial prefix (/projectsX) does not mark /projects", () => {
+    mockPathname.mockReturnValue("/projectsX");
     render(<Sidebar />);
     expect(document.querySelector('[aria-current]')).toBeNull();
   });

@@ -21,7 +21,7 @@ export default async function Page() {
             {projects.map((p) => (
               <li key={p.code} className="border-b border-hair">
                 <Link
-                  href={`/proyectos/${p.code}/fase/${p.currentPhase}`}
+                  href={`/projects/${p.code}/phase/${p.currentPhase}`}
                   className="flex items-center justify-between gap-4 py-3 text-m"
                 >
                   <span>

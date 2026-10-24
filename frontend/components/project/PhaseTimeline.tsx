@@ -26,7 +26,7 @@ export function PhaseTimeline({ code, currentPhase, viewedPhase }: PhaseTimeline
           return (
             <li key={phase.id} className="min-w-0">
               <Link
-                href={`/proyectos/${code}/fase/${phase.id}`}
+                href={`/projects/${code}/phase/${phase.id}`}
                 aria-current={onScreen ? "page" : undefined}
                 className={`flex h-full flex-col gap-0.5 rounded-base px-2.5 py-2 ${STYLES[state]} ${
                   onScreen ? "ring-2 ring-ink" : ""

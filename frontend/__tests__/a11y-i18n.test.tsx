@@ -10,19 +10,19 @@ import { Notice } from "@/components/ui/Notice";
 import { Panel } from "@/components/ui/Panel";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { Table } from "@/components/ui/Table";
-import SettingsPage from "@/app/ajustes/page";
-import PortfolioPage from "@/app/cartera/page";
-import ToPromotePage from "@/app/por-promover/page";
-import WeeklyReportPage from "@/app/reporte-semanal/page";
+import SettingsPage from "@/app/settings/page";
+import PortfolioPage from "@/app/portfolio/page";
+import ToPromotePage from "@/app/to-promote/page";
+import WeeklyReportPage from "@/app/weekly-report/page";
 
 const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 const pages = [
-  ["/cartera", PortfolioPage],
-  ["/por-promover", ToPromotePage],
-  ["/reporte-semanal", WeeklyReportPage],
-  ["/ajustes", SettingsPage],
+  ["/portfolio", PortfolioPage],
+  ["/to-promote", ToPromotePage],
+  ["/weekly-report", WeeklyReportPage],
+  ["/settings", SettingsPage],
 ] as const;
 
 describe("axe over the full AppShell with each page", () => {

@@ -1,11 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import { axe } from "jest-axe";
-import ProjectsPage from "@/app/proyectos/page";
-import ProjectPage from "@/app/proyectos/[code]/page";
-import PhasePage from "@/app/proyectos/[code]/fase/[phase]/page";
+import ProjectsPage from "@/app/projects/page";
+import ProjectPage from "@/app/projects/[code]/page";
+import PhasePage from "@/app/projects/[code]/phase/[phase]/page";
 
 jest.mock("next/navigation", () => ({
-  usePathname: () => "/proyectos",
+  usePathname: () => "/projects",
   redirect: (url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   },
@@ -17,14 +17,14 @@ jest.mock("next/navigation", () => ({
 const phase = (code: string, f: string) =>
   PhasePage({ params: Promise.resolve({ code, phase: f }) });
 
-describe("/proyectos", () => {
+describe("/projects", () => {
   it("lists the sample projects with a link to their current phase", async () => {
     render(await ProjectsPage());
     expect(screen.getByRole("heading", { level: 1, name: "Proyectos" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /PRY-EJ-001/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-001/fase/3");
-    expect(screen.getByRole("link", { name: /PRY-EJ-002/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-002/fase/0");
-    expect(screen.getByRole("link", { name: /PRY-EJ-003/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-003/fase/6");
-    expect(screen.getByRole("link", { name: /PRY-EJ-004/ })).toHaveAttribute("href", "/proyectos/PRY-EJ-004/fase/2");
+    expect(screen.getByRole("link", { name: /PRY-EJ-001/ })).toHaveAttribute("href", "/projects/PRY-EJ-001/phase/3");
+    expect(screen.getByRole("link", { name: /PRY-EJ-002/ })).toHaveAttribute("href", "/projects/PRY-EJ-002/phase/0");
+    expect(screen.getByRole("link", { name: /PRY-EJ-003/ })).toHaveAttribute("href", "/projects/PRY-EJ-003/phase/6");
+    expect(screen.getByRole("link", { name: /PRY-EJ-004/ })).toHaveAttribute("href", "/projects/PRY-EJ-004/phase/2");
   });
 
   it("states that they are sample projects", async () => {
@@ -38,13 +38,13 @@ describe("/proyectos", () => {
   });
 });
 
-describe("/proyectos/[code]", () => {
+describe("/projects/[code]", () => {
   it("redirects to the project's current phase", async () => {
     await expect(ProjectPage({ params: Promise.resolve({ code: "PRY-EJ-001" }) })).rejects.toThrow(
-      "/proyectos/PRY-EJ-001/fase/3",
+      "/projects/PRY-EJ-001/phase/3",
     );
     await expect(ProjectPage({ params: Promise.resolve({ code: "PRY-EJ-002" }) })).rejects.toThrow(
-      "/proyectos/PRY-EJ-002/fase/0",
+      "/projects/PRY-EJ-002/phase/0",
     );
   });
 
@@ -55,13 +55,13 @@ describe("/proyectos/[code]", () => {
   });
 });
 
-describe("/proyectos/[code]/fase/[phase]", () => {
+describe("/projects/[code]/phase/[phase]", () => {
   it("current phase: phase timeline, no notice and editable fields with Guardar", async () => {
     render(await phase("PRY-EJ-001", "3"));
     expect(screen.getByRole("navigation", { name: "Fases del proyecto" })).toBeInTheDocument();
     expect(screen.getAllByRole("link").find((l) => l.getAttribute("aria-current") === "page")).toHaveAttribute(
       "href",
-      "/proyectos/PRY-EJ-001/fase/3",
+      "/projects/PRY-EJ-001/phase/3",
     );
     expect(screen.queryByText(/Fase cerrada/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Vista previa/)).not.toBeInTheDocument();
@@ -76,7 +76,7 @@ describe("/proyectos/[code]/fase/[phase]", () => {
     expect(screen.getByText(/Fase cerrada · versión congelada/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Volver a la fase actual" })).toHaveAttribute(
       "href",
-      "/proyectos/PRY-EJ-001/fase/3",
+      "/projects/PRY-EJ-001/phase/3",
     );
     expect(screen.queryByRole("button", { name: "Guardar" })).not.toBeInTheDocument();
     const fields = screen.getAllByRole("textbox") as HTMLInputElement[];
@@ -116,7 +116,7 @@ describe("/proyectos/[code]/fase/[phase]", () => {
   });
 });
 
-describe("/proyectos/[code]/fase/2 · technical data (RGB-29)", () => {
+describe("/projects/[code]/phase/2 · technical data (RGB-29)", () => {
   const TITLE = "Datos técnicos del inmueble";
 
   it("PRY-EJ-004 (current phase): panel with the prefilled reference and «Obtener datos técnicos»", async () => {
@@ -185,7 +185,7 @@ describe("/proyectos/[code]/fase/2 · technical data (RGB-29)", () => {
   });
 });
 
-describe("/proyectos/[code]/fase/3 · 3D relief viewer (RGB-34)", () => {
+describe("/projects/[code]/phase/3 · 3D relief viewer (RGB-34)", () => {
   const TITLE = "Relieve 3D del terreno";
 
   it("PRY-EJ-001 (current phase): panel with the sheet's reference, below the generic deliverable", async () => {

@@ -27,7 +27,7 @@ describe("ModeBanner", () => {
     render(<ModeBanner code="PRY-EJ-001" currentPhase={3} viewedPhase={upcoming as 1 | 5} />);
     expect(screen.getByRole("link", { name: "Volver a la fase actual" })).toHaveAttribute(
       "href",
-      "/proyectos/PRY-EJ-001/fase/3",
+      "/projects/PRY-EJ-001/phase/3",
     );
   });
 
@@ -35,7 +35,7 @@ describe("ModeBanner", () => {
     render(<ModeBanner code="PRY-EJ-003" currentPhase={6} viewedPhase={0} />);
     expect(screen.getByRole("link", { name: "Volver a la fase actual" })).toHaveAttribute(
       "href",
-      "/proyectos/PRY-EJ-003/fase/6",
+      "/projects/PRY-EJ-003/phase/6",
     );
   });
 

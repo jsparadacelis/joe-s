@@ -11,10 +11,10 @@ export type ProjectTabsProps = {
 
 export function ProjectTabs({ code, currentPhase }: ProjectTabsProps) {
   const path = usePathname() ?? "";
-  const base = `/proyectos/${code}`;
+  const base = `/projects/${code}`;
   const tabs = [
-    { text: "Fase y promoción", href: `${base}/fase/${currentPhase}`, active: path.startsWith(`${base}/fase/`) },
-    { text: "Plan y tiempos", href: `${base}/plan-y-tiempos`, active: path === `${base}/plan-y-tiempos` },
+    { text: "Fase y promoción", href: `${base}/phase/${currentPhase}`, active: path.startsWith(`${base}/phase/`) },
+    { text: "Plan y tiempos", href: `${base}/plan-and-timing`, active: path === `${base}/plan-and-timing` },
   ];
   return (
     <nav aria-label="Secciones del proyecto">
