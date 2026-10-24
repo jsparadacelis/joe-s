@@ -13,8 +13,12 @@ from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
+from backend.app.opportunity.application.create_opportunity import CreateOpportunity
 from backend.app.opportunity.application.plan_settings import PlanSettingsService
+from backend.app.opportunity.infrastructure.postgres_opportunity import PostgresOpportunities
 from backend.app.opportunity.infrastructure.postgres_plan_settings import PostgresPlanSettings
+from backend.app.portfolio.application.queries import PortfolioQueries
+from backend.app.portfolio.infrastructure.postgres_projects import PostgresProjects
 from backend.app.shared.config import Settings
 from backend.app.shared.db import study_transaction
 from backend.app.study.domain.context import Qualification, RequestContext, Role
@@ -51,6 +55,39 @@ def unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> UnitOf
                 PostgresAuditLog(conn),
                 VALIDATORS_BY_PHASE,
             )
+
+    return open_unit
+
+
+OpportunityUnitOfWork = Callable[[RequestContext], AbstractContextManager[CreateOpportunity]]
+
+
+def opportunity_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> OpportunityUnitOfWork:
+    """Composition root for creating opportunities: project, opportunity and audit in one
+    transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[CreateOpportunity]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield CreateOpportunity(PostgresOpportunities(conn), PostgresAuditLog(conn))
+
+    return open_unit
+
+
+PortfolioUnitOfWork = Callable[[RequestContext], AbstractContextManager[PortfolioQueries]]
+
+
+def portfolio_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> PortfolioUnitOfWork:
+    """Composition root for the portfolio reads: one RLS-scoped transaction per request."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[PortfolioQueries]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield PortfolioQueries(PostgresProjects(conn))
 
     return open_unit
 
