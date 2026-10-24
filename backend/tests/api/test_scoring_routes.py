@@ -137,12 +137,23 @@ class TestPutSettings:
         assert response.status_code == 422
         assert response.json() == {"detail": {"code": code, "message": error.message}}
 
-    @pytest.mark.parametrize("body", [[1, 2], "x", 3, None, True])
+    @pytest.mark.parametrize("body", [[1, 2], "x", 3, True])
     def test_any_json_body_reaches_the_domain(self, client, settings_service, body):
         response = client.put("/api/settings/scoring", json=body)
 
         assert response.status_code == 204
         assert settings_service.update.call_args.args[1] == body
+
+    def test_a_null_body_is_rejected_by_the_framework_as_an_invalid_request(
+        self, client, settings_service
+    ):
+        # FastAPI treats a JSON `null` as a missing body, so it never reaches the domain; the
+        # answer is still the project's 422 `invalid_request` in Spanish.
+        response = client.put("/api/settings/scoring", json=None)
+
+        assert response.status_code == 422
+        assert response.json()["detail"]["code"] == "invalid_request"
+        settings_service.update.assert_not_called()
 
 
 class TestPostScoring:

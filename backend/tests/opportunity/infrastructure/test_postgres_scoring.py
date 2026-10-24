@@ -11,8 +11,8 @@ from backend.app.opportunity.application.scoring import ScoringService, ScoringS
 from backend.app.opportunity.domain.errors import InvalidRatings
 from backend.app.opportunity.domain.scoring import Criterion, Recommendation
 from backend.app.opportunity.infrastructure.postgres_scoring import (
-    PostgresScoringSettings,
     PostgresScorings,
+    PostgresScoringSettings,
 )
 from backend.app.shared.db import study_transaction
 from backend.app.shared.migrate import MIGRATIONS_DIR, apply_migrations
@@ -158,10 +158,12 @@ class TestScore:
         row = admin_rows(
             url,
             "SELECT study_id::text, version, score, recommendation, threshold, scored_by, "
-            "ratings->>'client_fit', weights->>'client_fit', scored_at IS NOT NULL "
+            "ratings->>'client_fit', (weights->>'client_fit')::numeric, scored_at IS NOT NULL "
             "FROM opportunity_scorings",
         )
-        assert row == [(STUDY_A, 1, Decimal("60.0"), "pursue", 60, "demo-user", "3", "1", True)]
+        assert row == [
+            (STUDY_A, 1, Decimal("60.0"), "pursue", 60, "demo-user", "3", Decimal(1), True)
+        ]
 
     def test_versions_grow_per_project(self, url):
         assert [score(url).version for _ in range(3)] == [1, 2, 3]

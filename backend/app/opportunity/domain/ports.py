@@ -7,6 +7,12 @@ from typing import Protocol
 
 from backend.app.opportunity.domain.opportunity import Opportunity
 from backend.app.opportunity.domain.plan import ProjectType, Scale
+from backend.app.opportunity.domain.scoring import (
+    NewScoring,
+    ScorableProject,
+    Scoring,
+    ScoringSettings,
+)
 
 
 class PlanSettingsRepository(Protocol):
@@ -30,4 +36,30 @@ class OpportunityRepository(Protocol):
 
     def add(self, code: str, opportunity: Opportunity) -> None:
         """Create the project (phase 0, inactive) and its opportunity."""
+        ...
+
+
+class ScoringSettingsRepository(Protocol):
+    def get(self) -> ScoringSettings | None:
+        """The study's saved settings, or None when it has never changed them."""
+        ...
+
+    def save(self, settings: ScoringSettings) -> None:
+        """Replace the study's settings. Saved scorings are never touched."""
+        ...
+
+
+class ScoringRepository(Protocol):
+    def get_project(self, code: str, *, lock: bool = True) -> ScorableProject | None:
+        """The project of the study; `lock` serializes concurrent scorings of the same one."""
+        ...
+
+    def add(self, new: NewScoring) -> Scoring:
+        """Insert the next version of the project's scoring (insert-only)."""
+        ...
+
+    def latest(self, project_id: str) -> Scoring | None: ...
+
+    def history(self, project_id: str) -> list[Scoring]:
+        """Every version, newest first."""
         ...
