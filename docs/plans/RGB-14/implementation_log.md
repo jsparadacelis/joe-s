@@ -48,3 +48,14 @@ Base local vaciada de `opportunity_scorings`, `scoring_settings`, `opportunities
 - Opcional: que el 422 de pesos incluya `field` para marcar solo el peso afectado.
 - Recomendación de scoring en RGB-16/17; no cambia el estado del proyecto.
 - No verificado: Supabase/Cloud Run, anchos móviles de los pantallazos reales (solo 1280 px; el frente verificó 1024 y 800 con stub).
+
+## Veredicto del Juez (agente independiente, Opus)
+
+**Aprobado**, sin bloqueantes. Ejecutó él mismo: `pytest backend` 910 en verde, `ruff`, `lint`, `typecheck`, 1479 tests del front, `build` y un recorrido de punta a punta con API y build reales (base temporal, borrada después). Criterios: todo a 3 con pesos iguales = 60,0; cambiar pesos y umbral no altera la v1. Diez POST simultáneos dieron versiones consecutivas con su auditoría.
+
+Seguimientos (no bloquean):
+1. El 422 de pesos del servidor no nombra el criterio y el front marca los siete pesos; el back puede añadir `field` a `InvalidWeights`.
+2. En el front los tests y el código van en el mismo commit: separarlos en las próximas tareas.
+3. La nota en vivo usa los ajustes de la carga de la página; si cambian mientras tanto, puede no coincidir con la guardada (se muestra siempre la de la API).
+4. Cuerpo ausente o JSON inválido dan 422 `invalid_request` antes del 404: reflejarlo en el contrato.
+5. Pendiente: desplegar migración 008 y backend (acción de la persona), permisos por rol (RGB-2/4), pantallazos reales a 800 px.
