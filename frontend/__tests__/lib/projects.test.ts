@@ -4,7 +4,8 @@ import { listProjects, fetchDeliverable, fetchProject } from "@/lib/projects";
 const IDS: PhaseId[] = [0, 1, 2, 3, 4, 5, 6, 7];
 
 describe("listProjects", () => {
-  it("returns the four sample projects with their current phase", async () => {
+  // RGB-11 fix F1: the portfolio links to PRY-EJ-005..007, so lib/projects.ts now knows seven projects (was four).
+  it("returns the seven sample projects with their current phase", async () => {
     const ps = await listProjects();
     expect(ps.map((p) => [p.code, p.currentPhase])).toEqual(
       expect.arrayContaining([
@@ -12,9 +13,12 @@ describe("listProjects", () => {
         ["PRY-EJ-002", 0],
         ["PRY-EJ-003", 6],
         ["PRY-EJ-004", 2],
+        ["PRY-EJ-005", 5],
+        ["PRY-EJ-006", 4],
+        ["PRY-EJ-007", 0],
       ]),
     );
-    expect(ps).toHaveLength(4);
+    expect(ps).toHaveLength(7);
   });
 
   it("the data is fictitious: «(ejemplo)» in the name and PRY-EJ-NNN codes", async () => {
