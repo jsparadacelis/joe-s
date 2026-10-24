@@ -1,0 +1,926 @@
+[
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 5,
+   "typology": 2,
+   "budget": 5,
+   "timeline": 4,
+   "source": 2,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 0.1,
+   "location": 0.1,
+   "typology": 0.1,
+   "budget": 0.1,
+   "timeline": 0.05,
+   "source": 0.1,
+   "probability": 0.25
+  },
+  "score": "63.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 4,
+   "typology": 2,
+   "budget": 3,
+   "timeline": 3,
+   "source": 4,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 0.05,
+   "location": 0.1,
+   "typology": 0.1,
+   "budget": 0.1,
+   "timeline": 0.25,
+   "source": 0.1,
+   "probability": 0.1
+  },
+  "score": "58.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 5,
+   "typology": 1,
+   "budget": 4,
+   "timeline": 2,
+   "source": 5,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 2,
+   "typology": 3,
+   "budget": 2,
+   "timeline": 2,
+   "source": 3,
+   "probability": 3
+  },
+  "score": "66.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 2,
+   "source": 5,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 0.5,
+   "source": 0.5,
+   "probability": 2
+  },
+  "score": "41.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 2,
+   "typology": 2,
+   "budget": 2,
+   "timeline": 2,
+   "source": 2,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 0.5,
+   "typology": 2,
+   "budget": 0.5,
+   "timeline": 0.5,
+   "source": 2,
+   "probability": 0.5
+  },
+  "score": "43.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 3,
+   "budget": 5,
+   "timeline": 3,
+   "source": 2,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 2,
+   "budget": 2,
+   "timeline": 2,
+   "source": 3,
+   "probability": 2
+  },
+  "score": "63.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 5,
+   "typology": 1,
+   "budget": 2,
+   "timeline": 3,
+   "source": 5,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 3,
+   "location": 1,
+   "typology": 1,
+   "budget": 3,
+   "timeline": 3,
+   "source": 3,
+   "probability": 2
+  },
+  "score": "61.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 2,
+   "typology": 1,
+   "budget": 5,
+   "timeline": 4,
+   "source": 4,
+   "probability": 4
+  },
+  "weights": {
+   "client_fit": 3,
+   "location": 3,
+   "typology": 1,
+   "budget": 2,
+   "timeline": 3,
+   "source": 3,
+   "probability": 1
+  },
+  "score": "63.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 3,
+   "typology": 2,
+   "budget": 5,
+   "timeline": 3,
+   "source": 5,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 1,
+   "budget": 3,
+   "timeline": 2,
+   "source": 3,
+   "probability": 2
+  },
+  "score": "71.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 1,
+   "typology": 5,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 3,
+   "location": 3,
+   "typology": 2,
+   "budget": 3,
+   "timeline": 2,
+   "source": 2,
+   "probability": 1
+  },
+  "score": "38.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 5,
+   "typology": 4,
+   "budget": 1,
+   "timeline": 3,
+   "source": 5,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 3,
+   "location": 3,
+   "typology": 2,
+   "budget": 3,
+   "timeline": 2,
+   "source": 2,
+   "probability": 1
+  },
+  "score": "66.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 1,
+   "location": 3,
+   "typology": 5,
+   "budget": 4,
+   "timeline": 5,
+   "source": 4,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 0.05,
+   "location": 0.25,
+   "typology": 0.05,
+   "budget": 0.1,
+   "timeline": 0.05,
+   "source": 0.25,
+   "probability": 0.05
+  },
+  "score": "73.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 3,
+   "typology": 1,
+   "budget": 4,
+   "timeline": 3,
+   "source": 2,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 3,
+   "location": 3,
+   "typology": 3,
+   "budget": 2,
+   "timeline": 3,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "58.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 4,
+   "typology": 2,
+   "budget": 5,
+   "timeline": 1,
+   "source": 3,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 0.5,
+   "typology": 1,
+   "budget": 0.5,
+   "timeline": 1,
+   "source": 2,
+   "probability": 1
+  },
+  "score": "51.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 4,
+   "typology": 4,
+   "budget": 1,
+   "timeline": 3,
+   "source": 2,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "60.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 3,
+   "typology": 2,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 2,
+   "budget": 2,
+   "timeline": 2,
+   "source": 0.5,
+   "probability": 0.5
+  },
+  "score": "42.2"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 5,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 5,
+   "source": 5,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 0.5,
+   "location": 0.5,
+   "typology": 1,
+   "budget": 0.5,
+   "timeline": 1,
+   "source": 1,
+   "probability": 2
+  },
+  "score": "67.7"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 5,
+   "typology": 2,
+   "budget": 4,
+   "timeline": 3,
+   "source": 5,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 0.05,
+   "location": 0.25,
+   "typology": 0.1,
+   "budget": 0.25,
+   "timeline": 0.25,
+   "source": 0.05,
+   "probability": 0.1
+  },
+  "score": "75.2"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 1,
+   "typology": 5,
+   "budget": 5,
+   "timeline": 1,
+   "source": 4,
+   "probability": 4
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "68.6"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 5,
+   "typology": 1,
+   "budget": 3,
+   "timeline": 4,
+   "source": 4,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 2,
+   "typology": 2,
+   "budget": 1,
+   "timeline": 2,
+   "source": 2,
+   "probability": 2
+  },
+  "score": "65.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 5,
+   "typology": 4,
+   "budget": 1,
+   "timeline": 4,
+   "source": 4,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 0.33,
+   "location": 0.07,
+   "typology": 0.01,
+   "budget": 0.33,
+   "timeline": 0.01,
+   "source": 0.07,
+   "probability": 0.33
+  },
+  "score": "41.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 2,
+   "typology": 1,
+   "budget": 5,
+   "timeline": 4,
+   "source": 3,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 2,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "62.2"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 3,
+   "typology": 5,
+   "budget": 3,
+   "timeline": 3,
+   "source": 1,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 0.01,
+   "location": 0.01,
+   "typology": 0.01,
+   "budget": 0.07,
+   "timeline": 0.01,
+   "source": 0.01,
+   "probability": 0.33
+  },
+  "score": "31.6"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 2,
+   "typology": 5,
+   "budget": 3,
+   "timeline": 3,
+   "source": 3,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 0.05,
+   "location": 0.05,
+   "typology": 0.05,
+   "budget": 0.1,
+   "timeline": 0.25,
+   "source": 0.1,
+   "probability": 0.05
+  },
+  "score": "56.9"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 4,
+   "typology": 2,
+   "budget": 4,
+   "timeline": 5,
+   "source": 5,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 3,
+   "location": 3,
+   "typology": 1,
+   "budget": 3,
+   "timeline": 3,
+   "source": 1,
+   "probability": 2
+  },
+  "score": "80.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 1,
+   "location": 3,
+   "typology": 1,
+   "budget": 2,
+   "timeline": 2,
+   "source": 1,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 0.33,
+   "location": 0.01,
+   "typology": 0.01,
+   "budget": 0.33,
+   "timeline": 0.07,
+   "source": 0.07,
+   "probability": 0.07
+  },
+  "score": "31.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 1,
+   "location": 3,
+   "typology": 3,
+   "budget": 5,
+   "timeline": 4,
+   "source": 4,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 0.1,
+   "location": 0.1,
+   "typology": 0.1,
+   "budget": 0.05,
+   "timeline": 0.25,
+   "source": 0.1,
+   "probability": 0.05
+  },
+  "score": "65.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 5,
+   "budget": 5,
+   "timeline": 1,
+   "source": 5,
+   "probability": 4
+  },
+  "weights": {
+   "client_fit": 0.01,
+   "location": 0.01,
+   "typology": 0.01,
+   "budget": 0.33,
+   "timeline": 0.01,
+   "source": 0.01,
+   "probability": 0.01
+  },
+  "score": "94.9"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 1,
+   "typology": 1,
+   "budget": 4,
+   "timeline": 1,
+   "source": 1,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 0.07,
+   "location": 0.07,
+   "typology": 0.07,
+   "budget": 0.01,
+   "timeline": 0.07,
+   "source": 0.01,
+   "probability": 0.33
+  },
+  "score": "40.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 4,
+   "location": 4,
+   "typology": 4,
+   "budget": 5,
+   "timeline": 1,
+   "source": 3,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "62.9"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 2,
+   "typology": 1,
+   "budget": 3,
+   "timeline": 1,
+   "source": 1,
+   "probability": 4
+  },
+  "weights": {
+   "client_fit": 0.5,
+   "location": 1,
+   "typology": 2,
+   "budget": 2,
+   "timeline": 2,
+   "source": 2,
+   "probability": 0.5
+  },
+  "score": "37.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 5,
+   "budget": 3,
+   "timeline": 2,
+   "source": 5,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 0.07,
+   "location": 0.07,
+   "typology": 0.07,
+   "budget": 0.33,
+   "timeline": 0.07,
+   "source": 0.01,
+   "probability": 0.07
+  },
+  "score": "64.6"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 4,
+   "typology": 3,
+   "budget": 4,
+   "timeline": 2,
+   "source": 1,
+   "probability": 4
+  },
+  "weights": {
+   "client_fit": 0.01,
+   "location": 0.33,
+   "typology": 0.01,
+   "budget": 0.07,
+   "timeline": 0.07,
+   "source": 0.33,
+   "probability": 0.07
+  },
+  "score": "54.6"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 1,
+   "typology": 2,
+   "budget": 1,
+   "timeline": 4,
+   "source": 5,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 1,
+   "typology": 2,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "48.9"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 4,
+   "budget": 2,
+   "timeline": 4,
+   "source": 1,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "60.0"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 1,
+   "typology": 2,
+   "budget": 5,
+   "timeline": 4,
+   "source": 2,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 0.5,
+   "typology": 2,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 2
+  },
+  "score": "57.6"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 4,
+   "typology": 3,
+   "budget": 3,
+   "timeline": 3,
+   "source": 2,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 0.07,
+   "location": 0.33,
+   "typology": 0.01,
+   "budget": 0.01,
+   "timeline": 0.01,
+   "source": 0.33,
+   "probability": 0.01
+  },
+  "score": "59.7"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 3,
+   "typology": 2,
+   "budget": 3,
+   "timeline": 2,
+   "source": 5,
+   "probability": 3
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "65.7"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 2,
+   "budget": 2,
+   "timeline": 1,
+   "source": 5,
+   "probability": 2
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 1,
+   "typology": 0.5,
+   "budget": 0.5,
+   "timeline": 0.5,
+   "source": 1,
+   "probability": 1
+  },
+  "score": "50.8"
+ },
+ {
+  "ratings": {
+   "client_fit": 5,
+   "location": 1,
+   "typology": 5,
+   "budget": 2,
+   "timeline": 1,
+   "source": 5,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 0.07,
+   "location": 0.33,
+   "typology": 0.07,
+   "budget": 0.01,
+   "timeline": 0.07,
+   "source": 0.01,
+   "probability": 0.07
+  },
+  "score": "48.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 4,
+   "budget": 1,
+   "timeline": 1,
+   "source": 1,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 0.25,
+   "location": 0.25,
+   "typology": 0.25,
+   "budget": 0.1,
+   "timeline": 0.05,
+   "source": 0.25,
+   "probability": 0.05
+  },
+  "score": "48.3"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 4,
+   "typology": 5,
+   "budget": 1,
+   "timeline": 3,
+   "source": 1,
+   "probability": 5
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 1,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 2,
+   "source": 3,
+   "probability": 2
+  },
+  "score": "58.2"
+ },
+ {
+  "ratings": {
+   "client_fit": 3,
+   "location": 1,
+   "typology": 5,
+   "budget": 4,
+   "timeline": 3,
+   "source": 1,
+   "probability": 1
+  },
+  "weights": {
+   "client_fit": 1,
+   "location": 0.5,
+   "typology": 1,
+   "budget": 1,
+   "timeline": 2,
+   "source": 0.5,
+   "probability": 2
+  },
+  "score": "52.5"
+ },
+ {
+  "ratings": {
+   "client_fit": 2,
+   "location": 3,
+   "typology": 4,
+   "budget": 1,
+   "timeline": 2,
+   "source": 1,
+   "probability": 4
+  },
+  "weights": {
+   "client_fit": 2,
+   "location": 1,
+   "typology": 1,
+   "budget": 3,
+   "timeline": 1,
+   "source": 2,
+   "probability": 3
+  },
+  "score": "46.2"
+ }
+]

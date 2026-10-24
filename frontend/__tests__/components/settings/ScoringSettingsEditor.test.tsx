@@ -7,7 +7,7 @@ import { CRITERIA, CRITERION_LABELS, type ScoringSettings } from "@/lib/scoring"
 
 const all = <T,>(value: T) => Object.fromEntries(CRITERIA.map((c) => [c, value])) as Record<(typeof CRITERIA)[number], T>;
 const SETTINGS: ScoringSettings = { weights: all(1), threshold: 60 };
-const WEIGHT_MESSAGE = "Cada peso debe ser un número mayor que 0 y como máximo 10, con hasta 2 decimales.";
+const WEIGHT_MESSAGE = "Los 7 pesos son obligatorios y deben ser números mayores que 0 y de hasta 10, con un máximo de 2 decimales.";
 const THRESHOLD_MESSAGE = "El umbral debe ser un número entero entre 1 y 100.";
 const UNEXPECTED = "Ocurrió un error inesperado. Inténtalo de nuevo.";
 

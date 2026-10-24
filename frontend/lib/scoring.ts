@@ -64,15 +64,22 @@ export interface Scoring extends ScoringRecord {
   history: ScoringHistoryEntry[];
 }
 
-/** `100·Σ(weight·rating) / (5·Σweight)`, rounded to one decimal. */
+/**
+ * `100·Σ(weight·rating) / (5·Σweight)`, rounded to one decimal, half up, like the server.
+ * Weights have at most 2 decimals, so the arithmetic is done on integer hundredths: no float
+ * error can turn an exact tie (56,25) into the wrong side.
+ */
 export function computeScore(ratings: Ratings, weights: Weights): number {
   let weighted = 0;
   let total = 0;
   for (const criterion of CRITERIA) {
-    weighted += weights[criterion] * ratings[criterion];
-    total += weights[criterion];
+    const hundredths = Math.round(weights[criterion] * 100);
+    weighted += hundredths * ratings[criterion];
+    total += hundredths;
   }
-  return Math.round((100 * weighted) / (MAX_RATING * total) * 10) / 10;
+  // tenths = 100·weighted·10 / (MAX_RATING·total), rounded half up; the division is exact for MAX_RATING = 5.
+  const numerator = (1000 * weighted) / MAX_RATING;
+  return Math.floor((2 * numerator + total) / (2 * total)) / 10;
 }
 
 /** «Perseguir» when the score reaches the threshold. It is a recommendation: the decision is the person's. */
@@ -93,7 +100,7 @@ export function formatScoredAt(iso: string): string {
   return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
 }
 
-export const WEIGHT_MESSAGE = "Cada peso debe ser un número mayor que 0 y como máximo 10, con hasta 2 decimales.";
+export const WEIGHT_MESSAGE = "Los 7 pesos son obligatorios y deben ser números mayores que 0 y de hasta 10, con un máximo de 2 decimales.";
 export const THRESHOLD_MESSAGE = "El umbral debe ser un número entero entre 1 y 100.";
 
 export interface ScoringSettingsErrors {

@@ -1,3 +1,6 @@
+import { readFileSync } from "fs";
+import path from "path";
+
 import { ApiError, createApiClient, type ResponseLike } from "@/lib/api";
 import {
   CRITERIA,
@@ -13,6 +16,22 @@ import {
   type Ratings,
   type Weights,
 } from "@/lib/scoring";
+
+interface SharedCase {
+  ratings: Ratings;
+  weights: Weights;
+  score: string;
+}
+// Same file the backend reads (test_scoring_front_parity.py): the server's rounding (half up) is the reference.
+const sharedCases: SharedCase[] = JSON.parse(
+  readFileSync(path.join(__dirname, "../../../backend/tests/opportunity/domain/score_cases.json"), "utf8"),
+);
+
+describe("computeScore parity with the server", () => {
+  it.each(sharedCases.map((c, i) => [i, c] as const))("case %i matches the server's score", (_i, c) => {
+    expect(computeScore(c.ratings, c.weights)).toBe(Number(c.score));
+  });
+});
 
 const all = <T,>(value: T) => Object.fromEntries(CRITERIA.map((c) => [c, value])) as Record<(typeof CRITERIA)[number], T>;
 const EQUAL: Weights = all(1);
@@ -96,7 +115,7 @@ describe("validateScoringSettings", () => {
   });
   it.each([0, -1, 10.01, NaN, Infinity, 1.005])("rejects the weight %s, reporting the first invalid criterion", (bad) => {
     const errors = validateScoringSettings({ ...ok, weights: { ...EQUAL, location: bad } });
-    expect(errors.weights).toBe("Cada peso debe ser un número mayor que 0 y como máximo 10, con hasta 2 decimales.");
+    expect(errors.weights).toBe("Los 7 pesos son obligatorios y deben ser números mayores que 0 y de hasta 10, con un máximo de 2 decimales.");
     expect(errors.weightsField).toBe("location");
   });
   it.each([0, 101, 60.5, NaN, -3])("rejects the threshold %s", (bad) => {
