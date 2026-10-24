@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start Postgres, apply migrations and run the API (8000) and the front end (3000).
+# Start Postgres, apply migrations, seed the dev study and run the API (8000) and the front end (3000).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -13,6 +13,7 @@ pip install -q -r backend/requirements-dev.txt
 [ -d frontend/node_modules ] || npm --prefix frontend ci
 docker compose up -d --wait db
 python -m backend.app.shared.migrate
+python -m backend.app.shared.seed_dev  # fictitious dev study; local only, never a migration
 
 trap 'kill 0' EXIT
 uvicorn backend.app.api.main:app --reload --port 8000 &

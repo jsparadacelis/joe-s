@@ -67,6 +67,8 @@ El secreto `database-url` apunta al pooler en modo sesión, el mismo que se usó
 
 - Escala a cero: la primera petición tras un rato sin uso tarda 1–3 s. `--min-instances 1` lo evita, pero deja de ser gratis.
 - Mientras no exista autenticación (RGB-2) la API usa un estudio y usuario ficticios (`DEV_ESTUDIO_ID`, `DEV_USUARIO_ID`). No publiques endpoints de negocio ni datos reales hasta tenerla.
+- **Estudio ficticio de desarrollo.** Las escrituras de la API (por ejemplo `PUT /api/settings/plan/...`) necesitan que exista la fila de `studies` con el id `DEV_STUDY_ID` (por defecto `00000000-0000-0000-0000-00000000e001`); sin ella la clave foránea falla. En local la siembra `bash scripts/dev.sh` con `python -m backend.app.shared.seed_dev` (idempotente, nombre «Estudio de desarrollo»). No es una migración a propósito: producción y Supabase no la reciben, y el script se niega a correr contra un host que no sea local salvo con `--force`. Cuando llegue la autenticación (RGB-2) los estudios reales se crearán por su propio flujo.
+- Topes de los ajustes del plan: semanas enteras entre 1 y 520 (7 valores) y factor de escala entre 0,1 y 10; fuera de rango la API responde 422 con `{detail:{code,message}}` (`invalid_weeks`, `invalid_factor`). Cualquier otra petición mal formada responde 422 con `code: "invalid_request"` (no el `detail` en lista de FastAPI).
 - El Dockerfile y las dependencias de Python viven en `backend/`; el contexto de construcción es esa carpeta. `railway.toml` (primera opción, Railway) se eliminó.
 
 ## 3. Front (Vercel)

@@ -59,7 +59,7 @@ skills/     guías para Claude Code
 scripts/    dev.sh: Postgres + migraciones + API (8000) + front (3000)
 ```
 
-Para levantar todo en local: `bash scripts/dev.sh` (copia `.env.example` y `frontend/.env.example` si faltan).
+Para levantar todo en local: `bash scripts/dev.sh` (copia `.env.example` y `frontend/.env.example` si faltan, aplica las migraciones y siembra el estudio ficticio de desarrollo).
 
 ## Estado
 
