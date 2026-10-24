@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export type StatusTone = "neutral" | "ok" | "warn" | "bad" | "point" | "off";
-export type StatusChipVariant = "tag" | "semaforo";
+export type StatusChipVariant = "tag" | "traffic-light";
 
 export type StatusChipProps = {
   tone?: StatusTone;
@@ -29,7 +29,7 @@ const DOT_TONES: Record<StatusTone, string> = {
 };
 
 export function StatusChip({ tone = "neutral", variant = "tag", children }: StatusChipProps) {
-  if (variant === "semaforo") {
+  if (variant === "traffic-light") {
     return (
       <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-2 px-2 py-[3px] text-xs font-medium text-ink-2">
         <span aria-hidden="true" className={`size-2 flex-none rounded-full ${DOT_TONES[tone]}`} />

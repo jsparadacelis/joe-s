@@ -9,7 +9,7 @@ describe("StatusChip", () => {
   });
 
   it("variante semáforo incluye un punto decorativo", () => {
-    render(<StatusChip variant="semaforo" tone="bad">En riesgo</StatusChip>);
+    render(<StatusChip variant="traffic-light" tone="bad">En riesgo</StatusChip>);
     const chip = screen.getByText("En riesgo");
     const dot = chip.querySelector("span");
     expect(dot).toHaveAttribute("aria-hidden", "true");
@@ -17,7 +17,7 @@ describe("StatusChip", () => {
   });
 
   it("no tiene violaciones de accesibilidad", async () => {
-    const { container } = render(<StatusChip tone="warn" variant="semaforo">Atención</StatusChip>);
+    const { container } = render(<StatusChip tone="warn" variant="traffic-light">Atención</StatusChip>);
     expect(await axe(container)).toHaveNoViolations();
   });
 });

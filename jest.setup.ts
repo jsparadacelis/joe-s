@@ -5,5 +5,5 @@ import 'jest-axe/extend-expect'
 if (typeof globalThis.structuredClone === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { serialize, deserialize } = require('node:v8') as typeof import('node:v8')
-  globalThis.structuredClone = <T,>(valor: T): T => deserialize(serialize(valor)) as T
+  globalThis.structuredClone = <T,>(value: T): T => deserialize(serialize(value)) as T
 }

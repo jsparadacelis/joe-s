@@ -10,19 +10,19 @@ import { Notice } from "@/components/ui/Notice";
 import { Panel } from "@/components/ui/Panel";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { Table } from "@/components/ui/Table";
-import AjustesPage from "@/app/ajustes/page";
-import CarteraPage from "@/app/cartera/page";
-import PorPromoverPage from "@/app/por-promover/page";
-import ReportePage from "@/app/reporte-semanal/page";
+import SettingsPage from "@/app/ajustes/page";
+import PortfolioPage from "@/app/cartera/page";
+import ToPromotePage from "@/app/por-promover/page";
+import WeeklyReportPage from "@/app/reporte-semanal/page";
 
 const mockPathname = jest.fn();
 jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
 
 const pages = [
-  ["/cartera", CarteraPage],
-  ["/por-promover", PorPromoverPage],
-  ["/reporte-semanal", ReportePage],
-  ["/ajustes", AjustesPage],
+  ["/cartera", PortfolioPage],
+  ["/por-promover", ToPromotePage],
+  ["/reporte-semanal", WeeklyReportPage],
+  ["/ajustes", SettingsPage],
 ] as const;
 
 describe("axe sobre AppShell completo con cada página", () => {
@@ -61,7 +61,7 @@ describe("axe sobre todos los componentes UI juntos", () => {
         </Panel>
         <Button>Ok</Button>
         <Button disabled variant="point">Dis</Button>
-        <StatusChip tone="ok" variant="semaforo">Al día</StatusChip>
+        <StatusChip tone="ok" variant="traffic-light">Al día</StatusChip>
         <Notice tone="bad">Error</Notice>
         <Notice>Info</Notice>
       </main>,
@@ -166,13 +166,13 @@ describe("casos borde de componentes", () => {
   });
 
   it.each(["neutral", "ok", "warn", "bad", "point", "off"] as const)("StatusChip %s en ambas variantes", (tone) => {
-    render(<><StatusChip tone={tone}>tag-{tone}</StatusChip><StatusChip tone={tone} variant="semaforo">sem-{tone}</StatusChip></>);
+    render(<><StatusChip tone={tone}>tag-{tone}</StatusChip><StatusChip tone={tone} variant="traffic-light">sem-{tone}</StatusChip></>);
     expect(screen.getByText(`tag-${tone}`)).toBeInTheDocument();
     expect(screen.getByText(`sem-${tone}`)).toBeInTheDocument();
   });
 
   it("StatusChip semáforo oculta el punto a lectores de pantalla", () => {
-    const { container } = render(<StatusChip variant="semaforo" tone="ok">Al día</StatusChip>);
+    const { container } = render(<StatusChip variant="traffic-light" tone="ok">Al día</StatusChip>);
     expect(container.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 

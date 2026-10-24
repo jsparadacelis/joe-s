@@ -2,12 +2,12 @@ import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import { Table, type TableColumn } from "@/components/ui/Table";
 
-type Row = { id: string; nombre: string };
+type Row = { id: string; name: string };
 const columns: TableColumn<Row>[] = [
   { key: "id", header: "Código", render: (r) => r.id },
-  { key: "nombre", header: "Nombre", render: (r) => r.nombre },
+  { key: "nombre", header: "Nombre", render: (r) => r.name },
 ];
-const rows: Row[] = [{ id: "A-1", nombre: "Ejemplo uno" }, { id: "A-2", nombre: "Ejemplo dos" }];
+const rows: Row[] = [{ id: "A-1", name: "Ejemplo uno" }, { id: "A-2", name: "Ejemplo dos" }];
 
 describe("Table", () => {
   it("renderiza cabeceras con scope=col y filas", () => {

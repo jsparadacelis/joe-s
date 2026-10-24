@@ -1,0 +1,94 @@
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
+import { ProjectTabs } from "@/components/project/ProjectTabs";
+
+const mockPathname = jest.fn();
+jest.mock("next/navigation", () => ({ usePathname: () => mockPathname() }));
+
+function nav() {
+  return screen.getByRole("navigation", { name: "Secciones del proyecto" });
+}
+const PHASE = "Fase y promoción";
+const PLAN = "Plan y tiempos";
+
+describe("ProyectoTabs", () => {
+  beforeEach(() => mockPathname.mockReturnValue("/proyectos/PRY-EJ-001/fase/3"));
+
+  it("es una navegación «Secciones del proyecto» con dos enlaces con el texto exacto", () => {
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    const links = within(nav()).getAllByRole("link");
+    expect(links.map((l) => l.textContent?.trim())).toEqual([PHASE, PLAN]);
+  });
+
+  it("«Fase y promoción» lleva a la fase actual y «Plan y tiempos» a su pestaña", () => {
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    expect(screen.getByRole("link", { name: PHASE })).toHaveAttribute("href", "/proyectos/PRY-EJ-001/fase/3");
+    expect(screen.getByRole("link", { name: PLAN })).toHaveAttribute("href", "/proyectos/PRY-EJ-001/plan-y-tiempos");
+  });
+
+  it("usa el código y la fase actual recibidos", () => {
+    render(<ProjectTabs code="PRY-EJ-003" currentPhase={6} />);
+    expect(screen.getByRole("link", { name: PHASE })).toHaveAttribute("href", "/proyectos/PRY-EJ-003/fase/6");
+    expect(screen.getByRole("link", { name: PLAN })).toHaveAttribute("href", "/proyectos/PRY-EJ-003/plan-y-tiempos");
+  });
+
+  it("fase actual 0 enlaza a /fase/0", () => {
+    render(<ProjectTabs code="PRY-EJ-002" currentPhase={0} />);
+    expect(screen.getByRole("link", { name: PHASE })).toHaveAttribute("href", "/proyectos/PRY-EJ-002/fase/0");
+  });
+
+  it.each(["/proyectos/PRY-EJ-001/fase/3", "/proyectos/PRY-EJ-001/fase/1", "/proyectos/PRY-EJ-001/fase/7"])(
+    "en %s solo «Fase y promoción» tiene aria-current=page",
+    (path) => {
+      mockPathname.mockReturnValue(path);
+      render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+      expect(screen.getByRole("link", { name: PHASE })).toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("link", { name: PLAN })).not.toHaveAttribute("aria-current");
+    },
+  );
+
+  it("en plan-y-tiempos solo «Plan y tiempos» tiene aria-current=page", () => {
+    mockPathname.mockReturnValue("/proyectos/PRY-EJ-001/plan-y-tiempos");
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    expect(screen.getByRole("link", { name: PLAN })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: PHASE })).not.toHaveAttribute("aria-current");
+  });
+
+  it.each(["/proyectos/PRY-EJ-001", "/cartera", "/"])("en la ruta %s ninguna pestaña está activa", (path) => {
+    mockPathname.mockReturnValue(path);
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    for (const l of within(nav()).getAllByRole("link")) expect(l).not.toHaveAttribute("aria-current");
+  });
+
+  it("Tab recorre las dos pestañas en orden", async () => {
+    const user = userEvent.setup();
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    await user.tab();
+    expect(screen.getByRole("link", { name: PHASE })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("link", { name: PLAN })).toHaveFocus();
+  });
+
+  it("Enter sobre una pestaña enfocada activa su enlace", async () => {
+    const user = userEvent.setup();
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    const destino = screen.getByRole("link", { name: PLAN });
+    const onClick = jest.fn((e: Event) => e.preventDefault());
+    destino.addEventListener("click", onClick);
+    await user.tab();
+    await user.tab();
+    expect(destino).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["/proyectos/PRY-EJ-001/fase/3", "/proyectos/PRY-EJ-001/plan-y-tiempos"])(
+    "sin violaciones de accesibilidad en %s",
+    async (path) => {
+      mockPathname.mockReturnValue(path);
+      const { container } = render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+      expect(await axe(container)).toHaveNoViolations();
+    },
+  );
+});

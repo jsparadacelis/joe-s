@@ -1,0 +1,55 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { PageHead } from "@/components/layout/PageHead";
+import { Panel } from "@/components/ui/Panel";
+import { PhaseDeliverableForm } from "@/components/project/PhaseDeliverableForm";
+import { ModeBanner } from "@/components/project/ModeBanner";
+import { PhaseTimeline } from "@/components/project/PhaseTimeline";
+import { ReliefViewer } from "@/components/project/relief/ReliefViewer";
+import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
+import { fetchSavedTechnicalData } from "@/lib/technical-data";
+import { PHASES, modoFase, parsePhaseId } from "@/lib/phases";
+import { fetchDeliverable, fetchProject, fetchCadastralReference } from "@/lib/projects";
+
+type Props = { params: Promise<{ code: string; phase: string }> };
+
+export const metadata: Metadata = { title: "Fase del proyecto" };
+
+export default async function Page({ params }: Props) {
+  const { code, phase: rawPhase } = await params;
+  const viewedPhase = parsePhaseId(rawPhase);
+  if (viewedPhase === null) notFound();
+  const proyecto = await fetchProject(code);
+  if (!proyecto) notFound();
+
+  const deliverable = await fetchDeliverable(proyecto.code, viewedPhase);
+  const phase = PHASES[viewedPhase];
+  const { currentPhase } = proyecto;
+  const mode = modoFase(viewedPhase, currentPhase);
+  // Los datos técnicos se revisan en Briefing (fase 2); el relieve se consulta en Anteproyecto (fase 3).
+  const [saved, sheetReference] =
+    viewedPhase === 2
+      ? await Promise.all([fetchSavedTechnicalData(proyecto.code), fetchCadastralReference(proyecto.code)])
+      : viewedPhase === 3
+        ? [null, await fetchCadastralReference(proyecto.code)]
+        : [null, ""];
+
+  return (
+    <>
+      <PageHead title={proyecto.name} description={`${proyecto.code} · Fase ${phase.id}: ${phase.name}`} />
+      <PhaseTimeline code={proyecto.code} currentPhase={currentPhase} viewedPhase={viewedPhase} />
+      <ModeBanner code={proyecto.code} currentPhase={currentPhase} viewedPhase={viewedPhase} />
+      <Panel title={`Entregable · ${phase.name}`} description={`${phase.deliverable}. Autoridad para promover: ${phase.promueve}.`}>
+        <PhaseDeliverableForm deliverable={deliverable} mode={mode} />
+      </Panel>
+      {viewedPhase === 2 ? (
+        <TechnicalDataEditor
+          cadastralReference={saved?.cadastralReference ?? sheetReference}
+          initial={saved}
+          mode={mode}
+        />
+      ) : null}
+      {viewedPhase === 3 ? <ReliefViewer initialReference={sheetReference} /> : null}
+    </>
+  );
+}
