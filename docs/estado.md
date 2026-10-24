@@ -18,6 +18,7 @@ Actualizado: 2026-10-24 (tras la conexión de los ajustes del plan, PR #27). Fue
 | **RGB-8** · Modelo de ciclo de vida | Migración `004`: `phase_config` (8 fases), `projects`, `exit_deliverables`, `frozen_versions` e `promotions` inmutables, `internal_milestones`; dominio `PHASES`, `Proyecto`, `FrozenVersion`, `Promocion`; 147 tests | [plan](plans/RGB-8/plan.md) · [log](plans/RGB-8/implementation_log.md) |
 | **RGB-9** · Servicio de promoción | `PromotionService` (promover, retener, no perseguir) en una transacción con RLS: autoridad por rol o habilitación, validador de entregable por fase, congela versión, abre la fase siguiente y audita también los rechazos. Rutas `POST /api/projects/{code}/promote`, `/hold`, `/no-perseguir` con 403 (quién puede) y 422 (qué falta); 216 tests | [plan](plans/RGB-9/plan.md) · [log](plans/RGB-9/implementation_log.md) |
 | Preparación del despliegue (PR #17) | `Dockerfile` del backend para Cloud Run (EE. UU.), dependencias de desarrollo en `requirements-dev.txt`, guía en [despliegue](despliegue.md). Falta crear los proyectos en Supabase, Cloud Run y Vercel (cuentas) | — |
+| Topes y 422 uniformes en los ajustes del plan (PR #29) | Semanas enteras entre 1 y 520, factor entre 0,1 y 10, mismos mensajes que el front; los valores que no caben dan 422 con CORS (antes 500); cualquier 422 de FastAPI sale como `{detail:{code,message}}`; siembra idempotente del estudio ficticio de desarrollo (`python -m backend.app.shared.seed_dev`, la llama `scripts/dev.sh`) | [plan](plans/backend-plan-limits/plan.md) · [log](plans/backend-plan-limits/implementation_log.md) |
 | **RGB-15** · Plantillas de semanas y factor de escala | `make_plan(project_type, scale)` con redondeo half-up y mínimo 1 semana (industrial grande = 3-3-5-7-10-52-5); valores del PRD por defecto en el dominio y ajustes editables por estudio (`plan_templates`, `scale_factors`, con RLS y auditoría); rutas `GET /api/plan`, `GET /api/settings/plan` y `PUT` de plantillas y factores; 274 tests | [plan](plans/RGB-15/plan.md) · [log](plans/RGB-15/implementation_log.md) |
 | **RGB-20** · Reloj activo por fase y calendario | Funciones puras `summarize_time` y `phase_spans_from_entries` (días → semanas con un decimal): activas y pausa por fase, pausa por motivo, total activo, calendario y desviación; pausa que cruza fases repartida; 317 tests. Sin persistencia ni ruta (RGB-21) | [plan](plans/RGB-20/plan.md) · [log](plans/RGB-20/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
@@ -70,8 +71,12 @@ Con RGB-6, 10, 22, 29 y 34 hechas, la única tarea de front que queda es RGB-23 
 - Encuadre inicial que recorta el borde sur en lienzos anchos y bajos; escuchar `webglcontextlost` y avisar; los colores de la escena no siguen un cambio de tema en caliente.
 - Las URLs pasaron a inglés (decisión del usuario, 2026-10-24): `/proyectos`→`/projects`, `/cartera`→`/portfolio`, `/por-promover`→`/to-promote`, `/ajustes`→`/settings`, `/reporte-semanal`→`/weekly-report`, `plan-y-tiempos`→`plan-and-timing`, `fase`→`phase` y el ancla `#contenido`→`#content`. Los códigos de ejemplo (`PRY-EJ-00N`) siguen igual. Los planes antiguos de `docs/plans/` citan las URLs en español.
 
+## Huecos del backend
+
+Qué falta en el backend para quitar los datos de ejemplo del front, con su tarea y el orden recomendado: [huecos-backend.md](huecos-backend.md).
+
 ## Pendientes de la conexión con la API (ajustes del plan)
 
 - Aviso de validación que persiste al volver al valor guardado; respuesta 200 mal formada que deja «Cargando…» sin «Reintentar»; etiquetas de dos líneas que desalinean los campos; `UNEXPECTED_MESSAGE` duplicado.
-- Backend: alinear topes (520 semanas, factor ≥ 0,1) y mensajes con el front, y devolver 422 (no 500 sin CORS) cuando un valor no cabe en la base; `dev.sh` no siembra el estudio ficticio de desarrollo.
+- Resuelto en el PR #29: topes alineados, 422 en vez de 500 sin CORS y siembra del estudio ficticio de desarrollo. Queda desplegar el backend en Cloud Run (`--source backend`) para que producción lo tenga.
 - Scroll horizontal a 360 px por las migas del layout.
