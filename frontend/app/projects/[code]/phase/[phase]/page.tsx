@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { PageHead } from "@/components/layout/PageHead";
 import { Panel } from "@/components/ui/Panel";
 import { PhaseDeliverableForm } from "@/components/project/PhaseDeliverableForm";
@@ -9,7 +10,7 @@ import { ReliefViewer } from "@/components/project/relief/ReliefViewer";
 import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
 import { fetchSavedTechnicalData } from "@/lib/technical-data";
 import { PHASES, phaseMode, parsePhaseId } from "@/lib/phases";
-import { fetchDeliverable, fetchProject, fetchCadastralReference } from "@/lib/projects";
+import { fetchDeliverable, fetchProject, fetchCadastralReference, isSampleProject } from "@/lib/projects";
 
 type Props = { params: Promise<{ code: string; phase: string }> };
 
@@ -25,6 +26,8 @@ export default async function Page({ params }: Props) {
   const deliverable = await fetchDeliverable(project.code, viewedPhase);
   const phase = PHASES[viewedPhase];
   const { currentPhase } = project;
+  // RGB-14: a real opportunity (phase 0) can be scored; the samples have no scoring API.
+  const canScore = viewedPhase === 0 && currentPhase === 0 && !isSampleProject(project.code);
   const mode = phaseMode(viewedPhase, currentPhase);
   // Technical data are reviewed in Briefing (phase 2); the relief is queried in Anteproyecto (phase 3).
   const [saved, sheetReference] =
@@ -36,7 +39,17 @@ export default async function Page({ params }: Props) {
 
   return (
     <>
-      <PageHead title={project.name} description={`${project.code} · Fase ${phase.id}: ${phase.name}`} />
+      <PageHead
+        title={project.name}
+        description={`${project.code} · Fase ${phase.id}: ${phase.name}`}
+        actions={
+          canScore ? (
+            <ButtonLink variant="primary" href={`/projects/${project.code}/scoring`}>
+              Puntuar oportunidad
+            </ButtonLink>
+          ) : undefined
+        }
+      />
       <PhaseTimeline code={project.code} currentPhase={currentPhase} viewedPhase={viewedPhase} />
       <ModeBanner code={project.code} currentPhase={currentPhase} viewedPhase={viewedPhase} />
       <Panel title={`Entregable · ${phase.name}`} description={`${phase.deliverable}. Autoridad para promover: ${phase.promoter}.`}>
