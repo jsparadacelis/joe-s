@@ -1,14 +1,7 @@
-"""Text rules shared by the opportunity inputs."""
+"""Text rules shared by the opportunity inputs (the rule itself lives in `shared.text`)."""
 
 from __future__ import annotations
 
+from backend.app.shared.text import is_storable
 
-def is_storable(text: str) -> bool:
-    """Postgres text cannot hold NUL, and lone surrogates are not valid UTF-8."""
-    if "\x00" in text:
-        return False
-    try:
-        text.encode("utf-8")
-    except UnicodeEncodeError:
-        return False
-    return True
+__all__ = ["is_storable"]

@@ -7,7 +7,7 @@ from contextlib import AbstractContextManager, contextmanager
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Header, HTTPException
 
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
@@ -31,8 +31,24 @@ from backend.app.opportunity.infrastructure.postgres_scoring import (
 from backend.app.portfolio.application.queries import PortfolioQueries
 from backend.app.portfolio.infrastructure.postgres_projects import PostgresProjects
 from backend.app.shared.config import Settings
-from backend.app.shared.db import study_transaction
+from backend.app.shared.db import identity_transaction, study_transaction
+from backend.app.study.application.authenticate import Authenticate, check_token
+from backend.app.study.application.manage_members import ManageMembers
 from backend.app.study.domain.context import Qualification, RequestContext, Role
+from backend.app.study.domain.errors import (
+    EmailNotVerified,
+    MemberRevoked,
+    MfaRequired,
+    NotInvited,
+    StudyError,
+    Unauthenticated,
+)
+from backend.app.study.domain.ports import TokenVerifier
+from backend.app.study.infrastructure.postgres_members import (
+    PostgresMemberResolver,
+    PostgresMembers,
+)
+from backend.app.study.infrastructure.supabase_jwt_verifier import SupabaseJwtVerifier
 from backend.app.timing.application.pause_service import PauseService
 from backend.app.timing.infrastructure.postgres_pauses import PostgresPauses
 
@@ -42,16 +58,96 @@ def get_settings() -> Settings:
     return Settings()
 
 
+@lru_cache
+def _supabase_verifier(supabase_url: str) -> SupabaseJwtVerifier:
+    """One verifier per process, so the downloaded keys are cached across requests."""
+    return SupabaseJwtVerifier(supabase_url)
+
+
+def token_verifier(settings: Annotated[Settings, Depends(get_settings)]) -> TokenVerifier:
+    return _supabase_verifier(settings.supabase_url)
+
+
+AuthenticateUnitOfWork = Callable[[], AbstractContextManager[Authenticate]]
+
+
+def authenticate_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    verifier: Annotated[TokenVerifier, Depends(token_verifier)],
+) -> AuthenticateUnitOfWork:
+    """Composition root for sign-in: the member lookup, the activation and its audit event
+    share one transaction."""
+
+    @contextmanager
+    def open_unit() -> Iterator[Authenticate]:
+        with identity_transaction(settings.database_url) as conn:
+            yield Authenticate(verifier, PostgresMemberResolver(conn), PostgresAuditLog(conn))
+
+    return open_unit
+
+
+_AUTH_STATUS = {
+    Unauthenticated: 401,
+    NotInvited: 403,
+    MemberRevoked: 403,
+    MfaRequired: 403,
+    EmailNotVerified: 403,
+}
+
+
+def study_http_error(error: StudyError, default_status: int = 422) -> HTTPException:
+    """The `{detail: {code, message}}` answer shared by every study-context rejection."""
+    status = _AUTH_STATUS.get(type(error), default_status)
+    headers = {"WWW-Authenticate": "Bearer"} if status == 401 else None
+    return HTTPException(
+        status, detail={"code": error.code, "message": error.message}, headers=headers
+    )
+
+
+def _bearer_token(authorization: str | None) -> str:
+    scheme, _, token = (authorization or "").partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise study_http_error(Unauthenticated())
+    return token.strip()
+
+
 def request_context(
     settings: Annotated[Settings, Depends(get_settings)],
+    verifier: Annotated[TokenVerifier, Depends(token_verifier)],
+    open_authenticate: Annotated[AuthenticateUnitOfWork, Depends(authenticate_unit_of_work)],
+    authorization: Annotated[str | None, Header()] = None,
 ) -> RequestContext:
-    """Fixed, fictitious development context. RGB-2 replaces it with the real session."""
-    return RequestContext(
-        study_id=settings.dev_study_id,
-        user_id=settings.dev_user_id,
-        role=Role(settings.dev_role),
-        qualifications=frozenset(Qualification(h) for h in settings.dev_qualifications),
-    )
+    """`AUTH_MODE=dev`: the fixed, fictitious development context. `AUTH_MODE=supabase`: the
+    context of the invited member who owns the bearer token."""
+    if settings.auth_mode == "dev":
+        return RequestContext(
+            study_id=settings.dev_study_id,
+            user_id=settings.dev_user_id,
+            role=Role(settings.dev_role),
+            qualifications=frozenset(Qualification(h) for h in settings.dev_qualifications),
+        )
+    token = _bearer_token(authorization)
+    try:
+        # Signature and claims first: only a trustworthy token opens a database connection.
+        claims = check_token(verifier, token)
+        with open_authenticate() as authenticate:
+            return authenticate.admit(claims)
+    except StudyError as error:
+        raise study_http_error(error) from error
+
+
+MembersUnitOfWork = Callable[[RequestContext], AbstractContextManager[ManageMembers]]
+
+
+def members_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> MembersUnitOfWork:
+    """Composition root for the members: rows and audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[ManageMembers]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield ManageMembers(PostgresMembers(conn), PostgresAuditLog(conn))
+
+    return open_unit
 
 
 UnitOfWork = Callable[[RequestContext], AbstractContextManager[PromotionService]]

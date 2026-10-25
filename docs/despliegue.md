@@ -114,6 +114,61 @@ La guía de abajo se conserva como referencia del procedimiento.
 6. **Front:** no hace falta redesplegar (`NEXT_PUBLIC_API_URL` ya está fijada). Abre `/portfolio` y `/projects` en producción y comprueba que cargan.
 7. **Vuelta atrás:** el backend se revierte con `gcloud run services update-traffic rgb-api --to-revisions <revisión-anterior>=100`; las migraciones solo añaden tablas, así que se pueden dejar aplicadas con el backend anterior.
 
+## Activar el acceso con usuarios (RGB-2)
+
+Hasta ahora la API corre con un estudio y un usuario ficticios (`AUTH_MODE=dev`, el valor por defecto). Esta sección pasa la API a `AUTH_MODE=supabase`: cada petición lleva el token de Supabase Auth y solo entran personas invitadas. Plan y reglas: [docs/plans/RGB-2/plan.md](plans/RGB-2/plan.md).
+
+**Estado: nada de esto está activado ni verificado contra servicios reales.** El código y la migración 010 están probados en local con claves y tokens generados en los tests. Por verificar con servicios reales: el inicio de sesión con Google, el nivel `aal2` tras el segundo factor (TOTP) y los claims reales del token (`email`, `aal`, `user_metadata.email_verified`, firma ES256). Microsoft queda pendiente: no se configura en esta entrega.
+
+### 1. Google (Google Cloud y Supabase)
+
+1. En Google Cloud → APIs y servicios → Credenciales, crea un **ID de cliente OAuth** de tipo **Aplicación web**.
+2. En «URI de redirección autorizados» añade exactamente `https://teiegxepgraxxsuisgtb.supabase.co/auth/v1/callback`.
+3. En Supabase → Authentication → Providers → **Google**: actívalo y pega el **Client ID** y el **Client Secret** directamente en el panel. Nunca los pegues en un chat, en un issue ni en el repo.
+4. En Supabase → Authentication → **URL Configuration**: **Site URL** = el dominio de Vercel; en «Redirect URLs» añade también `http://localhost:3000` (y su ruta de retorno cuando exista RGB-2b).
+5. En Supabase → Authentication → **Multi-Factor** (MFA): activa **TOTP**. Socio, director y administración exigen `aal2`; sin el segundo factor la API responde 403 `mfa_required`.
+6. Comprueba en el proyecto que las claves de firma de los tokens son asimétricas (ES256). La API solo acepta ES256; un proyecto con el secreto HS256 antiguo daría 401 a todos los tokens.
+
+### 2. Variables en Cloud Run
+
+| Variable | Valor | Notas |
+| --- | --- | --- |
+| `AUTH_MODE` | `dev` (por defecto) o `supabase` | Con `supabase` los endpoints de negocio exigen `Authorization: Bearer <token>`; `/api/health` sigue público. Un valor distinto no arranca. |
+| `SUPABASE_URL` | `https://teiegxepgraxxsuisgtb.supabase.co` | Obligatoria con `AUTH_MODE=supabase`: sin ella la API no arranca. De ahí salen el emisor del token y las claves públicas (`/auth/v1/.well-known/jwks.json`). |
+| `ENVIRONMENT` | `production` | Con `AUTH_MODE=dev` y `ENVIRONMENT=production` la API arranca, pero deja un aviso en el registro. |
+
+```bash
+gcloud run services update rgb-api --region $REGION \
+  --update-env-vars AUTH_MODE=dev,ENVIRONMENT=production,SUPABASE_URL=https://teiegxepgraxxsuisgtb.supabase.co
+```
+
+### 3. Orden recomendado
+
+1. **Migración 010** (`study_members` y la función `resolve_member`): pruébala antes en una rama de Supabase o, si no, con cuidado y en una ventana tranquila. Crea el rol `rgb_member_resolver` y cambia el propietario de la función; para eso concede `CREATE` sobre el esquema a ese rol solo durante la migración y lo revoca justo después, de modo que se aplica con el rol `postgres` (no superusuario). Aplícala con el Job de migraciones, como las anteriores.
+2. **Desplegar el backend con `AUTH_MODE=dev`**: nada cambia para quien ya lo usa. Comprueba `/api/health` y una lectura.
+3. **Primer socio (bootstrap).** El primero no puede invitarse a sí mismo. Desde una terminal propia, pidiendo `DATABASE_URL` por entrada interactiva (que no quede en el historial ni en un chat):
+
+   ```bash
+   read -rs -p "DATABASE_URL: " DATABASE_URL && export DATABASE_URL
+   python -m backend.app.shared.bootstrap_member --study <id-del-estudio> --email <email> --role partner
+   ```
+
+   Es idempotente y solo deja una invitación pendiente (con su evento de auditoría); la persona la activa al entrar por primera vez con ese correo verificado. El estudio debe existir ya.
+4. **Comprobar** con la API aún en `dev`: que la fila existe en `study_members` con estado `invited`.
+5. **Pasar a `AUTH_MODE=supabase`:** `gcloud run services update rgb-api --region $REGION --update-env-vars AUTH_MODE=supabase`. Comprueba que sin token un endpoint de negocio responde 401 `unauthenticated` y que `/api/health` sigue en 200. La pantalla de acceso del front llega con RGB-2b; hasta entonces el front actual dejará de poder llamar a la API, así que no hagas este paso hasta tener RGB-2b o acepta esa interrupción.
+
+### 4. Vuelta atrás
+
+Vuelve a `dev`: `gcloud run services update rgb-api --region $REGION --update-env-vars AUTH_MODE=dev`. Es inmediato y no pierde datos. La migración 010 solo añade una tabla y una función, así que se puede dejar aplicada con el backend anterior.
+
+### 5. Qué no está verificado aún
+
+- Google real de extremo a extremo (consentimiento, `email_verified` en el token).
+- `aal2` real tras activar TOTP en Supabase.
+- Los claims reales de un token de Supabase (nombres y tipos) frente a los generados en los tests.
+- La migración 010 sobre Supabase con el rol `postgres`.
+- Microsoft: pendiente; no hay proveedor configurado.
+
 ## Orden recomendado
 
 1. Supabase y probar migraciones.

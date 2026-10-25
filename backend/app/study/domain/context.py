@@ -13,6 +13,7 @@ class Role(str, Enum):
     TECHNICAL_LEAD = "technical_lead"
     ARCHITECT = "architect"
     SITE_COLLABORATOR = "site_collaborator"
+    ADMINISTRATION = "administration"
 
 
 class Qualification(str, Enum):

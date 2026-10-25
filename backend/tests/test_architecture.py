@@ -116,3 +116,56 @@ def test_the_sheet_promotion_depends_on_the_lifecycle_only_through_its_service()
     assert "backend.app.lifecycle.application.promotion_service" in imports
     assert not [name for name in imports if "lifecycle.infrastructure" in name]
     assert not [name for name in imports if "lifecycle.domain.ports" in name]
+
+
+def test_the_study_domain_is_pure_python():
+    """RGB-2: the token and member rules know nothing of JWT libraries, drivers or the web."""
+    domain = APP / "study" / "domain"
+    for module in ("members.py", "errors.py", "ports.py", "mfa.py"):
+        assert (domain / module).exists(), module
+    banned = ("jwt", "cryptography", "psycopg", "fastapi", "pydantic", "httpx", "urllib", "requests")
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in domain.rglob("*.py")
+        for name in _imports(p)
+        if name.split(".")[0] in banned
+    ]
+
+    assert violations == []
+
+
+def test_the_study_application_layer_is_free_of_jwt_and_drivers():
+    banned = ("jwt", "cryptography", "psycopg", "fastapi")
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in (APP / "study" / "application").rglob("*.py")
+        for name in _imports(p)
+        if name.split(".")[0] in banned
+    ]
+
+    assert violations == []
+    assert (APP / "study" / "application" / "authenticate.py").exists()
+    assert (APP / "study" / "application" / "manage_members.py").exists()
+
+
+def test_only_the_study_infrastructure_imports_the_jwt_library():
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.split(".")[0] == "jwt" and p.relative_to(APP).parts[:2] != ("study", "infrastructure")
+    ]
+
+    assert violations == []
+
+
+@pytest.mark.parametrize("adapter", ["postgres_members", "supabase_jwt_verifier"])
+def test_only_the_composition_root_wires_the_study_adapters(adapter):
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith(adapter) and p.relative_to(APP).as_posix() != "api/dependencies.py"
+    ]
+
+    assert violations == []

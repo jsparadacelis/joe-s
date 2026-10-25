@@ -29,6 +29,13 @@ La persona responsable activa **solo Google** por ahora. Microsoft queda para m�
 8. **Primer socio (arranque):** el primero no puede invitarse a sí mismo. Script manual `python -m backend.app.shared.bootstrap_member --study <id> --email <email> --role partner` (idempotente), ejecutado por la persona responsable; nunca automático.
 9. **Rol «Administración»** pasa a ser un valor del enum `Role` (hoy faltaba) para poder exigirle doble factor; su autoridad de promoción no cambia (RGB-4 decide el resto).
 
+## Endurecimiento (reglas añadidas tras la revisión de seguridad)
+
+10. **Token antes que conexión:** la API verifica firma y claims (y que el email esté verificado) **antes** de abrir ninguna conexión a la base de datos (`check_token` en `Authenticate`; `request_context` lo ejecuta y solo entonces abre la transacción de identidad). Un token basura, caducado o de otra clave cuesta cero conexiones. Test con la fábrica de conexión simulada.
+11. **Sin escalada de rol:** solo un **socio** puede invitar o revocar a socio, director y administración. El **director** solo puede invitar y revocar a director de proyecto, líder técnico, arquitecto y colaborador de obra. Otros roles no gestionan miembros. El rechazo es `no_authority` (403), auditado, con el mensaje «Solo un socio puede invitar o revocar a un socio, un director o a administración.».
+12. **Cualificaciones:** `licensed_signatory`, `site_management` y `sponsor` otorgan autoridad de promoción en fases avanzadas, así que son sensibles todas: **solo un socio las concede** (el director invita sin cualificaciones). Rechazo `no_authority` (403) auditado: «Solo un socio puede conceder cualificaciones (firmante habilitado, dirección facultativa, sponsor).».
+13. **Último socio:** no se puede revocar al último socio activo (tampoco uno a sí mismo): `last_partner` (409), auditado, «No se puede revocar al último socio activo del estudio. Invita antes a otro socio.». Para dos socios que se revocan a la vez, la revocación de un socio activo bloquea (`SELECT ... FOR UPDATE`, en orden fijo por id) las filas de socios activos en la misma transacción y cuenta después: la segunda espera, ve el resultado de la primera y se rechaza. Revocar una invitación pendiente de socio no cuenta.
+
 ## Fuera de alcance
 
 - Configurar los proveedores Google y Microsoft en el panel de Supabase y crear sus credenciales OAuth (lo hace la persona responsable; se documenta cómo).
