@@ -52,7 +52,11 @@ def invite(url, study_id, email, role=Role.ARCHITECT, qualifications=frozenset()
 class TestPostgresMembers:
     def test_add_returns_an_invited_member(self, url):
         member = invite(
-            url, STUDY_A, "ana@example.com", Role.PROJECT_DIRECTOR, frozenset({Qualification.SPONSOR})
+            url,
+            STUDY_A,
+            "ana@example.com",
+            Role.PROJECT_DIRECTOR,
+            frozenset({Qualification.SPONSOR}),
         )
 
         assert member.id

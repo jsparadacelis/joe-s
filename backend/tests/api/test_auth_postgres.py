@@ -70,9 +70,9 @@ class TestSignIn:
         response = client.get("/api/members", headers=headers(aal="aal2"))
 
         assert response.status_code == 200
-        assert rows(url, "SELECT status, user_id FROM study_members WHERE email = 'ana@example.com'") == [
-            ("active", SUB)
-        ]
+        assert rows(
+            url, "SELECT status, user_id FROM study_members WHERE email = 'ana@example.com'"
+        ) == [("active", SUB)]
 
     def test_the_activation_is_audited_once(self, url):
         client = make_client(url)
@@ -95,7 +95,8 @@ class TestSignIn:
         client = make_client(url)
 
         emails = sorted(
-            m["email"] for m in client.get("/api/members", headers=headers(aal="aal2")).json()["members"]
+            m["email"]
+            for m in client.get("/api/members", headers=headers(aal="aal2")).json()["members"]
         )
 
         assert emails == ["ana@example.com", "bea@example.com", "cris@example.com"]
@@ -145,9 +146,9 @@ class TestSignIn:
 
         assert response.status_code == 403
         assert response.json()["detail"]["code"] == "email_not_verified"
-        assert rows(url, "SELECT status, user_id FROM study_members WHERE email = 'ana@example.com'") == [
-            ("invited", None)
-        ]
+        assert rows(
+            url, "SELECT status, user_id FROM study_members WHERE email = 'ana@example.com'"
+        ) == [("invited", None)]
 
     def test_another_subject_cannot_take_over_an_activated_account(self, url):
         client = make_client(url)
@@ -228,7 +229,9 @@ class TestManagingMembers:
 
         assert response.status_code == 403
         assert response.json()["detail"]["code"] == "no_authority"
-        assert rows(url, "SELECT count(*) FROM study_members WHERE email = 'eve@example.com'") == [(0,)]
+        assert rows(url, "SELECT count(*) FROM study_members WHERE email = 'eve@example.com'") == [
+            (0,)
+        ]
         assert rows(url, "SELECT action, outcome FROM audit_events WHERE action = 'invite'") == [
             ("invite", "rejected")
         ]
@@ -247,9 +250,7 @@ class TestManagingMembers:
         assert response.json()["detail"]["code"] == "invalid_email"
         assert rows(url, "SELECT count(*) FROM audit_events WHERE action = 'invite'") == [(0,)]
 
-    @pytest.mark.parametrize(
-        "email", ["a\u0000b@example.com", "a\ud800b@example.com", "a" * 300]
-    )
+    @pytest.mark.parametrize("email", ["a\u0000b@example.com", "a\ud800b@example.com", "a" * 300])
     def test_without_authority_it_is_403_and_audited_even_with_a_bad_email(
         self, client, url, email
     ):
@@ -272,7 +273,9 @@ class TestManagingMembers:
             headers=headers(email="bea@example.com"),
         )
 
-        assert rows(url, "SELECT count(*) FROM audit_events WHERE audit_events::text LIKE %s", "%private%") == [(0,)]
+        assert rows(
+            url, "SELECT count(*) FROM audit_events WHERE audit_events::text LIKE %s", "%private%"
+        ) == [(0,)]
 
     @pytest.mark.parametrize("claim", ["a\u0000b@example.com", "a" * 243 + "@example.com"])
     def test_a_signed_token_with_a_bad_email_is_401_not_500(self, client, claim):
@@ -294,7 +297,9 @@ class TestManagingMembers:
 
     def test_a_revoked_member_is_locked_out_immediately(self, client, url):
         bea = rows(url, "SELECT id::text FROM study_members WHERE email = 'bea@example.com'")[0][0]
-        assert client.get("/api/members", headers=headers(email="bea@example.com")).status_code == 200
+        assert (
+            client.get("/api/members", headers=headers(email="bea@example.com")).status_code == 200
+        )
 
         client.post(f"/api/members/{bea}/revoke", headers=headers(aal="aal2"))
         response = client.get("/api/members", headers=headers(email="bea@example.com"))

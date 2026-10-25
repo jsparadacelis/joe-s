@@ -137,9 +137,7 @@ class TestSupabaseModeRejectsUnauthenticatedRequests:
         token = sign(KeyPair("route-key"), claims())
         wrong = []
         for method, path in business_routes(client.app):
-            response = client.request(
-                method, path, headers={"Authorization": f"Bearer {token}"}
-            )
+            response = client.request(method, path, headers={"Authorization": f"Bearer {token}"})
             if response.status_code != 401:
                 wrong.append((method, path, response.status_code))
 
@@ -194,7 +192,9 @@ class TestSupabaseModeWithAValidToken:
 
     def test_the_dev_settings_do_not_leak_into_the_real_context(self):
         service = members_service_mock()
-        client = supabase_client(Resolution(a_member(role=Role.ARCHITECT), activated=False), service)
+        client = supabase_client(
+            Resolution(a_member(role=Role.ARCHITECT), activated=False), service
+        )
 
         client.get("/api/members", headers=bearer())
 

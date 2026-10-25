@@ -123,7 +123,16 @@ def test_the_study_domain_is_pure_python():
     domain = APP / "study" / "domain"
     for module in ("members.py", "errors.py", "ports.py", "mfa.py"):
         assert (domain / module).exists(), module
-    banned = ("jwt", "cryptography", "psycopg", "fastapi", "pydantic", "httpx", "urllib", "requests")
+    banned = (
+        "jwt",
+        "cryptography",
+        "psycopg",
+        "fastapi",
+        "pydantic",
+        "httpx",
+        "urllib",
+        "requests",
+    )
     violations = [
         f"{p.relative_to(APP)} importa {name}"
         for p in domain.rglob("*.py")
@@ -153,7 +162,8 @@ def test_only_the_study_infrastructure_imports_the_jwt_library():
         f"{p.relative_to(APP)} importa {name}"
         for p in APP.rglob("*.py")
         for name in _imports(p)
-        if name.split(".")[0] == "jwt" and p.relative_to(APP).parts[:2] != ("study", "infrastructure")
+        if name.split(".")[0] == "jwt"
+        and p.relative_to(APP).parts[:2] != ("study", "infrastructure")
     ]
 
     assert violations == []

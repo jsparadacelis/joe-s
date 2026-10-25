@@ -51,8 +51,19 @@ def token(**overrides):
         token(sub="sub\x00"),
     ],
     ids=[
-        "no-header", "garbage", "basic", "other-key", "expired", "aud", "iss", "no-sub",
-        "no-email", "nul-email", "surrogate-email", "long-email", "nul-sub",
+        "no-header",
+        "garbage",
+        "basic",
+        "other-key",
+        "expired",
+        "aud",
+        "iss",
+        "no-sub",
+        "no-email",
+        "nul-email",
+        "surrogate-email",
+        "long-email",
+        "nul-sub",
     ],
 )
 def test_a_bad_token_costs_no_connection(client, connection, headers):
@@ -63,9 +74,7 @@ def test_a_bad_token_costs_no_connection(client, connection, headers):
 
 
 def test_an_unverified_email_costs_no_connection(client, connection):
-    response = client.get(
-        "/api/members", headers=token(user_metadata={"email_verified": False})
-    )
+    response = client.get("/api/members", headers=token(user_metadata={"email_verified": False}))
 
     assert response.status_code == 403
     assert response.json()["detail"]["code"] == "email_not_verified"

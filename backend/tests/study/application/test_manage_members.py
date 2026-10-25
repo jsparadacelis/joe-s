@@ -175,9 +175,7 @@ class TestInvite:
 
 
 class TestRoleEscalation:
-    @pytest.mark.parametrize(
-        "target", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION]
-    )
+    @pytest.mark.parametrize("target", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION])
     def test_a_director_cannot_invite_management_roles_and_it_is_audited(
         self, service, members, audit_log, target
     ):
@@ -202,9 +200,7 @@ class TestRoleEscalation:
         assert result.error is None
         members.add.assert_called_once()
 
-    @pytest.mark.parametrize(
-        "target", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION]
-    )
+    @pytest.mark.parametrize("target", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION])
     def test_a_partner_can_invite_management_roles(self, service, target):
         assert service.invite(a_context(Role.PARTNER), "ana@example.com", target).error is None
 
@@ -322,7 +318,10 @@ class TestLastPartner:
         self, service, members, audit_log
     ):
         p1, p2 = self.partners("p1", "p2")
-        members.get.side_effect = [p1, a_member(id="p1", role=Role.PARTNER, status=MemberStatus.REVOKED)]
+        members.get.side_effect = [
+            p1,
+            a_member(id="p1", role=Role.PARTNER, status=MemberStatus.REVOKED),
+        ]
         members.lock_active_partners.return_value = [p2]
 
         result = service.revoke(a_context(Role.PARTNER), "p1")

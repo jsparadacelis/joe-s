@@ -68,7 +68,9 @@ def test_leaves_an_audit_trace_once(url):
 
 def test_an_unknown_study_is_refused(url):
     with pytest.raises(StudyNotFound):
-        bootstrap_member(url, "99999999-9999-9999-9999-999999999999", "ana@example.com", Role.PARTNER)
+        bootstrap_member(
+            url, "99999999-9999-9999-9999-999999999999", "ana@example.com", Role.PARTNER
+        )
 
     assert members(url) == []
 

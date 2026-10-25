@@ -31,7 +31,9 @@ def db(schema_url):
             "(%s, 'dan@example.com', 'director', 'invited', 'bootstrap')",
             (STUDY_A, STUDY_A, STUDY_A, STUDY_B),
         )
-        admin.execute("UPDATE study_members SET user_id = %s WHERE email = 'bea@example.com'", (SUB,))
+        admin.execute(
+            "UPDATE study_members SET user_id = %s WHERE email = 'bea@example.com'", (SUB,)
+        )
     return url
 
 
@@ -102,9 +104,7 @@ class TestTable:
                 (STUDY_A,),
             )
 
-    @pytest.mark.parametrize(
-        ("role", "status"), [("emperor", "invited"), ("architect", "pending")]
-    )
+    @pytest.mark.parametrize(("role", "status"), [("emperor", "invited"), ("architect", "pending")])
     def test_role_and_status_are_constrained(self, db, role, status):
         with psycopg.connect(db) as conn, pytest.raises(psycopg.errors.CheckViolation):
             conn.execute(
