@@ -19,8 +19,13 @@ Names fixed here for the Developer:
   None. Rejections: action "update", outcome REJECTED, old_value {"phase": n},
   new_value {"error": code}.
 - The result sheet is built with the new content (no second read of the content).
+
+RGB-19 extension of the contract (docs/plans/RGB-19/plan.md): the result sheet carries
+`permissions` (the editor is authorized and the project is in phase 1, so can_edit is True;
+can_promote only when the new content takes the sheet to 100 %) and frozen_version None.
 """
 
+from dataclasses import replace
 from datetime import datetime, timezone
 from unittest.mock import create_autospec
 
@@ -46,7 +51,12 @@ from backend.app.opportunity.domain.errors import (
 from backend.app.opportunity.domain.plan import ProjectType, Scale
 from backend.app.opportunity.domain.ports import ProjectPlans, ProjectSheets
 from backend.app.opportunity.domain.project_plan import ConfirmedPlan
-from backend.app.opportunity.domain.project_sheet import ProjectSheet, SheetProject, build_sheet
+from backend.app.opportunity.domain.project_sheet import (
+    ProjectSheet,
+    SheetPermissions,
+    SheetProject,
+    build_sheet,
+)
 from backend.app.study.domain.context import RequestContext, Role
 
 CODE = "PRY-2026-001"
@@ -134,10 +144,9 @@ class TestSaving:
     def test_the_returned_sheet_reflects_the_new_content_over_the_old(self, use_case):
         result = use_case.execute(a_context(), CODE, {"sponsor": "New", "team": ""}, None)
 
-        assert result.sheet == build_sheet(
-            project=a_project(),
-            plan=a_baseline(),
-            manual={"sponsor": "New"},
+        assert result.sheet == replace(
+            build_sheet(project=a_project(), plan=a_baseline(), manual={"sponsor": "New"}),
+            permissions=SheetPermissions(can_edit=True, can_promote=False),
         )
 
     def test_the_keys_not_touched_survive_in_the_returned_sheet(self, use_case):
@@ -359,3 +368,31 @@ class TestAudit:
         use_case.execute(a_context(), CODE, {"contact": "Ana"}, PLAN)
 
         assert all(e.entity == "project_sheet" for e in events(audit_log))
+
+
+class TestPermissionsOfTheResult:
+    def test_an_incomplete_sheet_can_be_edited_but_not_promoted(self, use_case):
+        result = use_case.execute(a_context(), CODE, {"contact": "Ana"}, None)
+
+        assert result.sheet.frozen_version is None
+        assert result.sheet.permissions == SheetPermissions(can_edit=True, can_promote=False)
+
+    def test_the_edit_that_completes_the_sheet_enables_the_promotion(self, use_case, sheets):
+        names = (
+            "cadastral_reference scope_included scope_excluded contract_signed_on sponsor "
+            "project_director technical_lead contact next_milestone next_milestone_on "
+            "main_risk risk_owner repository_path"
+        ).split()
+        almost = {name: f"{name} (sample)" for name in names if name != "risk_owner"}
+        sheets.get_content.return_value = almost
+
+        result = use_case.execute(a_context(), CODE, {"risk_owner": "Ana"}, None)
+
+        assert result.sheet.completion.percent == 100
+        assert result.sheet.permissions == SheetPermissions(can_edit=True, can_promote=True)
+
+
+def test_the_project_is_read_locked_so_it_cannot_race_a_promotion(use_case, sheets):
+    use_case.execute(a_context(), CODE, {"contact": "Ana"}, None)
+
+    sheets.get_project.assert_called_once_with(CODE, lock=True)

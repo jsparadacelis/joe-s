@@ -68,6 +68,10 @@ export interface ProjectSheet {
   code: string;
   phase: number;
   completion: { filled: number; required: number; percent: number };
+  /** Version of the frozen sheet once the project is past phase 1; `null` while it is still editable. */
+  frozen_version: number | null;
+  /** Computed by the server from the person's authority and the project phase. */
+  permissions: { can_edit: boolean; can_promote: boolean };
   blocks: SheetBlockData[];
 }
 
@@ -141,6 +145,9 @@ function isValidSheet(body: unknown): body is ProjectSheet {
   if (!isObject(completion) || typeof completion.filled !== "number" || typeof completion.required !== "number" || typeof completion.percent !== "number") {
     return false;
   }
+  const { permissions, frozen_version } = body;
+  if (!isObject(permissions) || typeof permissions.can_edit !== "boolean" || typeof permissions.can_promote !== "boolean") return false;
+  if (frozen_version !== null && typeof frozen_version !== "number") return false;
   return Array.isArray(blocks) && blocks.every((b) => isObject(b) && typeof b.block === "string" && Array.isArray(b.fields));
 }
 
@@ -164,6 +171,23 @@ export interface SheetUpdate {
 /** Saves a partial update and returns the whole sheet, so the screen refreshes without another call. */
 export async function saveProjectSheet(code: string, body: SheetUpdate, request: ApiRequest = defaultRequest): Promise<ProjectSheet> {
   return checkedSheet(await request<unknown>(`/api/projects/${encodeURIComponent(code)}/sheet`, { method: "PUT", body }));
+}
+
+/** Answer of `POST /api/projects/{code}/sheet/promote`: the transition and the frozen sheet. */
+export interface PromoteResult {
+  code: string;
+  action: "promote";
+  previous_phase: number;
+  current_phase: number;
+  frozen_version: number;
+  sheet: ProjectSheet;
+}
+
+/** Promotes the project to Briefing and freezes the sheet as version 1; 403, 404, 409 and 422 come as ApiError. */
+export async function promoteProjectSheet(code: string, request: ApiRequest = defaultRequest): Promise<PromoteResult> {
+  const body = await request<unknown>(`/api/projects/${encodeURIComponent(code)}/sheet/promote`, { method: "POST" });
+  if (!isObject(body)) throw new ApiError(200, "invalid_sheet_response", "La respuesta de la ficha no es válida. Inténtalo de nuevo.");
+  return { ...(body as unknown as PromoteResult), sheet: checkedSheet(body.sheet) };
 }
 
 export type FieldInputKind = "text" | "textarea" | "date";

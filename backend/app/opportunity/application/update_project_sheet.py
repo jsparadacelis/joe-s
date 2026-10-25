@@ -5,7 +5,7 @@ Never changes the phase of the project and never touches the baseline plan.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from backend.app.audit.application.record import audit
@@ -28,6 +28,7 @@ from backend.app.opportunity.domain.project_plan import ConfirmedPlan, ProposedP
 from backend.app.opportunity.domain.project_sheet import (
     PLAN_KEY,
     ProjectSheet,
+    SheetPermissions,
     SheetProject,
     build_sheet,
     plan_content,
@@ -70,7 +71,7 @@ class UpdateProjectSheet:
 
         Order of checks: project, phase 1, authority, validation.
         """
-        project = self._sheets.get_project(code)
+        project = self._sheets.get_project(code, lock=True)
         if project is None:
             raise ProjectNotFound(code)
         if project.current_phase != EDITABLE_PHASE:
@@ -109,7 +110,11 @@ class UpdateProjectSheet:
 
         merged = {**stored, **patch}
         merged = {name: value for name, value in merged.items() if value is not None}
-        return UpdateSheetResult(build_sheet(project=project, plan=baseline, manual=merged), None)
+        sheet = build_sheet(project=project, plan=baseline, manual=merged)
+        # The editor passed the authority check and the project is in phase 1.
+        can_promote = sheet.completion.percent == 100
+        permissions = SheetPermissions(can_edit=True, can_promote=can_promote)
+        return UpdateSheetResult(replace(sheet, permissions=permissions), None)
 
     def _record(self, context: RequestContext, code: str, action: str, old: Any, new: Any) -> None:
         audit(

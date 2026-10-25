@@ -105,3 +105,14 @@ def test_project_sheet_domain_is_pure_and_the_adapter_is_wired_by_the_compositio
 
     assert domain_violations == []
     assert wiring_violations == []
+
+
+def test_the_sheet_promotion_depends_on_the_lifecycle_only_through_its_service():
+    """RGB-19: only the promotion service changes a project's phase; the sheet use cases never
+    write the phase themselves (no lifecycle repository, no infrastructure)."""
+    path = APP / "opportunity" / "application" / "promote_project_sheet.py"
+    imports = _imports(path)
+
+    assert "backend.app.lifecycle.application.promotion_service" in imports
+    assert not [name for name in imports if "lifecycle.infrastructure" in name]
+    assert not [name for name in imports if "lifecycle.domain.ports" in name]

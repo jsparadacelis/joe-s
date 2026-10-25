@@ -7,10 +7,11 @@
 import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import PhasePage from "@/app/projects/[code]/phase/[phase]/page";
-import { API_SHEET } from "../helpers/sheet-fixtures";
+import { API_SHEET, API_SHEET_COMPLETE, API_SHEET_EDITABLE, API_SHEET_FROZEN } from "../helpers/sheet-fixtures";
 
 jest.mock("next/navigation", () => ({
   usePathname: () => "/projects/PRY-2026-001/phase/1",
+  useRouter: () => ({ refresh: jest.fn() }),
   notFound: () => {
     throw new Error("NEXT_NOT_FOUND");
   },
@@ -106,26 +107,66 @@ describe("project sheet in the phase page (RGB-17a)", () => {
   });
 });
 
-describe("sheet editability in the phase page (RGB-17b)", () => {
-  it("viewed phase 1 = current phase 1: blocks have «Editar» buttons", async () => {
-    const stub = stubApi({ currentPhase: 1 });
+describe("sheet editability in the phase page (RGB-17b, RGB-19)", () => {
+  // RGB-19: the page no longer decides `editable` from `currentPhase === 1`; it uses `sheet.permissions` from the server.
+  // The 17b cases that depended on the project phase now set the permissions in the reply instead.
+  it("permissions.can_edit: blocks have «Editar» buttons", async () => {
+    const stub = stubApi({ currentPhase: 1, sheetReply: reply(200, API_SHEET_EDITABLE) });
     restore = stub.restore;
     render(await page("PRY-2026-001", "1"));
     expect(screen.getAllByRole("button", { name: /^Editar/ })).toHaveLength(7);
   });
 
-  it.each([0, 2, 3, 7])("viewed phase 1 while the current phase is %s: read-only, no «Editar»", async (current) => {
-    const stub = stubApi({ currentPhase: current });
+  it("current phase 1 but the server says can_edit false (no authority): no «Editar»", async () => {
+    const stub = stubApi({ currentPhase: 1, sheetReply: reply(200, API_SHEET) });
     restore = stub.restore;
     render(await page("PRY-2026-001", "1"));
     expect(screen.getByRole("heading", { level: 2, name: "Ficha del proyecto" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Editar/ })).not.toBeInTheDocument();
   });
 
-  it("no accessibility violations in the editable page", async () => {
-    const stub = stubApi({ currentPhase: 1 });
+  it("the page does not look at the current phase: can_edit true with another current phase still shows «Editar»", async () => {
+    const stub = stubApi({ currentPhase: 3, sheetReply: reply(200, API_SHEET_EDITABLE) });
+    restore = stub.restore;
+    render(await page("PRY-2026-001", "1"));
+    expect(screen.getAllByRole("button", { name: /^Editar/ })).toHaveLength(7);
+  });
+
+  it.each([2, 3, 7])("current phase %s: shows the frozen v1 sheet in read-only, no «Editar» and no «Promover»", async (current) => {
+    const stub = stubApi({ currentPhase: current, sheetReply: reply(200, API_SHEET_FROZEN) });
+    restore = stub.restore;
+    render(await page("PRY-2026-001", "1"));
+    expect(screen.getByRole("heading", { level: 2, name: "Ficha del proyecto" })).toBeInTheDocument();
+    expect(screen.getByText("Ficha v1 congelada · solo lectura")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Editar/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Promover/ })).not.toBeInTheDocument();
+  });
+
+  it("a complete sheet with can_promote shows the enabled «Promover» button in the page", async () => {
+    const stub = stubApi({ currentPhase: 1, sheetReply: reply(200, API_SHEET_COMPLETE) });
+    restore = stub.restore;
+    render(await page("PRY-2026-001", "1"));
+    expect(screen.getByRole("button", { name: "Promover a 2 · Briefing y concepto" })).toBeEnabled();
+  });
+
+  it("no sheet yet keeps the current state", async () => {
+    const stub = stubApi({ currentPhase: 1, sheetReply: reply(404, { detail: { code: "sheet_not_found", message: "Sin ficha." } }) });
+    restore = stub.restore;
+    render(await page("PRY-2026-001", "1"));
+    expect(screen.getByText("Todavía no hay ficha para este proyecto.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Promover/ })).not.toBeInTheDocument();
+  });
+
+  it("no accessibility violations in the editable page and in the frozen page", async () => {
+    const stub = stubApi({ currentPhase: 1, sheetReply: reply(200, API_SHEET_EDITABLE) });
     restore = stub.restore;
     const view = render(<main>{await page("PRY-2026-001", "1")}</main>);
     expect(await axe(view.container)).toHaveNoViolations();
+    view.unmount();
+    stub.restore();
+    const frozen = stubApi({ currentPhase: 3, sheetReply: reply(200, API_SHEET_FROZEN) });
+    restore = frozen.restore;
+    const second = render(<main>{await page("PRY-2026-001", "1")}</main>);
+    expect(await axe(second.container)).toHaveNoViolations();
   });
 });
