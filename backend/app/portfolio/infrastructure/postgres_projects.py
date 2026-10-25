@@ -9,8 +9,9 @@ from backend.app.portfolio.domain.project import ProjectRecord
 # The partial unique index guarantees at most one open pause per project: no duplicated rows.
 _SELECT = (
     "SELECT p.code, p.name, p.current_phase, p.paused, p.traffic_light, p.next_milestone, "
-    "p.responsible_id, p.updated_at, o.reason, o.expected_resumption "
-    "FROM projects p LEFT JOIN pauses o ON o.project_id = p.id AND o.resumed_on IS NULL"
+    "p.responsible_id, p.updated_at, o.reason, o.expected_resumption, op.project_type "
+    "FROM projects p LEFT JOIN pauses o ON o.project_id = p.id AND o.resumed_on IS NULL "
+    "LEFT JOIN opportunities op ON op.project_id = p.id"
 )
 
 

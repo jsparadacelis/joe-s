@@ -16,8 +16,10 @@ from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLife
 from backend.app.opportunity.application.create_opportunity import CreateOpportunity
 from backend.app.opportunity.application.plan_settings import PlanSettingsService
 from backend.app.opportunity.application.scoring import ScoringService, ScoringSettingsService
+from backend.app.opportunity.application.start_project import ProjectPlanReader, StartProject
 from backend.app.opportunity.infrastructure.postgres_opportunity import PostgresOpportunities
 from backend.app.opportunity.infrastructure.postgres_plan_settings import PostgresPlanSettings
+from backend.app.opportunity.infrastructure.postgres_project_plans import PostgresProjectPlans
 from backend.app.opportunity.infrastructure.postgres_scoring import (
     PostgresScorings,
     PostgresScoringSettings,
@@ -157,5 +159,44 @@ def scoring_settings_unit_of_work(
     def open_unit(context: RequestContext) -> Iterator[ScoringSettingsService]:
         with study_transaction(settings.database_url, context) as conn:
             yield ScoringSettingsService(PostgresScoringSettings(conn), PostgresAuditLog(conn))
+
+    return open_unit
+
+
+StartProjectUnitOfWork = Callable[[RequestContext], AbstractContextManager[StartProject]]
+
+
+def start_project_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> StartProjectUnitOfWork:
+    """Composition root for starting a project: plan, frozen content, promotion and audit in one
+    transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[StartProject]:
+        with study_transaction(settings.database_url, context) as conn:
+            audit_log = PostgresAuditLog(conn)
+            yield StartProject(
+                PostgresProjectPlans(conn),
+                PostgresScorings(conn),
+                PromotionService(PostgresLifecycle(conn), audit_log, VALIDATORS_BY_PHASE),
+                audit_log,
+            )
+
+    return open_unit
+
+
+ProjectPlanUnitOfWork = Callable[[RequestContext], AbstractContextManager[ProjectPlanReader]]
+
+
+def project_plan_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ProjectPlanUnitOfWork:
+    """Composition root for reading the confirmed plan: one RLS-scoped transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[ProjectPlanReader]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield ProjectPlanReader(PostgresProjectPlans(conn))
 
     return open_unit

@@ -8,7 +8,7 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from enum import Enum
 from typing import Any
 
-from backend.app.opportunity.domain.errors import InvalidFactor, InvalidWeeks
+from backend.app.opportunity.domain.errors import InvalidFactor, InvalidScale, InvalidWeeks
 
 PLANNED_PHASES = 7  # phases 1 to 7 (phase 0 has no plan yet)
 MAX_WEEKS = 520
@@ -86,6 +86,12 @@ def validate_weeks(weeks: Sequence[Any]) -> tuple[int, ...]:
     if not valid:
         raise InvalidWeeks()
     return tuple(weeks)
+
+
+def validate_scale(value: Any) -> Scale:
+    if not isinstance(value, str) or value not in {s.value for s in Scale}:
+        raise InvalidScale()
+    return Scale(value)
 
 
 def validate_factor(value: Any) -> Decimal:

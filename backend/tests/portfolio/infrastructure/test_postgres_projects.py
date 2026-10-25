@@ -108,3 +108,24 @@ def test_another_studio_does_not_see_the_pause(url):
         records = PostgresProjects(conn).list_projects()
 
     assert [r.pause_reason for r in records] == [None]
+
+
+def test_project_type_is_none_without_an_opportunity(url):
+    with study_transaction(url, a_context(STUDY_A)) as conn:
+        record = PostgresProjects(conn).find("PRY-2026-002")
+
+    assert record.project_type is None
+
+
+def test_project_type_comes_from_the_opportunity(url):
+    with psycopg.connect(url, autocommit=True) as admin:
+        admin.execute(
+            "INSERT INTO opportunities (study_id, project_id, client, location, project_type) "
+            "SELECT study_id, id, 'Client (sample)', 'Town (sample)', 'industrial' "
+            "FROM projects WHERE code = 'PRY-2026-002'"
+        )
+
+    with study_transaction(url, a_context(STUDY_A)) as conn:
+        record = PostgresProjects(conn).find("PRY-2026-002")
+
+    assert record.project_type == "industrial"

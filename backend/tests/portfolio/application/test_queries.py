@@ -128,6 +128,11 @@ class TestProject:
         )
         reader.find.assert_called_once_with("PRY-2026-001")
 
+    def test_carries_the_project_type_of_the_opportunity(self, queries, reader):
+        reader.find.return_value = a_record(project_type="industrial")
+
+        assert queries.project("PRY-2026-001").project_type == "industrial"
+
     def test_unknown_code_is_not_found(self, queries, reader):
         reader.find.return_value = None
 

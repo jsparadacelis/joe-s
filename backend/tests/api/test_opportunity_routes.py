@@ -234,7 +234,9 @@ class TestPortfolio:
 
 class TestProject:
     def test_returns_code_name_and_current_phase(self, client, queries):
-        queries.project.return_value = ProjectSummary("PRY-2026-001", "House (sample)", 0)
+        queries.project.return_value = ProjectSummary(
+            "PRY-2026-001", "House (sample)", 0, "industrial"
+        )
 
         response = client.get("/api/projects/PRY-2026-001")
 
@@ -243,7 +245,13 @@ class TestProject:
             "code": "PRY-2026-001",
             "name": "House (sample)",
             "current_phase": 0,
+            "project_type": "industrial",
         }
+
+    def test_a_project_without_an_opportunity_has_no_project_type(self, client, queries):
+        queries.project.return_value = ProjectSummary("PRY-2026-001", "House (sample)", 0)
+
+        assert client.get("/api/projects/PRY-2026-001").json()["project_type"] is None
 
     def test_unknown_code_is_404_like_the_promotion_routes(self, client, queries):
         queries.project.side_effect = ProjectNotFound("PRY-2026-009")
@@ -316,6 +324,7 @@ class TestEndToEndWithPostgres:
             "code": code,
             "name": "Warehouse (sample)",
             "current_phase": 0,
+            "project_type": "industrial",
         }
 
     def test_another_study_sees_nothing(self, real_client):

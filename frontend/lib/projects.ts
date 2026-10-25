@@ -9,11 +9,14 @@
  */
 import { request as defaultRequest, ApiError, type ApiRequest } from "@/lib/api";
 import { PHASES, type PhaseId } from "@/lib/phases";
+import type { ProjectType } from "@/lib/plan-settings";
 
 export interface Project {
   code: string;
   name: string;
   currentPhase: PhaseId;
+  /** Typology of a real project (`project_type` of the API); sample projects have none. */
+  projectType?: ProjectType;
 }
 
 export type FieldType = "text" | "textarea" | "date";
@@ -69,6 +72,7 @@ interface ApiProject {
   code: string;
   name: string;
   current_phase: PhaseId;
+  project_type?: ProjectType;
 }
 
 /** The real projects the study has, as the portfolio lists them (there is no dedicated list endpoint). */
@@ -98,7 +102,7 @@ export async function fetchProject(code: string, request: ApiRequest = defaultRe
   if (code === "") return null;
   try {
     const project = await request<ApiProject>(`/api/projects/${encodeURIComponent(code)}`);
-    return { code: project.code, name: project.name, currentPhase: project.current_phase };
+    return { code: project.code, name: project.name, currentPhase: project.current_phase, projectType: project.project_type };
   } catch (error) {
     if (error instanceof ApiError && error.status === 404 && error.code === "project_not_found") return null;
     throw error;

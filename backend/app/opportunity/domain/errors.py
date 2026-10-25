@@ -140,3 +140,34 @@ class ProjectNotFound(Exception):
     def __init__(self, project_code: str) -> None:
         self.project_code = project_code
         super().__init__(f"No existe el proyecto {project_code}.")
+
+
+class InvalidScale(PlanSettingsError):
+    code = "invalid_scale"
+
+    def __init__(self) -> None:
+        super().__init__("La escala debe ser pequeña, mediana o grande.")
+
+
+class PlanAlreadyConfirmed(Exception):
+    code = "plan_already_confirmed"
+
+    def __init__(self) -> None:
+        self.message = "El proyecto ya tiene un plan confirmado."
+        super().__init__(self.message)
+
+
+class PlanNotFound(Exception):
+    code = "plan_not_found"
+
+    def __init__(self) -> None:
+        self.message = "El proyecto aún no tiene un plan confirmado."
+        super().__init__(self.message)
+
+
+class ProjectNotInOpportunityPhase(Exception):
+    code = "project_not_in_opportunity_phase"
+
+    def __init__(self) -> None:
+        self.message = "Solo se puede promover o descartar una oportunidad (fase 0)."
+        super().__init__(self.message)
