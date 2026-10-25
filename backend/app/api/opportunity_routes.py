@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
@@ -12,10 +13,12 @@ from backend.app.api.dependencies import (
     OpportunityUnitOfWork,
     PortfolioUnitOfWork,
     ProjectPlanUnitOfWork,
+    ProjectSheetUnitOfWork,
     StartProjectUnitOfWork,
     opportunity_unit_of_work,
     portfolio_unit_of_work,
     project_plan_unit_of_work,
+    project_sheet_unit_of_work,
     request_context,
     start_project_unit_of_work,
 )
@@ -25,6 +28,7 @@ from backend.app.opportunity.domain.errors import (
     PlanAlreadyConfirmed,
     PlanNotFound,
     ProjectNotInOpportunityPhase,
+    SheetNotFound,
 )
 from backend.app.opportunity.domain.errors import (
     ProjectNotFound as OpportunityProjectNotFound,
@@ -39,6 +43,7 @@ CreateUnit = Annotated[OpportunityUnitOfWork, Depends(opportunity_unit_of_work)]
 ReadUnit = Annotated[PortfolioUnitOfWork, Depends(portfolio_unit_of_work)]
 StartUnit = Annotated[StartProjectUnitOfWork, Depends(start_project_unit_of_work)]
 PlanUnit = Annotated[ProjectPlanUnitOfWork, Depends(project_plan_unit_of_work)]
+SheetUnit = Annotated[ProjectSheetUnitOfWork, Depends(project_sheet_unit_of_work)]
 
 _START_STATUS = {
     NoAuthority: 403,
@@ -201,3 +206,13 @@ def get_project_plan(code: str, context: Context, open_unit: PlanUnit) -> dict:
         "confirmed_at": _utc(plan.confirmed_at),
         "confirmed_by": plan.confirmed_by,
     }
+
+
+@router.get("/projects/{code}/sheet")
+def get_project_sheet(code: str, context: Context, open_unit: SheetUnit) -> dict:
+    try:
+        with open_unit(context) as reader:
+            sheet = reader.read(code)
+    except (OpportunityProjectNotFound, SheetNotFound) as error:
+        raise _not_found(error, error.code) from error
+    return asdict(sheet)

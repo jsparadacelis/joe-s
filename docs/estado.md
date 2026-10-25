@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-25 (tras RGB-16, plan propuesto y promoción a Inicio). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-25 (tras RGB-17a, ficha del proyecto de solo lectura). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -27,6 +27,7 @@ Actualizado: 2026-10-25 (tras RGB-16, plan propuesto y promoción a Inicio). Fue
 | **RGB-20** · Reloj activo por fase y calendario | Funciones puras `summarize_time` y `phase_spans_from_entries` (días → semanas con un decimal): activas y pausa por fase, pausa por motivo, total activo, calendario y desviación; pausa que cruza fases repartida; 317 tests. Sin persistencia ni ruta (RGB-21) | [plan](plans/RGB-20/plan.md) · [log](plans/RGB-20/implementation_log.md) |
 | **RGB-14** · Scoring de oportunidades (full-stack, lista salvo despliegue y veredicto del Juez) | Migración `008_scoring` (`scoring_settings` por estudio, `opportunity_scorings` insert-only con ratings, pesos y umbral usados), dominio `compute_score` (half-up con `Decimal`), `GET/PUT /api/settings/scoring`, `POST/GET /api/projects/{code}/scoring`, auditoría; página `/projects/[code]/scoring` con nota en vivo, recomendación («la decisión es de la persona») e historial, sección «Scoring» en `/settings`, enlace desde la ficha de fase 0. Integración: mensajes de pesos del front iguales a los de la API y `computeScore` en aritmética entera (test cruzado con `score_cases.json`); 910 tests de back y 1479 de front en verde; prueba de punta a punta con la API real | [plan](plans/RGB-14/plan.md) · [log](plans/RGB-14/implementation_log.md) |
 | **RGB-16** · Plan propuesto y promoción a Inicio o «no perseguir» (full-stack, desplegada el 2026-10-25) | Migración `009_project_plans` (línea base solo de inserción, con RLS), caso de uso `StartProject` (autoridad de la fase 0 antes de escribir, exige scoring, guarda la línea base, deja scoring y plan en el entregable de salida y promueve en una sola transacción, con rechazos auditados), `POST /api/projects/{code}/start`, `GET /api/projects/{code}/plan` y `project_type` en `GET /api/projects/{code}`. Front: `StartPanel` bajo el scoring con escala, plan propuesto editable (7 semanas, 1–520), «Promover a 1 · Inicio» con confirmación y «No perseguir» con motivo. Veredicto del Juez: aprobado; 1085 tests de back y 1579 de front; 34 pantallazos con el build real | [plan](plans/RGB-16/plan.md) · [log](plans/RGB-16/implementation_log.md) |
+| **RGB-17a** · Ficha del proyecto, parte de solo lectura (full-stack, sin desplegar) | `GET /api/projects/{code}/sheet`: 8 bloques (identificación, encargo, gobierno, cliente, tiempo, riesgo, información, estado) con 20 campos obligatorios, completitud por bloque y total, y datos precargados de la oportunidad y el plan confirmado. Sin migración: la ficha es el contenido del entregable de la fase 1. Front: ficha en `/projects/[code]/phase/1` con «Obligatorio · falta», «Falta N»/«Completo», etiqueta «del scoring» y resumen accesible. El semáforo es opcional y automático (si fuera obligatorio, la ficha nunca llegaría al 100 %). Veredicto del Juez: aprobado; 1154 tests de back y 1664 de front; 10 pantallazos con el build real | [plan](plans/RGB-17/plan.md) · [log](plans/RGB-17/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 | Reordenado del repo (PR #23) y URLs en inglés (PR #24) | `frontend/` y `backend/` separados (Dockerfile y dependencias de Python dentro de `backend/`), URLs de página en inglés (`/projects`, `/portfolio`, `/to-promote`, `/settings`, `/weekly-report`, `plan-and-timing`, `phase`, `#content`). `main` protegida con el ruleset `main-rule`: todo por PR y checks `front`, `backend` y `Vercel` en verde | — |
 | Infra desplegada | API en Cloud Run (`https://rgb-api-368607571687.us-central1.run.app`, pública, con CORS para `https://joe-s.vercel.app` y `http://localhost:3000`), base en Supabase, front en Vercel (*Root Directory* `frontend`). Verificado el 2026-10-24: `/api/health`, `/api/settings/plan` y `/api/plan` responden. Falta `NEXT_PUBLIC_API_URL` en Vercel | [despliegue](despliegue.md) |
@@ -137,6 +138,13 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - Un 422 del servidor en los pesos no nombra el criterio: el front marca los siete pesos (solo con el cliente validando antes se marca uno).
 - Elegir tipología y escala a partir del scoring (RGB-16) y usar la recomendación en la ficha (RGB-17); la recomendación no cambia el estado del proyecto.
 - Los roles de Escritor de tests, Desarrollador, Tester y verificación se ejecutaron en sesión única por frente; falta el veredicto independiente del Juez.
+
+## Pendientes de RGB-17
+
+- RGB-17b: edición y guardado de los campos manuales y recálculo del plan al cambiar tipología o escala. Hasta entonces la ficha recién promovida marca 35 % (7 de 20).
+- Desplegar RGB-17a (no hay migración: solo el backend en Cloud Run).
+- Seguimientos del Tester: límite de tiempo en la carga de la ficha, `dl`/`dt`/`dd` para etiqueta y valor, la cabecera de la página desborda con nombres largos sin espacios (previo), «Guardar» del entregable convive con una ficha de solo lectura, 360 px.
+- El semáforo lo rellenará el consumo de tiempos (tarea posterior); RGB-19 no debe exigirlo.
 
 ## Pendientes de RGB-16
 

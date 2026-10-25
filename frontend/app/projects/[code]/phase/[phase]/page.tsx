@@ -8,6 +8,10 @@ import { ModeBanner } from "@/components/project/ModeBanner";
 import { PhaseTimeline } from "@/components/project/PhaseTimeline";
 import { ReliefViewer } from "@/components/project/relief/ReliefViewer";
 import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
+import { ProjectSheet } from "@/components/project/sheet/ProjectSheet";
+import { Notice } from "@/components/ui/Notice";
+import { ApiError } from "@/lib/api";
+import { fetchProjectSheet, type ProjectSheet as ProjectSheetModel } from "@/lib/sheet";
 import { fetchSavedTechnicalData } from "@/lib/technical-data";
 import { PHASES, phaseMode, parsePhaseId } from "@/lib/phases";
 import { fetchDeliverable, fetchProject, fetchCadastralReference, isSampleProject } from "@/lib/projects";
@@ -15,6 +19,19 @@ import { fetchDeliverable, fetchProject, fetchCadastralReference, isSampleProjec
 type Props = { params: Promise<{ code: string; phase: string }> };
 
 export const metadata: Metadata = { title: "Fase del proyecto" };
+
+type SheetState = { sheet: ProjectSheetModel } | { empty: true } | { error: string };
+
+/** The sheet never takes the page down: no sheet yet (404 `sheet_not_found`) and API failures become messages. */
+async function loadSheet(code: string): Promise<SheetState> {
+  try {
+    return { sheet: await fetchProjectSheet(code) };
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    if (error.status === 404 && error.code === "sheet_not_found") return { empty: true };
+    return { error: error.message };
+  }
+}
 
 export default async function Page({ params }: Props) {
   const { code, phase: rawPhase } = await params;
@@ -37,6 +54,9 @@ export default async function Page({ params }: Props) {
         ? [null, await fetchCadastralReference(project.code)]
         : [null, ""];
 
+  // RGB-17a: the sheet belongs to phase 1 and only exists for real projects; no sheet yet is not an error.
+  const sheetState = viewedPhase === 1 && !isSampleProject(project.code) ? await loadSheet(project.code) : undefined;
+
   return (
     <>
       <PageHead
@@ -55,6 +75,9 @@ export default async function Page({ params }: Props) {
       <Panel title={`Entregable · ${phase.name}`} description={`${phase.deliverable}. Autoridad para promover: ${phase.promoter}.`}>
         <PhaseDeliverableForm deliverable={deliverable} mode={mode} />
       </Panel>
+      {sheetState && "sheet" in sheetState ? <ProjectSheet sheet={sheetState.sheet} /> : null}
+      {sheetState && "empty" in sheetState ? <Notice>Todavía no hay ficha para este proyecto.</Notice> : null}
+      {sheetState && "error" in sheetState ? <Notice tone="bad">No se pudo cargar la ficha del proyecto. {sheetState.error}</Notice> : null}
       {viewedPhase === 2 ? (
         <TechnicalDataEditor
           cadastralReference={saved?.cadastralReference ?? sheetReference}

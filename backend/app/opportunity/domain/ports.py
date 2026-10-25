@@ -12,6 +12,7 @@ from backend.app.opportunity.domain.project_plan import (
     NewProjectPlan,
     StartableProject,
 )
+from backend.app.opportunity.domain.project_sheet import SheetProject
 from backend.app.opportunity.domain.scoring import (
     NewScoring,
     ScorableProject,
@@ -83,4 +84,14 @@ class ProjectPlans(Protocol):
 
     def save_exit_content(self, project_id: str, content: dict[str, Any]) -> None:
         """Set the content of the phase 0 exit deliverable and leave it complete and approved."""
+        ...
+
+
+class ProjectSheets(Protocol):
+    def get_project(self, code: str) -> SheetProject | None:
+        """The project of the study with the data its sheet is prefilled from."""
+        ...
+
+    def get_content(self, project_id: str) -> dict[str, Any] | None:
+        """Content of the phase 1 exit deliverable, or None when there is no row yet."""
         ...

@@ -14,12 +14,14 @@ from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
 from backend.app.opportunity.application.create_opportunity import CreateOpportunity
+from backend.app.opportunity.application.get_project_sheet import GetProjectSheet
 from backend.app.opportunity.application.plan_settings import PlanSettingsService
 from backend.app.opportunity.application.scoring import ScoringService, ScoringSettingsService
 from backend.app.opportunity.application.start_project import ProjectPlanReader, StartProject
 from backend.app.opportunity.infrastructure.postgres_opportunity import PostgresOpportunities
 from backend.app.opportunity.infrastructure.postgres_plan_settings import PostgresPlanSettings
 from backend.app.opportunity.infrastructure.postgres_project_plans import PostgresProjectPlans
+from backend.app.opportunity.infrastructure.postgres_project_sheets import PostgresProjectSheets
 from backend.app.opportunity.infrastructure.postgres_scoring import (
     PostgresScorings,
     PostgresScoringSettings,
@@ -198,5 +200,21 @@ def project_plan_unit_of_work(
     def open_unit(context: RequestContext) -> Iterator[ProjectPlanReader]:
         with study_transaction(settings.database_url, context) as conn:
             yield ProjectPlanReader(PostgresProjectPlans(conn))
+
+    return open_unit
+
+
+ProjectSheetUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetProjectSheet]]
+
+
+def project_sheet_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ProjectSheetUnitOfWork:
+    """Composition root for reading the project sheet: one RLS-scoped transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetProjectSheet]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield GetProjectSheet(PostgresProjectSheets(conn), PostgresProjectPlans(conn))
 
     return open_unit
