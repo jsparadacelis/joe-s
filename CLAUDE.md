@@ -41,3 +41,4 @@ Todo PR de front incluye pantallazos de cómo queda la interfaz con el cambio (c
 
 - Backend: [skills/backend/SKILL.md](skills/backend/SKILL.md)
 - Frontend: [skills/frontend/SKILL.md](skills/frontend/SKILL.md)
+- Orquestar una tarea (Full-stack, Backend o Frontend): [skills/orchestrate-task/SKILL.md](skills/orchestrate-task/SKILL.md)
