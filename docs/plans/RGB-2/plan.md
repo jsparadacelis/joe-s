@@ -11,6 +11,10 @@ Fuente: página RGB-2 del Backlog de Notion. Hoy toda petición corre como un us
 - [ ] Tests de autenticación y de rechazo.
 - [ ] Doble factor obligatorio para socio, director y administración.
 
+## Decisión (2026-10-25)
+
+La persona responsable activa **solo Google** por ahora. Microsoft queda para más adelante: el servidor es independiente del proveedor (solo verifica el token de Supabase), así que añadirlo no exige cambios en el back; en el front será un segundo botón (RGB-2b arranca solo con Google). El criterio de Notion «Google y Microsoft» queda parcialmente cumplido hasta entonces y se anota como seguimiento.
+
 ## Diseño
 
 **Proveedor de identidad: Supabase Auth** (el proyecto ya es Supabase) con Google y Microsoft. El navegador inicia sesión con Supabase y manda el `access_token` (JWT) a la API en `Authorization: Bearer`. La API **no guarda contraseñas ni habla con Google/Microsoft**: solo verifica el JWT.
