@@ -17,7 +17,7 @@ Front en Vercel, backend en Google Cloud Run (capa gratuita, región de EE. UU.)
      .venv-back/bin/python -m backend.app.shared.migrate; unset PW
    ```
 
-   Salida esperada: `Migraciones aplicadas: 001_baseline.sql, 002_multiestudio.sql`. Probado contra Supabase (2026-10-24): `002_multiestudio.sql` (rol `rgb_app` y `GRANT`) se aplica sin problemas. Ejecútalo en una terminal normal: dentro de Claude Code, `!` no da entrada interactiva y la contraseña llega vacía.
+   Salida esperada: la lista de migraciones nuevas (`001_baseline.sql` … `008_scoring.sql` en una base vacía; `ninguna` si ya está al día). Probado contra Supabase (2026-10-24): `002_multistudy.sql` (rol `rgb_app` y `GRANT`) se aplica sin problemas. Ejecútalo en una terminal normal: dentro de Claude Code, `!` no da entrada interactiva y la contraseña llega vacía.
 4. Plan gratuito: Supabase **pausa el proyecto tras una semana sin actividad**. Reactívalo desde el panel o programa un ping que haga una consulta (`/api/health` no toca la base).
 
 ## 2. Backend (Cloud Run)
@@ -79,7 +79,27 @@ El secreto `database-url` apunta al pooler en modo sesión, el mismo que se usó
    `gcloud run services update rgb-api --region $REGION --update-env-vars ^@^CORS_ORIGINS=https://a.vercel.app,https://b.vercel.app`
 4. `next/font/google` necesita red en el build; en Vercel la hay. Pasar a fuentes locales sigue pendiente (ver [estado](estado.md)).
 
-Hoy el front llama a la API solo en `/settings` (ajustes del plan); el resto de pantallas sigue con datos de ejemplo.
+Hoy el front llama a la API en `/settings`, `/portfolio`, `/projects`, `/opportunities/new`, «Plan y tiempos» (pausas) y `/projects/[code]/scoring`; el resto sigue con datos de ejemplo.
+
+## Puesta al día: migraciones 006–008 y backend (hecha el 2026-10-25)
+
+Estaba pendiente: producción tenía migradas la 001–005 y el backend anterior, y `main` añade `006_opportunities`, `007_pauses` y `008_scoring`. Queda hecha así:
+
+- **Migraciones:** aplicadas en Supabase con el MCP (`apply_migration`, una por una y en orden) y registradas a mano en `schema_migrations` (`006_opportunities.sql`, `007_pauses.sql`, `008_scoring.sql`) para que el migrador del repo no las repita. No se usó el Job `rgb-migrar`.
+- **Backend:** `gcloud run deploy rgb-api --source backend --region us-central1` desde la rama `docs/deploy-checklist` (commit `c1a59ec`, que no cambia código del backend respecto de `main`). Revisión nueva `rgb-api-00004-zp6` con el 100 % del tráfico; la anterior, `rgb-api-00003-5xn`. Se conservaron secretos y variables.
+- **Comprobado (solo lectura):** `/api/health` 200 `ok`; `/api/portfolio` 200 con `projects` vacío; `/api/settings/scoring` 200 con los pesos por defecto (todos 1.0, umbral 60); `/api/projects/PRY-0000-000/pauses` 404 con `{detail:{code:"project_not_found",…}}`. No se lanzó ningún `POST`/`PUT`.
+- **Sin hacer a propósito:** la siembra del estudio ficticio (paso 3). Hasta que se decida, las escrituras contra producción (alta de oportunidad, pausas, scoring, ajustes) fallarán por clave foránea.
+- **Vuelta atrás:** `gcloud run services update-traffic rgb-api --to-revisions rgb-api-00003-5xn=100`.
+
+La guía de abajo se conserva como referencia del procedimiento.
+
+1. **Antes:** CI en verde en `main` y `curl https://rgb-api-368607571687.us-central1.run.app/api/health` responde `ok`.
+2. **Migraciones (en este orden, una sola ejecución):** `006`, `007`, `008` solo crean tablas nuevas (con RLS; `opportunity_scorings` es de solo inserción), sin tocar datos existentes. Aplícalas con el Job (`gcloud run jobs deploy rgb-migrar …` y `execute --wait`, ver arriba) o a mano con `python -m backend.app.shared.migrate`. Salida esperada: `006_opportunities.sql, 007_pauses.sql, 008_scoring.sql`. El migrador corre cada archivo en su transacción: si una falla, las anteriores quedan aplicadas y se puede reintentar.
+3. **Estudio ficticio:** las escrituras (alta de oportunidad, pausas, scoring, ajustes) fallan por clave foránea si no existe la fila de `studies` con `DEV_STUDY_ID`. La siembra no es una migración y se niega a correr contra un host no local, así que en producción es una decisión consciente: `DATABASE_URL=<pooler> python -m backend.app.shared.seed_dev --force` (idempotente). Hazlo solo mientras la API siga usando el contexto ficticio y la base solo tenga datos de demo (RGB-2 trae los estudios reales).
+4. **Backend:** `gcloud run deploy rgb-api --source backend --region $REGION` (conserva secretos y variables del servicio actual).
+5. **Comprobar (solo lectura):** `GET /api/health`, `GET /api/portfolio` (200 con `projects` vacío o con las filas sembradas), `GET /api/settings/scoring` (200 con los pesos por defecto) y `GET /api/projects/PRY-0000-000/pauses` (404 con `{detail:{code,message}}`, no el 404 genérico de ruta). No lances `POST`/`PUT` de prueba contra Cloud Run: la API es pública, sin autenticación, y cada escritura queda en la auditoría.
+6. **Front:** no hace falta redesplegar (`NEXT_PUBLIC_API_URL` ya está fijada). Abre `/portfolio` y `/projects` en producción y comprueba que cargan.
+7. **Vuelta atrás:** el backend se revierte con `gcloud run services update-traffic rgb-api --to-revisions <revisión-anterior>=100`; las migraciones solo añaden tablas, así que se pueden dejar aplicadas con el backend anterior.
 
 ## Orden recomendado
 

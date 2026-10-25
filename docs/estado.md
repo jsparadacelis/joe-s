@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-24 (tras la integración de RGB-14, scoring). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-25 (tras desplegar las migraciones 006–008 y el backend). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -83,7 +83,7 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 ## Pendientes de la conexión con la API (ajustes del plan)
 
 - Aviso de validación que persiste al volver al valor guardado; respuesta 200 mal formada que deja «Cargando…» sin «Reintentar»; etiquetas de dos líneas que desalinean los campos; `UNEXPECTED_MESSAGE` duplicado.
-- Resuelto en el PR #29: topes alineados, 422 en vez de 500 sin CORS y siembra del estudio ficticio de desarrollo. Queda desplegar el backend en Cloud Run (`--source backend`) para que producción lo tenga.
+- Resuelto en el PR #29: topes alineados, 422 en vez de 500 sin CORS y siembra del estudio ficticio de desarrollo. Desplegado en Cloud Run el 2026-10-25.
 - Scroll horizontal a 360 px por las migas del layout.
 
 ## Pendientes de RGB-11 (front)
@@ -97,7 +97,7 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - `/opportunities/new` no tiene entrada de menú (solo el botón de la cartera); la barra lateral no marca nada activo en esa pantalla.
 - `/projects` es `force-dynamic` (lee la API en cada petición); valorar caché o revalidación.
 - Dato técnico, relieve, entregables y referencia catastral de un proyecto real siguen siendo de ejemplo (vacíos); «Plan y tiempos» muestra «Sin plan hasta promover».
-- Permisos por rol para dar de alta oportunidades (RGB-4); hoy la API de Cloud Run es pública y aún no tiene este back (hay que desplegarlo y ejecutar la migración 006 en Supabase).
+- Permisos por rol para dar de alta oportunidades (RGB-4); la API de Cloud Run es pública (back y migración 006 desplegados el 2026-10-25).
 - Estado `unknown` en cartera: sin cálculo de semáforo en servidor hasta RGB-16/17/21.
 - Cliente y servidor recortan distinto (`trim` de JS no quita U+001C a U+001F ni U+0085; `strip` de Python no quita U+FEFF): un nombre solo de U+001F pasa el cliente y el servidor responde 422 «obligatorio» junto al campo. Inocuo, pero se puede alinear.
 - Decisiones de producto pendientes: ver [huecos-backend](huecos-backend.md) (qué proyectos entran en la cartera, quién manda en el hito, dueño de «bloqueo»).
@@ -112,11 +112,11 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - «Plan y tiempos» de un proyecto real con fase mayor que 0 debería decir «Sin calcular», no «Sin plan hasta promover».
 - La ficha de una oportunidad real muestra «Guardar» sobre un entregable sin campos (llega con RGB-36).
 - `/opportunities/new` sin entrada de menú; `trim` de JS y `strip` de Python recortan distinto; permisos por rol (RGB-4).
-- Desplegar el backend en Cloud Run y aplicar la migración 006 en Supabase antes de apuntar Vercel a él (acciones del usuario).
+- Hecho el 2026-10-25: backend en Cloud Run y migración 006 en Supabase. Falta sembrar el estudio ficticio en producción para poder escribir (ver [despliegue](despliegue.md)).
 
 ## Pendientes de RGB-21
 
-- Falta desplegar: migración `007_pauses.sql` en Supabase y el backend en Cloud Run (hoy da 404 en estas rutas y en `/api/portfolio`).
+- Desplegado el 2026-10-25: migración `007_pauses.sql` y backend (`/api/portfolio` responde 200).
 - Aviso diario al director de proyecto cuando una pausa vence: sin canal de avisos ni planificador (la API expone `overdue` y `days_overdue`).
 - No hay ruta para completar y aprobar el entregable de salida de la fase 0: para probar la promoción en local se inserta por SQL.
 - Semanas planificadas de un proyecto real «Sin calcular» hasta RGB-16; unificar el `Pause` de ejemplo (`lib/timing.ts`) con `ProjectPause`.
@@ -127,11 +127,11 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 
 - Aviso diario al director de proyecto cuando una pausa pasa su fecha prevista: sin canal de avisos ni planificador; tarea aparte. Hoy solo existe el indicador «Vencida».
 - Ruta para aprobar el entregable de salida de la fase 0 (para promover por la API sin SQL); unificar `Pause` de ejemplo y `ProjectPause`; pausa que cruza fases (RGB-20/22); «Proyectos activos» cuenta los proyectos en pausa.
-- Desplegar: migración 007 en Supabase y backend en Cloud Run (acciones del usuario).
+- Desplegado el 2026-10-25: migración 007 y backend en Cloud Run.
 
 ## Pendientes de RGB-14
 
-- Desplegar: migración `008_scoring.sql` en Supabase y backend en Cloud Run (hoy da 404 en estas rutas).
+- Desplegado el 2026-10-25: migración `008_scoring.sql` y backend (`GET /api/settings/scoring` responde 200). Falta sembrar el estudio ficticio en producción para escribir.
 - Permisos por rol (RGB-2 y RGB-4): hoy cualquier rol puntúa y edita pesos y umbral.
 - Un 422 del servidor en los pesos no nombra el criterio: el front marca los siete pesos (solo con el cliente validando antes se marca uno).
 - Elegir tipología y escala a partir del scoring (RGB-16) y usar la recomendación en la ficha (RGB-17); la recomendación no cambia el estado del proyecto.
