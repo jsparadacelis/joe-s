@@ -75,7 +75,7 @@ export default async function Page({ params }: Props) {
       <Panel title={`Entregable · ${phase.name}`} description={`${phase.deliverable}. Autoridad para promover: ${phase.promoter}.`}>
         <PhaseDeliverableForm deliverable={deliverable} mode={mode} />
       </Panel>
-      {sheetState && "sheet" in sheetState ? <ProjectSheet sheet={sheetState.sheet} /> : null}
+      {sheetState && "sheet" in sheetState ? <ProjectSheet sheet={sheetState.sheet} editable={currentPhase === 1} /> : null}
       {sheetState && "empty" in sheetState ? <Notice>Todavía no hay ficha para este proyecto.</Notice> : null}
       {sheetState && "error" in sheetState ? <Notice tone="bad">No se pudo cargar la ficha del proyecto. {sheetState.error}</Notice> : null}
       {viewedPhase === 2 ? (

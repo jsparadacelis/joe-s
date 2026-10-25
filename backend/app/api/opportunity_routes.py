@@ -15,12 +15,14 @@ from backend.app.api.dependencies import (
     ProjectPlanUnitOfWork,
     ProjectSheetUnitOfWork,
     StartProjectUnitOfWork,
+    UpdateProjectSheetUnitOfWork,
     opportunity_unit_of_work,
     portfolio_unit_of_work,
     project_plan_unit_of_work,
     project_sheet_unit_of_work,
     request_context,
     start_project_unit_of_work,
+    update_project_sheet_unit_of_work,
 )
 from backend.app.lifecycle.domain.errors import IncompleteDeliverable, NoAuthority
 from backend.app.opportunity.domain.errors import (
@@ -28,6 +30,8 @@ from backend.app.opportunity.domain.errors import (
     PlanAlreadyConfirmed,
     PlanNotFound,
     ProjectNotInOpportunityPhase,
+    SheetFieldError,
+    SheetNotEditable,
     SheetNotFound,
 )
 from backend.app.opportunity.domain.errors import (
@@ -44,6 +48,9 @@ ReadUnit = Annotated[PortfolioUnitOfWork, Depends(portfolio_unit_of_work)]
 StartUnit = Annotated[StartProjectUnitOfWork, Depends(start_project_unit_of_work)]
 PlanUnit = Annotated[ProjectPlanUnitOfWork, Depends(project_plan_unit_of_work)]
 SheetUnit = Annotated[ProjectSheetUnitOfWork, Depends(project_sheet_unit_of_work)]
+UpdateSheetUnit = Annotated[
+    UpdateProjectSheetUnitOfWork, Depends(update_project_sheet_unit_of_work)
+]
 
 _START_STATUS = {
     NoAuthority: 403,
@@ -51,6 +58,8 @@ _START_STATUS = {
     ProjectNotInOpportunityPhase: 409,
     PlanAlreadyConfirmed: 409,
 }
+
+_SHEET_STATUS = {NoAuthority: 403, SheetNotEditable: 409}
 
 
 # Values are typed as Any on purpose: the domain is the single place that validates them, so
@@ -216,3 +225,31 @@ def get_project_sheet(code: str, context: Context, open_unit: SheetUnit) -> dict
     except (OpportunityProjectNotFound, SheetNotFound) as error:
         raise _not_found(error, error.code) from error
     return asdict(sheet)
+
+
+# Typed as Any on purpose: the domain validates fields and plan, so every bad value answers
+# with its own error code and gets audited.
+class SheetUpdateInput(BaseModel):
+    fields: Any = None
+    plan: Any = None
+
+
+@router.put("/projects/{code}/sheet")
+def update_project_sheet(
+    code: str, body: SheetUpdateInput, context: Context, open_unit: UpdateSheetUnit
+) -> dict:
+    try:
+        with open_unit(context) as writer:
+            result = writer.execute(context, code, body.fields, body.plan)
+    except OpportunityProjectNotFound as error:
+        raise _not_found(error, error.code) from error
+    # The transaction has already committed: the rejection is audited before responding.
+    if result.error is not None:
+        error = result.error
+        detail = {"code": error.code, "message": error.message}
+        if isinstance(error, SheetFieldError):
+            detail["field"] = error.field
+        elif hasattr(error, "details"):
+            detail.update(error.details())
+        raise HTTPException(_SHEET_STATUS.get(type(error), 422), detail=detail)
+    return asdict(result.sheet)

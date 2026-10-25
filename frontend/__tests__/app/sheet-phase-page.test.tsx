@@ -105,3 +105,27 @@ describe("project sheet in the phase page (RGB-17a)", () => {
     expect(await axe(second.container)).toHaveNoViolations();
   });
 });
+
+describe("sheet editability in the phase page (RGB-17b)", () => {
+  it("viewed phase 1 = current phase 1: blocks have «Editar» buttons", async () => {
+    const stub = stubApi({ currentPhase: 1 });
+    restore = stub.restore;
+    render(await page("PRY-2026-001", "1"));
+    expect(screen.getAllByRole("button", { name: /^Editar/ })).toHaveLength(7);
+  });
+
+  it.each([0, 2, 3, 7])("viewed phase 1 while the current phase is %s: read-only, no «Editar»", async (current) => {
+    const stub = stubApi({ currentPhase: current });
+    restore = stub.restore;
+    render(await page("PRY-2026-001", "1"));
+    expect(screen.getByRole("heading", { level: 2, name: "Ficha del proyecto" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Editar/ })).not.toBeInTheDocument();
+  });
+
+  it("no accessibility violations in the editable page", async () => {
+    const stub = stubApi({ currentPhase: 1 });
+    restore = stub.restore;
+    const view = render(<main>{await page("PRY-2026-001", "1")}</main>);
+    expect(await axe(view.container)).toHaveNoViolations();
+  });
+});

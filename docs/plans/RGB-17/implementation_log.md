@@ -109,3 +109,123 @@ Seguimientos:
 4. Corregir el ejemplo del contrato del plan: dice 16 obligatorios y son 20.
 5. «Guardar» encima de una ficha de solo lectura queda hasta 17b.
 6. `.mcp.json` está sin seguimiento y no es parte de la tarea: no incluirlo en el commit ni en el PR (conviene añadirlo a `.gitignore`).
+
+---
+
+# RGB-17b · Registro del Tester
+
+Rama `feat/RGB-17b-sheet-edit`. Verificación de punta a punta con el build real de Next (`next build` + `next start` en el 3010, `NEXT_PUBLIC_API_URL=http://localhost:8000`) contra uvicorn real y el Postgres local `back-db-1` (54329, migraciones al día). Solo local: nada de Supabase, Cloud Run ni Vercel. Datos ficticios. El Tester no tocó código de producción ni de tests. Veredicto del Juez: pendiente.
+
+## Qué se hizo (17b)
+
+`PUT /api/projects/{code}/sheet` (campos manuales y plan recalculado en el contenido del entregable de la fase 1, sin migración; la línea base `project_plans` no se toca) y, en el front, edición por bloque («Editar X», formulario con etiquetas, errores por campo, «Guardar»/«Cancelar»), selector de tipología y escala con plan propuesto editable y «Confirmar recálculo». Solo editable con el proyecto en la fase 1.
+
+## Ejecutado
+
+- Cifras del Desarrollador (no reejecutadas por el Tester): primera ronda back **1336**, front **1755**; segunda ronda back **1355**, front **1763**, en verde. `next build` en verde.
+- Entorno: uvicorn con rol `partner` (8001), otro con `architect` (8002) y otro con `director` (8003) por `DEV_ROLE`; un proxy local en el 8000 reenvía al 8001 y, a petición, responde 500 (con y sin `detail`), corta la conexión, devuelve HTML, añade latencia al PUT o falla `GET /api/plan`, y puede enviar el PUT al 8002 (403). No se interceptó el navegador. Proyectos ficticios `PRY-2026-922…941` sembrados por la API (oportunidad, scoring, `/start`); el paso a fase 2 con el entregable marcado completo y aprobado en la BD local.
+- Playwright (Chromium, `es-ES`), claro y oscuro, axe-core (todas las reglas).
+
+## Criterios
+
+| Criterio | Resultado |
+|---|---|
+| Los obligatorios vacíos se marcan y al rellenarlos la ficha lo refleja al guardar | **Cumple.** Se rellenó cada bloque desde la pantalla (7 PUT): 35 % -> 100 % «20 de 20», sin lista «Faltan por rellenar», y la API devuelve cada valor. Persiste al recargar. |
+| Cada bloque indica completo o cuántos faltan, y se actualiza | **Cumple.** «Falta 1»/«Faltan N» pasan a «Completo» al guardar los 7 bloques; Estado ya era «Completo»; los 8 en «Completo» al 100 %. Borrar un valor (vacío o solo espacios) vuelve a «Falta 1», 95 % · 19 de 20, y vuelve a la lista de faltas; la API da `null`. |
+| Cambiar tipología o escala recalcula el plan con confirmación | **Cumple.** Aviso explícito, plan propuesto igual a `GET /api/plan`, siete semanas editables, total en vivo, botón «Confirmar recálculo» (no hay «Guardar» hasta confirmar). La ficha muestra el plan nuevo (75 semanas, tipología y escala nuevas) y persiste. `project_plans` queda idéntico (1 fila, semanas originales, mismo `confirmed_by`) y `GET /api/projects/{code}/plan` no cambia. |
+| Sin cambios de estado; cada guardado, en la auditoría | **Cumple.** La fase no cambia con ninguna operación. Auditoría `project_sheet`: `update` (valores anteriores y nuevos de los campos tocados), `recalculate_plan` (plan anterior y nuevo) y `update`/`rejected` con el código del error (`invalid_field`, `unknown_field`, `invalid_request`, `invalid_weeks`, `invalid_scale`, `invalid_project_type`, `no_authority`, `sheet_not_editable`). |
+
+## Pruebas adicionales
+
+- **422 junto al campo:** texto de 201 caracteres (campo corto) y de 2001 (área de texto): mensaje bajo el campo, `aria-invalid`, `aria-describedby`, foco en el campo, el resto del borrador intacto, sin aviso genérico; el error se borra al teclear. Fecha: el control `type=date` impide fechas inválidas; solo se alcanza el 422 con un año de 6 dígitos (`275760-01-01`), que se muestra junto al campo. Semanas inválidas (0, vacío, 521, 2,5, -3): sin PUT, error y foco en la primera inválida.
+- **API (422):** cuerpo vacío, `fields` lista, clave desconocida o no editable (`code`, `name`, `project_type`, `traffic_light`), valores no texto, fechas (`2026-02-30`, mes 13, con hora, dígitos Unicode, año 0000), 200/201 y 2000/2001 caracteres, recorte de espacios, plan con tipología/escala inválida, 6 semanas, 0, 521, 2,5, `2.0`, bool y cadenas; todo atómico (un campo malo no guarda los buenos).
+- **Cancelar, Escape y teclado:** Cancelar y Escape no guardan (sin PUT, API intacta), el foco vuelve a «Editar X» y al reabrir se muestra el valor guardado. Guardar sin cambios cierra sin PUT. Orden de tabulación: campos -> Guardar -> Cancelar -> siguiente bloque. Enter en un campo guarda; Enter en el área de texto inserta salto de línea. Escape se ignora mientras se guarda.
+- **Foco tras guardar:** al «Cambios guardados» (`role=status`, `tabIndex=-1`).
+- **Doble clic en Guardar y Enter repetido** (latencia de 1,5 s): un único PUT, «Guardando…» deshabilitado, campos y Cancelar deshabilitados. Doble clic en «Confirmar recálculo»: un PUT.
+- **Dos pestañas:** gana la última escritura en el mismo campo; los campos distintos de cada pestaña se conservan (fusión de claves). La pestaña que guardó primero queda desactualizada hasta recargar. 12 PUT en paralelo a campos distintos: todos presentes; 12 al mismo campo: gana uno, 24 eventos de auditoría, ninguno perdido.
+- **403:** `architect` -> 403 `no_authority` por API (también con cuerpo inválido: el 403 gana) y en pantalla «No tienes autoridad para esta acción en la fase 1. Pueden hacerlo: Socio, Director.» en el formulario, sin guardar nada y con el borrador intacto. Rechazo auditado.
+- **409:** proyecto en fase 0 y en fase 2 (partner y architect): 409 `sheet_not_editable`. En pantalla (proyecto promovido en otra pestaña con el formulario abierto): «La ficha solo se puede editar mientras el proyecto está en la fase 1.»; al recargar, sin botones «Editar» y con la descripción «Solo lectura…». Fases 0, 2, 3 y proyecto de ejemplo: sin ficha editable.
+- **Errores de red:** 500 con `detail` («La base de datos no responde.»), 500 sin cuerpo, conexión cortada y HTML en un 200: aviso `role=alert`, borrador conservado, reintento posible y con éxito después.
+- **Texto con HTML, emoji y comillas** (`<b>`, `<script>`, `<img onerror>`, comillas, `😀`, `«Ö»`, RTL): se muestra literal, 0 elementos inyectados, ningún script ejecutado, ida y vuelta idéntica en el formulario y tras recargar.
+- **axe:** 0 violaciones, claro y oscuro, en la ficha al 100 %, bloque en edición, error de campo, recálculo abierto, error de semanas, aviso genérico, 403, 409, solo lectura en fase 2, y los 7 bloques en edición a la vez con recálculo.
+- **Anchos 1024, 1280, 1440 y 1920 px**, claro y oscuro, todos los bloques en edición, recálculo abierto y 420 caracteres sin espacios: sin desbordamiento horizontal de la página ni de los bloques.
+- **Carrera de recálculo:** dos cambios de tipología seguidos con latencia en `GET /api/plan`: las semanas son las de la última elección.
+- Consola sin errores salvo los registros del navegador de las respuestas 4xx/5xx provocadas.
+
+## Hallazgos
+
+Severidad: Bloqueante, Alta, Media, Baja, Info. **No hay bloqueantes ni altos.**
+
+1. **Media.** Un texto con carácter NUL (`\u0000`) o sustituto suelto (`\ud800`) devuelve 500 «Internal Server Error» (PostgreSQL rechaza el NUL en `jsonb`; el dominio no lo valida). Repro: `PUT /api/projects/PRY-2026-923/sheet` con `{"fields":{"main_risk":"a\u0000b"}}`. En la interfaz sale «Ocurrió un error inesperado»; no se audita (la transacción se revierte). Pegar un NUL desde el portapapeles es raro, pero es un 500 evitable (rechazar con 422 `invalid_field`).
+2. **Media/Baja (accesibilidad).** Tras un error (aviso genérico, 403, 409) el foco queda en `body`: «Guardar» se deshabilita durante el envío y no se devuelve el foco. El aviso es `role=alert` y se anuncia, pero quien usa teclado pierde su sitio. En RGB-16 el foco iba al aviso. Los errores de campo sí llevan el foco.
+3. **Baja.** Si falla la carga del plan al cambiar tipología o escala, el formulario solo ofrece «Cancelar»: no se puede guardar otro campo editado del bloque sin volver a la tipología original. Con el plan cargando, Enter en un campo se ignora en silencio (sin PUT ni aviso).
+4. **Baja.** El mensaje de la API usa «Sponsor» («El campo «Sponsor» no es válido…»), mientras que la interfaz dice «Promotor»; el texto visible mezcla idiomas. Los demás nombres están en español.
+5. **Baja.** Escape (y Cancelar) descartan el borrador sin avisar, también desde el área de texto.
+6. **Baja.** Cambiar tipología o escala descarta las semanas ya editadas (ya conocido de RGB-16, hallazgo 5).
+7. **Baja.** Una fecha a medio teclear en el `type=date` queda como valor vacío y, al guardar, borra la fecha anterior sin aviso (el control del navegador no deja pasar fechas inválidas; solo se vio con valores tecleados raros).
+8. **Info (decisión del plan).** El plan recalculado vive solo en la ficha: `GET /api/projects/{code}/plan` y otras vistas (`/plan-and-timing`, cartera) siguen con la línea base. Hay dos «planes» hasta que RGB-19 los reconcilie. Además `/plan-and-timing` de un proyecto en fase 1 con plan confirmado dice «El plan base de semanas todavía no está confirmado» (previo a 17b).
+9. **Info.** Guardar un valor idéntico al almacenado, enviado por API, genera un evento `update` y reescribe el contenido; desde la pantalla no ocurre (no se envía sin cambios). Una pestaña desactualizada puede no restaurar un valor que alguien cambió si el usuario lo vuelve a su valor inicial (solo se envían los campos tocados).
+10. **Info.** El orden de comprobación es proyecto -> fase -> autoridad -> validación, así que un rol sin autoridad recibe 409 en fases 0 y 2+ (igual que RGB-16, hallazgo 6).
+11. **Info.** El «Guardar» del entregable de la fase 1 sigue sin hacer nada y convive con los «Guardar» de cada bloque (seguimiento 5 de 17a).
+12. **Info.** Con `1e2` en una semana se envía 100 (válido, como en RGB-16).
+13. **Info (entorno).** `next-server` ajeno en el 3000 (no se tocó); la verificación usó el 3010.
+
+## Pantallazos
+
+[screenshots/](screenshots/), claro y oscuro, build real y API real, datos ficticios (recortes de bloque a 1280 px; la ficha completa es de página entera, con el menú lateral sticky partido por la captura):
+
+- `edit-block-*`: bloque Gobierno en edición.
+- `edit-errors-*`: error de campo (texto de más de 200 caracteres).
+- `edit-saved-*`: bloque tras guardar («Completo» y «Cambios guardados»).
+- `edit-recalc-*`: recálculo del plan con aviso, semanas y «Confirmar recálculo»; `edit-recalc-error-*`: semana inválida.
+- `edit-complete-*`: ficha al 100 %, todos los bloques «Completo».
+- `edit-403-*` y `edit-409-*`: avisos de autoridad y de fase.
+- `edit-readonly-phase2-*`: la ficha de un proyecto en fase 2, sin «Editar».
+
+## No verificado
+
+Supabase, Cloud Run y Vercel (prohibido); roles reales por sesión (RGB-2/4: el rol sale de `DEV_ROLE`); lector de pantalla real (solo axe y árbol de roles); reejecución de las suites (cifras del Desarrollador).
+
+## Segunda ronda (RGB-17b)
+
+Cambios del Desarrollador: back 1355 tests (`\u0000` y sustitutos sueltos dan 422 `invalid_field` con `field` y «contiene caracteres no permitidos»; los mensajes usan las etiquetas de la interfaz) y front 1763 tests (foco al aviso tras un fallo, «Reintentar» si falla el plan propuesto, aviso «Espera a que termine de calcularse el plan», fecha incompleta que no se envía). Se reconstruyó el front (`next build`, `next start` en el 3010) y se reiniciaron los uvicorn (8001 `partner`, 8002 `architect`) con el código nuevo; el proxy de fallos en el 8000. Sin interceptar el navegador. Proyectos ficticios nuevos; todos los scripts de la primera ronda se repitieron como regresión.
+
+| Hallazgo | Estado | Verificación con el build real |
+|---|---|---|
+| 1. NUL / sustituto suelto -> 500 | **Resuelto** | API: 422 `invalid_field` con `field: main_risk` y «El campo «Riesgo principal» no es válido: contiene caracteres no permitidos.» (NUL y `\ud800`). En pantalla: el mensaje sale junto al campo, con el foco en él y sin aviso genérico; corregido el texto, guarda. axe sin violaciones en claro y oscuro. |
+| 2. Foco perdido tras un error | **Resuelto** | Tras 500 con `detail`, 500 sin cuerpo, conexión cortada, HTML en un 200, 403 y 409, el foco queda en el aviso `role=alert` (`tabIndex=-1`). axe sin violaciones con el aviso enfocado. |
+| 3. Fallo del plan sin salida / Enter ignorado | **Resuelto** | Con `GET /api/plan` fallando: aviso + «Reintentar» + «Cancelar», borrador conservado; al reintentar (con latencia) «Cargando plan…», y al terminar aparecen las semanas y «Confirmar recálculo»; se guardó el campo y el plan juntos. Enter con el plan cargando: «Espera a que termine de calcularse el plan», sin PUT. |
+| 4. «Sponsor» en el mensaje de la API | **Resuelto** | «El campo «Promotor» no es válido…» y ««Dirección del proyecto»…» por API y en pantalla. |
+| 7. Fecha a medio teclear borra la anterior | **Resuelto en lo importante, con matiz (Baja)** | La fecha previa no se borra: al vaciar un segmento (`badInput`) no se envía ningún PUT y la API conserva `2026-11-03`; vaciarla del todo sí la borra. Pero el aviso «Fecha incompleta» de la aplicación **no llega a verse**: el `<form>` no lleva `noValidate`, el navegador bloquea el envío antes (`checkValidity()` falso, tooltip nativo «Please enter a valid value. The field is incomplete…», en el idioma del navegador) y el `submit` de la aplicación no se ejecuta. Repro: «Editar Encargo», borrar solo el día de la fecha con Retroceso, pulsar «Guardar». Propuesta: `noValidate` en el formulario para que salga el mensaje en español junto al campo. |
+
+**Seguimientos a propósito** (sin cambios): 5 (Escape/Cancelar descartan el borrador), 6 (cambiar de escala descarta las semanas editadas) y 8 (el plan recalculado vive solo en la ficha), además de 9 a 13.
+
+**Regresiones:** ninguna. Flujo 35 % -> 100 % repetido (7 bloques, 7 PUT, «Completo» en los 8, borrado vuelve a «Falta 1», 95 %); 422 junto al campo, Cancelar/Escape, doble clic y Enter repetido con un solo PUT, HTML y emoji literales, 403 y 409 en pantalla, dos pestañas (última escritura gana, campos distintos conservados), recálculo con confirmación; `project_plans` idéntico (1 fila, semanas originales) y `GET /projects/{code}/plan` sin cambios; fase sin cambios. axe sin violaciones en claro y oscuro en edición, error de campo, caracteres no permitidos, «Reintentar», «Espera…», avisos con foco, 403, 409, recálculo y error de semanas. Sin desbordamiento a 1024, 1280, 1440 y 1920 px con todos los bloques en edición y recálculo abierto.
+
+**Pantallazos regenerados y nuevos** (claro y oscuro, `screenshots/`): todos los `edit-*` anteriores regenerados con el build nuevo, y nuevos `edit-forbidden-chars-*` (error de campo por caracteres no permitidos), `edit-plan-retry-*` («Reintentar» tras fallar el plan) y `edit-plan-wait-*` (aviso «Espera a que termine de calcularse el plan»). No hay pantallazo de «Fecha incompleta» porque el aviso de la aplicación no se muestra (ver hallazgo 7).
+
+---
+
+## Veredicto del Juez (17b)
+
+**APROBADO** (RGB-17b, edición de la ficha y recálculo del plan).
+
+Cifras que obtuvo el Juez, ejecutadas de nuevo: `ruff check backend` sin errores; `pytest backend -q` con `DATABASE_URL=postgresql://rgb:rgb@localhost:54329/rgb` (entorno `.venv-back`), 1355 pasan, 0 saltados ni fallidos; `npm --prefix frontend run lint` y `typecheck` limpios; `npm --prefix frontend test`, 78 suites y 1764 tests en verde.
+
+Razones:
+- Criterios del plan: cumplen. Obligatorios vacíos marcados y reflejados al guardar (pantallazo `edit-complete-*`: 100 %, 20 de 20, todos los bloques «Completo»); recálculo con aviso, semanas editables y «Confirmar recálculo» (`edit-recalc-*`); sin cambio de fase (el caso de uso no toca el estado ni la línea base `project_plans`); cada guardado (`update`, `recalculate_plan`) y cada rechazo quedan en la auditoría (caso de uso y tests contra Postgres real).
+- DDD: validación en dominio puro (`project_sheet.py`, `text.py`, `errors.py`), caso de uso con puertos, adaptador Postgres y ruta delgada. Sin migración.
+- Autoridad solo de fase 1 y solo en fase 1 (409/403 auditados); ninguna acción de IA.
+- TDD: hay tests nuevos para cada capa (dominio, caso de uso, rutas, rutas con Postgres, infraestructura, front de lib, bloque, ficha y página). Los tests ya existentes solo se ampliaron (el único modificado, `sheet-phase-page.test.tsx`, solo tiene líneas añadidas); nada debilitado.
+- Seguridad: consulta parametrizada, `Jsonb`, RLS vía `study_transaction`, longitud y NUL/sustitutos validados (422), React escapa el texto.
+- Accesibilidad: etiquetas, `aria-invalid`/`aria-describedby`, foco al error y al aviso, `role=alert`/`status`, axe sin violaciones (Tester).
+- Idioma: código en inglés, interfaz en español, datos ficticios.
+- Pantallazos: 12 pares `edit-*` más 3 pares nuevos, claro y oscuro, abiertos (recálculo, errores, 403, 409 y completo): corresponden al cambio.
+- `.mcp.json` sigue sin seguimiento: no incluirlo en el commit ni el PR.
+
+Seguimientos (ninguno bloqueante):
+1. Última escritura gana, sin control de versión (RGB-19 o posterior).
+2. Hallazgo 5 (Escape/Cancelar descartan el borrador), 6 (cambiar escala descarta semanas editadas) y 8 (dos planes: ficha vs línea base hasta RGB-19).
+3. Hallazgo 7: el aviso «Fecha incompleta» no se muestra porque el navegador bloquea el envío; hoy `<form>` ya lleva `noValidate` en el código, reverificar con el build real.
+4. De 17a: timeout de carga de la ficha, `dl`/`dt`/`dd`, desbordamiento de la cabecera, ejemplo del plan (16 vs 20 obligatorios) y «Guardar» del entregable que convive con los de bloque.
+5. Añadir `.mcp.json` a `.gitignore`.

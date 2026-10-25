@@ -179,3 +179,73 @@ class SheetNotFound(Exception):
     def __init__(self) -> None:
         self.message = "El proyecto aún no tiene ficha: es una oportunidad (fase 0)."
         super().__init__(self.message)
+
+
+class SheetNotEditable(Exception):
+    code = "sheet_not_editable"
+
+    def __init__(self) -> None:
+        self.message = "La ficha solo se puede editar mientras el proyecto está en la fase 1."
+        super().__init__(self.message)
+
+
+class InvalidSheetRequest(Exception):
+    code = "invalid_request"
+
+    def __init__(self) -> None:
+        self.message = (
+            "La petición debe incluir «fields» (un objeto) o «plan» (un objeto) con los cambios."
+        )
+        super().__init__(self.message)
+
+
+class InvalidProjectType(PlanSettingsError):
+    code = "invalid_project_type"
+
+    def __init__(self) -> None:
+        super().__init__("La tipología no es válida.")
+
+
+SHEET_FIELD_LABELS = {
+    "cadastral_reference": "Referencia catastral",
+    "scope_included": "Alcance incluido",
+    "scope_excluded": "Alcance excluido",
+    "contract_signed_on": "Fecha de firma del contrato",
+    "sponsor": "Promotor",
+    "project_director": "Dirección del proyecto",
+    "technical_lead": "Responsable técnico",
+    "team": "Equipo",
+    "external_collaborators": "Colaboradores externos",
+    "contact": "Contacto del cliente",
+    "next_milestone": "Próximo hito",
+    "next_milestone_on": "Fecha del próximo hito",
+    "main_risk": "Riesgo principal",
+    "risk_owner": "Responsable del riesgo",
+    "repository_path": "Ruta del repositorio",
+}
+
+
+class SheetFieldError(Exception):
+    """A sheet field problem. `message` is user-facing Spanish text."""
+
+    code = "sheet_field_error"
+
+    def __init__(self, field: str, message: str) -> None:
+        self.field = field
+        self.message = message
+        super().__init__(message)
+
+
+class UnknownSheetField(SheetFieldError):
+    code = "unknown_field"
+
+    def __init__(self, field: str) -> None:
+        super().__init__(field, f"El campo «{field}» no existe o no se puede editar aquí.")
+
+
+class InvalidSheetField(SheetFieldError):
+    code = "invalid_field"
+
+    def __init__(self, field: str, reason: str) -> None:
+        label = SHEET_FIELD_LABELS.get(field, field)
+        super().__init__(field, f"El campo «{label}» no es válido: {reason}.")

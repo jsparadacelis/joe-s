@@ -95,3 +95,11 @@ class ProjectSheets(Protocol):
     def get_content(self, project_id: str) -> dict[str, Any] | None:
         """Content of the phase 1 exit deliverable, or None when there is no row yet."""
         ...
+
+    def save_content(self, project_id: str, content: dict[str, Any]) -> None:
+        """Merge `content` over the phase 1 exit deliverable (created if missing).
+
+        Keys not in `content` are kept; a key whose value is None is removed. The deliverable's
+        `complete` and `approved` flags are never changed.
+        """
+        ...
