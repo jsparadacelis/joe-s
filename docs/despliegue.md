@@ -91,6 +91,13 @@ Estaba pendiente: producción tenía migradas la 001–005 y el backend anterior
 - **Sin hacer a propósito:** la siembra del estudio ficticio (paso 3). Hasta que se decida, las escrituras contra producción (alta de oportunidad, pausas, scoring, ajustes) fallarán por clave foránea.
 - **Vuelta atrás:** `gcloud run services update-traffic rgb-api --to-revisions rgb-api-00003-5xn=100`.
 
+### Puesta al día: migración 009 y RGB-16 (hecha el 2026-10-25)
+
+- **Migración:** `009_project_plans` aplicada con el MCP de Supabase y registrada a mano en `schema_migrations` (`009_project_plans.sql`).
+- **Backend:** `gcloud run deploy rgb-api --source backend --region us-central1` desde `main` (`8217d84`). Revisión `rgb-api-00005-9tj` con el 100 % del tráfico; la anterior, `rgb-api-00004-zp6`. Vuelta atrás: `gcloud run services update-traffic rgb-api --to-revisions rgb-api-00004-zp6=100`.
+- **Estudio ficticio sembrado** en producción por decisión expresa de la persona responsable: fila `studies` con `00000000-0000-0000-0000-00000000e001` y nombre «Estudio de desarrollo», insertada con el MCP (equivale a `seed_dev --force`). Las escrituras ya no fallan por clave foránea. Sigue valiendo solo mientras la API use el contexto ficticio (RGB-2).
+- **Comprobado (solo lectura):** `/api/health`, `/api/portfolio`, `/api/settings/scoring` en 200 y `/api/projects/PRY-0000-000/plan` en 404 con `project_not_found` (la ruta nueva existe).
+
 La guía de abajo se conserva como referencia del procedimiento.
 
 1. **Antes:** CI en verde en `main` y `curl https://rgb-api-368607571687.us-central1.run.app/api/health` responde `ok`.
