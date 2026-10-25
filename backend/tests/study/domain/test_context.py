@@ -41,4 +41,5 @@ def test_roles_are_the_prd_roles():
         "technical_lead",
         "architect",
         "site_collaborator",
+        "administration",
     }

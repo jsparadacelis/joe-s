@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
@@ -9,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from backend.app.api.member_routes import router as member_routes
 from backend.app.api.opportunity_routes import router as opportunity_routes
 from backend.app.api.pause_routes import router as pause_routes
 from backend.app.api.plan_routes import router as plan_routes
@@ -32,6 +35,10 @@ def _invalid_request() -> JSONResponse:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
+    if settings.auth_mode == "dev" and settings.environment.lower() == "production":
+        logging.getLogger(__name__).warning(
+            "AUTH_MODE=dev in production: every request runs as the fictitious development user."
+        )
     app = FastAPI(title="RGB Proyectos")
     app.add_middleware(
         CORSMiddleware,
@@ -57,6 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(opportunity_routes)
     app.include_router(pause_routes)
     app.include_router(scoring_routes)
+    app.include_router(member_routes)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

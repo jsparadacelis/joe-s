@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -18,6 +18,17 @@ class Settings(BaseSettings):
     dev_role: str = "partner"
     dev_qualifications: Annotated[list[str], NoDecode] = []
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+    # `dev`: every request runs as the fictitious context above. `supabase`: every business
+    # route requires a Supabase Auth access token (RGB-2).
+    auth_mode: Literal["dev", "supabase"] = "dev"
+    supabase_url: str = ""
+    environment: str = "development"
+
+    @model_validator(mode="after")
+    def _supabase_mode_needs_a_project_url(self):
+        if self.auth_mode == "supabase" and not self.supabase_url.strip():
+            raise ValueError("AUTH_MODE=supabase requiere SUPABASE_URL")
+        return self
 
     @field_validator("cors_origins", "dev_qualifications", mode="before")
     @classmethod
