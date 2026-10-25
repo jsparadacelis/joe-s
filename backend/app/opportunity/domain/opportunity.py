@@ -12,20 +12,10 @@ from typing import Any
 
 from backend.app.opportunity.domain.errors import InvalidField, RequiredField
 from backend.app.opportunity.domain.plan import ProjectType
+from backend.app.opportunity.domain.text import is_storable
 
 MAX_BUDGET = Decimal("1000000000")
 _ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
-
-
-def _storable(text: str) -> bool:
-    """Postgres text cannot hold NUL, and lone surrogates are not valid UTF-8."""
-    if "\x00" in text:
-        return False
-    try:
-        text.encode("utf-8")
-    except UnicodeEncodeError:
-        return False
-    return True
 
 
 def _text(data: Mapping[str, Any], field: str, max_length: int, *, required: bool) -> str | None:
@@ -41,7 +31,7 @@ def _text(data: Mapping[str, Any], field: str, max_length: int, *, required: boo
         if required:
             raise RequiredField(field)
         return None
-    if not _storable(value):
+    if not is_storable(value):
         raise InvalidField(field, "contiene caracteres no permitidos")
     if len(value) > max_length:
         raise InvalidField(field, f"no puede superar los {max_length} caracteres")

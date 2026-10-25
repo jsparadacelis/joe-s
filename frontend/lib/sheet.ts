@@ -4,7 +4,7 @@
  */
 import { ApiError, request as defaultRequest, type ApiRequest } from "@/lib/api";
 import { PHASES, type PhaseId } from "@/lib/phases";
-import { PROJECT_TYPE_LABELS, SCALE_LABELS } from "@/lib/plan-settings";
+import { PROJECT_TYPE_LABELS, SCALE_LABELS, type ProjectType, type Scale } from "@/lib/plan-settings";
 import { TRAFFIC_LIGHT_LABEL } from "@/lib/timing";
 
 export type SheetBlockId =
@@ -144,10 +144,47 @@ function isValidSheet(body: unknown): body is ProjectSheet {
   return Array.isArray(blocks) && blocks.every((b) => isObject(b) && typeof b.block === "string" && Array.isArray(b.fields));
 }
 
-export async function fetchProjectSheet(code: string, request: ApiRequest = defaultRequest): Promise<ProjectSheet> {
-  const body = await request<unknown>(`/api/projects/${encodeURIComponent(code)}/sheet`);
+function checkedSheet(body: unknown): ProjectSheet {
   if (!isValidSheet(body)) {
     throw new ApiError(200, "invalid_sheet_response", "La respuesta de la ficha no es válida. Inténtalo de nuevo.");
   }
   return body;
 }
+
+export async function fetchProjectSheet(code: string, request: ApiRequest = defaultRequest): Promise<ProjectSheet> {
+  return checkedSheet(await request<unknown>(`/api/projects/${encodeURIComponent(code)}/sheet`));
+}
+
+/** Body of `PUT /api/projects/{code}/sheet` (RGB-17b): any subset of manual fields and/or a recalculated plan. */
+export interface SheetUpdate {
+  fields?: Partial<Record<SheetFieldId, string>>;
+  plan?: { project_type: ProjectType; scale: Scale; weeks: number[] };
+}
+
+/** Saves a partial update and returns the whole sheet, so the screen refreshes without another call. */
+export async function saveProjectSheet(code: string, body: SheetUpdate, request: ApiRequest = defaultRequest): Promise<ProjectSheet> {
+  return checkedSheet(await request<unknown>(`/api/projects/${encodeURIComponent(code)}/sheet`, { method: "PUT", body }));
+}
+
+export type FieldInputKind = "text" | "textarea" | "date";
+
+const INPUT_KINDS: Partial<Record<SheetFieldId, FieldInputKind>> = {
+  cadastral_reference: "text",
+  scope_included: "textarea",
+  scope_excluded: "textarea",
+  contract_signed_on: "date",
+  sponsor: "text",
+  project_director: "text",
+  technical_lead: "text",
+  team: "text",
+  external_collaborators: "text",
+  contact: "text",
+  next_milestone: "text",
+  next_milestone_on: "date",
+  main_risk: "textarea",
+  risk_owner: "text",
+  repository_path: "text",
+};
+
+/** Input control of a manual field; `null` for what is not edited as a plain field (automatic, scoring or plan). */
+export const fieldInputKind = (id: SheetFieldId): FieldInputKind | null => INPUT_KINDS[id] ?? null;

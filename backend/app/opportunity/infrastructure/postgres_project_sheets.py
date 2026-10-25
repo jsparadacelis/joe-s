@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import psycopg
+from psycopg.types.json import Jsonb
 
 from backend.app.opportunity.domain.plan import ProjectType
 from backend.app.opportunity.domain.project_sheet import SheetProject
@@ -32,3 +33,15 @@ class PostgresProjectSheets:
             (project_id,),
         ).fetchone()
         return None if row is None else row[0]
+
+    def save_content(self, project_id: str, content: dict[str, Any]) -> None:
+        removed = [key for key, value in content.items() if value is None]
+        patch = {key: value for key, value in content.items() if value is not None}
+        self._conn.execute(
+            "INSERT INTO exit_deliverables (study_id, project_id, phase, content) "
+            "SELECT study_id, id, 1, %s FROM projects WHERE id = %s::uuid "
+            "ON CONFLICT (project_id, phase) DO UPDATE SET "
+            "content = (exit_deliverables.content - %s::text[]) || EXCLUDED.content, "
+            "updated_at = now()",
+            (Jsonb(patch), project_id, removed),
+        )
