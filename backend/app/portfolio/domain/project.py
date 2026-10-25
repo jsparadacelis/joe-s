@@ -19,6 +19,8 @@ class ProjectRecord:
     # The project's open pause, if it has a row in `pauses`.
     pause_reason: str | None = None
     pause_expected_resumption: date | None = None
+    # Typology of the project's opportunity (value of the enum), if it has one.
+    project_type: str | None = None
 
 
 def status_of(record: ProjectRecord) -> str:

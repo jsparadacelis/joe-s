@@ -27,6 +27,8 @@ Fuente: página RGB-16 del Backlog de Notion. Desde el scoring se elige la escal
 - 403 `no_authority`; 404 `project_not_found`; 409 si el proyecto no está en fase 0 o ya tiene plan; 422 `incomplete_deliverable` (sin scoring), `invalid_weeks`, `invalid_scale`, `invalid_request`.
 - Todo rechazo de negocio queda en la auditoría, como en RGB-9.
 
+`GET /api/projects/{code}` (ficha, portfolio) devuelve además `project_type` (valor del enum, `null` si el proyecto no tiene oportunidad); el front lo usa para pedir `GET /api/plan`.
+
 `GET /api/projects/{code}/plan` · 200 `{ project_type, scale, weeks_by_phase, total, confirmed_at, confirmed_by }` o 404 `plan_not_found` si aún no se confirmó.
 
 ## Archivos

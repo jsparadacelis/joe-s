@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Protocol
+from typing import Any, Protocol
 
 from backend.app.opportunity.domain.opportunity import Opportunity
 from backend.app.opportunity.domain.plan import ProjectType, Scale
+from backend.app.opportunity.domain.project_plan import (
+    ConfirmedPlan,
+    NewProjectPlan,
+    StartableProject,
+)
 from backend.app.opportunity.domain.scoring import (
     NewScoring,
     ScorableProject,
@@ -62,4 +67,20 @@ class ScoringRepository(Protocol):
 
     def history(self, project_id: str) -> list[Scoring]:
         """Every version, newest first."""
+        ...
+
+
+class ProjectPlans(Protocol):
+    def get_project(self, code: str, *, lock: bool = True) -> StartableProject | None:
+        """The opportunity of the study; `lock` serializes concurrent starts of the same one."""
+        ...
+
+    def get(self, project_id: str) -> ConfirmedPlan | None: ...
+
+    def add(self, new: NewProjectPlan) -> ConfirmedPlan:
+        """Insert the baseline plan (insert-only; one per project)."""
+        ...
+
+    def save_exit_content(self, project_id: str, content: dict[str, Any]) -> None:
+        """Set the content of the phase 0 exit deliverable and leave it complete and approved."""
         ...

@@ -43,6 +43,7 @@ class ProjectSummary:
     code: str
     name: str
     current_phase: int
+    project_type: str | None = None
 
 
 def _utc_now() -> datetime:
@@ -83,4 +84,4 @@ class PortfolioQueries:
         record = self._reader.find(code)
         if record is None:
             raise ProjectNotFound(code)
-        return ProjectSummary(record.code, record.name, record.current_phase)
+        return ProjectSummary(record.code, record.name, record.current_phase, record.project_type)

@@ -2,19 +2,33 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import RootModel
+from pydantic import BaseModel, RootModel
 
 from backend.app.api.dependencies import (
     OpportunityUnitOfWork,
     PortfolioUnitOfWork,
+    ProjectPlanUnitOfWork,
+    StartProjectUnitOfWork,
     opportunity_unit_of_work,
     portfolio_unit_of_work,
+    project_plan_unit_of_work,
     request_context,
+    start_project_unit_of_work,
 )
-from backend.app.opportunity.domain.errors import OpportunityError
+from backend.app.lifecycle.domain.errors import IncompleteDeliverable, NoAuthority
+from backend.app.opportunity.domain.errors import (
+    OpportunityError,
+    PlanAlreadyConfirmed,
+    PlanNotFound,
+    ProjectNotInOpportunityPhase,
+)
+from backend.app.opportunity.domain.errors import (
+    ProjectNotFound as OpportunityProjectNotFound,
+)
 from backend.app.portfolio.domain.errors import ProjectNotFound
 from backend.app.study.domain.context import RequestContext
 
@@ -23,6 +37,15 @@ router = APIRouter(prefix="/api", tags=["opportunity"])
 Context = Annotated[RequestContext, Depends(request_context)]
 CreateUnit = Annotated[OpportunityUnitOfWork, Depends(opportunity_unit_of_work)]
 ReadUnit = Annotated[PortfolioUnitOfWork, Depends(portfolio_unit_of_work)]
+StartUnit = Annotated[StartProjectUnitOfWork, Depends(start_project_unit_of_work)]
+PlanUnit = Annotated[ProjectPlanUnitOfWork, Depends(project_plan_unit_of_work)]
+
+_START_STATUS = {
+    NoAuthority: 403,
+    IncompleteDeliverable: 422,
+    ProjectNotInOpportunityPhase: 409,
+    PlanAlreadyConfirmed: 409,
+}
 
 
 # Values are typed as Any on purpose: the domain is the single place that validates them, so
@@ -108,4 +131,73 @@ def get_project(code: str, context: Context, open_unit: ReadUnit) -> dict:
             project = queries.project(code)
     except ProjectNotFound as error:
         raise HTTPException(404, detail={"code": error.code, "message": str(error)}) from error
-    return {"code": project.code, "name": project.name, "current_phase": project.current_phase}
+    return {
+        "code": project.code,
+        "name": project.name,
+        "current_phase": project.current_phase,
+        "project_type": project.project_type,
+    }
+
+
+# Typed as Any on purpose: the domain validates scale and weeks, so every bad value answers
+# with its own `invalid_scale` / `invalid_weeks` error and gets audited.
+class StartInput(BaseModel):
+    scale: Any
+    weeks: Any
+
+
+def _utc(value: datetime) -> str:
+    return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _not_found(error: Exception, code: str) -> HTTPException:
+    return HTTPException(404, detail={"code": code, "message": str(error)})
+
+
+@router.post("/projects/{code}/start")
+def start_project(code: str, body: StartInput, context: Context, open_unit: StartUnit) -> dict:
+    try:
+        with open_unit(context) as use_case:
+            result = use_case.execute(context, code, body.scale, body.weeks)
+    except OpportunityProjectNotFound as error:
+        raise _not_found(error, error.code) from error
+    # The transaction has already committed: the rejection is audited before responding.
+    transition = result.transition
+    if not transition.ok:
+        error = transition.error
+        details = error.details() if hasattr(error, "details") else {}
+        raise HTTPException(
+            _START_STATUS.get(type(error), 422),
+            detail={"code": error.code, "message": error.message, **details},
+        )
+    plan = result.plan
+    return {
+        "code": code,
+        "action": transition.action,
+        "previous_phase": transition.previous_phase,
+        "current_phase": transition.current_phase,
+        "frozen_version": transition.frozen_version,
+        "plan": {
+            "project_type": plan.project_type.value,
+            "scale": plan.scale.value,
+            "weeks_by_phase": plan.weeks_by_phase,
+            "total": plan.total,
+        },
+    }
+
+
+@router.get("/projects/{code}/plan")
+def get_project_plan(code: str, context: Context, open_unit: PlanUnit) -> dict:
+    try:
+        with open_unit(context) as reader:
+            plan = reader.read(code)
+    except (OpportunityProjectNotFound, PlanNotFound) as error:
+        raise _not_found(error, error.code) from error
+    return {
+        "project_type": plan.project_type.value,
+        "scale": plan.scale.value,
+        "weeks_by_phase": plan.weeks_by_phase,
+        "total": plan.total,
+        "confirmed_at": _utc(plan.confirmed_at),
+        "confirmed_by": plan.confirmed_by,
+    }

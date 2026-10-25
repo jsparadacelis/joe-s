@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/layout/EmptyState";
 import { PageHead } from "@/components/layout/PageHead";
 import { ScoringHistory } from "@/components/scoring/ScoringHistory";
 import { ScoringForm } from "@/components/scoring/ScoringForm";
+import { StartPanel } from "@/components/scoring/StartPanel";
 import { Notice } from "@/components/ui/Notice";
 import { ApiError } from "@/lib/api";
 import { fetchProject, isSampleProject } from "@/lib/projects";
@@ -59,6 +60,7 @@ export default async function Page({ params }: Props) {
     <>
       {head}
       <ScoringForm code={project.code} settings={settings} initial={scoring} />
+      {project.projectType ? <StartPanel code={project.code} projectType={project.projectType} /> : null}
     </>
   );
 }

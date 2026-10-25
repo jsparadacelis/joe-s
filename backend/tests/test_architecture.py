@@ -63,3 +63,19 @@ def test_ai_packages_never_import_the_promotion_service():
     ]
 
     assert violations == []
+
+
+def test_only_the_composition_root_wires_the_project_plans_adapter():
+    """RGB-16: the Postgres adapter of the plans is imported by `api/dependencies` alone (and
+    the port lives in the domain, the use case in application)."""
+    assert (APP / "opportunity/domain/ports.py").read_text().count("class ProjectPlans") == 1
+    assert (APP / "opportunity/application/start_project.py").exists()
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith("postgres_project_plans")
+        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+    ]
+
+    assert violations == []
