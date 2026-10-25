@@ -171,3 +171,11 @@ class ProjectNotInOpportunityPhase(Exception):
     def __init__(self) -> None:
         self.message = "Solo se puede promover o descartar una oportunidad (fase 0)."
         super().__init__(self.message)
+
+
+class SheetNotFound(Exception):
+    code = "sheet_not_found"
+
+    def __init__(self) -> None:
+        self.message = "El proyecto aún no tiene ficha: es una oportunidad (fase 0)."
+        super().__init__(self.message)

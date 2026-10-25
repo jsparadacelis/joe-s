@@ -27,7 +27,9 @@ Etiqueta «del scoring» = el dato ya existe en la oportunidad, el plan o el sco
 | `timing` | `confirmed_plan` (del plan confirmado en RGB-16), `next_milestone`, `next_milestone_on` (manuales) | |
 | `risk` | `main_risk`, `risk_owner` (manuales) | |
 | `information` | `repository_path` (manual) | |
-| `status` | `traffic_light` (semáforo del proyecto) | |
+| `status` | | `traffic_light` (semáforo del proyecto, automático: llega vacío al promover) |
+
+Nota de cambio (tras el Tester): el semáforo es opcional y `source: "auto"`. Un proyecto recién promovido siempre lo tiene vacío (lo calcula el consumo de tiempos, tarea posterior); exigirlo haría imposible completar la ficha y frenaría RGB-19. Total de obligatorios: 20; el bloque `status` tiene 0 obligatorios y cuenta como completo.
 
 Calidad se rellena desde la fase 2: no entra. Sin honorarios ni forma de pago en el MVP.
 
@@ -47,7 +49,7 @@ Calidad se rellena desde la fase 2: no entra. Sin honorarios ni forma de pago en
 {
   "code": "PRY-2026-001",
   "phase": 1,
-  "completion": { "filled": 6, "required": 16, "percent": 38 },
+  "completion": { "filled": 7, "required": 20, "percent": 35 },
   "blocks": [
     {
       "block": "identification",
@@ -69,7 +71,7 @@ Calidad se rellena desde la fase 2: no entra. Sin honorarios ni forma de pago en
 
 **Back** (`backend/`)
 - `app/opportunity/domain/project_sheet.py`: definición de bloques y campos, `build_sheet(...)` puro (precargado + manuales → bloques con `filled`/`required`/`complete`).
-- `app/opportunity/application/get_project_sheet.py`: caso de uso de lectura (oportunidad, plan confirmado, scoring congelado, contenido del entregable de fase 1, semáforo).
+- `app/opportunity/application/get_project_sheet.py`: caso de uso de lectura (oportunidad, plan confirmado y contenido del entregable de fase 1).
 - `app/api/opportunity_routes.py` y `app/api/dependencies.py`: ruta y composición.
 - `tests/`: dominio puro (completitud, bordes: espacios, nulos, opcionales), caso de uso con `create_autospec`, rutas (200/404), infraestructura con Postgres real si hay consulta nueva, y arquitectura DDD.
 
