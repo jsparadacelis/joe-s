@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from backend.app.lifecycle.domain.errors import IncompleteDeliverable
+
 
 class PlanSettingsError(Exception):
     code = "plan_settings_error"
@@ -186,6 +188,30 @@ class SheetNotEditable(Exception):
 
     def __init__(self) -> None:
         self.message = "La ficha solo se puede editar mientras el proyecto está en la fase 1."
+        super().__init__(self.message)
+
+
+class IncompleteSheet(IncompleteDeliverable):
+    """The sheet still has required fields to fill. The message only counts them: the labels
+    travel in `missing`, so a client that lists them does not repeat them."""
+
+    def __init__(self, missing: list[str]) -> None:
+        super().__init__(missing)
+        n = len(missing)
+        self.message = "La ficha no está completa: " + (
+            "falta 1 campo obligatorio." if n == 1 else f"faltan {n} campos obligatorios."
+        )
+        self.args = (self.message,)
+
+
+class PromotionRejected(Exception):
+    """The promotion service rejected after the sheet content was finalized. Raised (not
+    returned) so the unit of work rolls the whole transaction back."""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+        self.code = error.code  # type: ignore[attr-defined]
+        self.message = error.message  # type: ignore[attr-defined]
         super().__init__(self.message)
 
 

@@ -8,13 +8,16 @@ export class ApiError extends Error {
   readonly code: string;
   /** Offending field of a validation error (`detail.field`); `undefined` when the API did not name one. */
   readonly field?: string;
+  /** Spanish labels of what is missing (`detail.missing`, 422 `incomplete_deliverable`); `undefined` when absent. */
+  readonly missing?: string[];
 
-  constructor(status: number, code: string, message: string, field?: string) {
+  constructor(status: number, code: string, message: string, field?: string, missing?: string[]) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.field = field;
+    this.missing = missing;
   }
 }
 
@@ -47,9 +50,10 @@ function errorFromBody(status: number, text: string): ApiError {
   const body = parseJson(text);
   const detail = typeof body === "object" && body !== null ? (body as { detail?: unknown }).detail : undefined;
   if (typeof detail === "object" && detail !== null && !Array.isArray(detail)) {
-    const { code, message, field } = detail as { code?: unknown; message?: unknown; field?: unknown };
+    const { code, message, field, missing } = detail as { code?: unknown; message?: unknown; field?: unknown; missing?: unknown };
     if (typeof code === "string" && typeof message === "string") {
-      return new ApiError(status, code, message, typeof field === "string" ? field : undefined);
+      const labels = Array.isArray(missing) && missing.every((m) => typeof m === "string") ? (missing as string[]) : undefined;
+      return new ApiError(status, code, message, typeof field === "string" ? field : undefined, labels);
     }
   }
   return new ApiError(status, "unexpected_error", UNEXPECTED_MESSAGE);

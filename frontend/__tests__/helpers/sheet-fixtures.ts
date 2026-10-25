@@ -6,6 +6,10 @@ export const API_PLAN_VALUE = { weeks_by_phase: { "1": 5, "2": 8, "3": 10, "4": 
 export const API_SHEET = {
   code: "PRY-2026-001",
   phase: 1,
+  // RGB-19: the API now also sends `frozen_version` and `permissions` (computed by the server). The default
+  // fixture is a person without authority (read-only); use API_SHEET_EDITABLE / API_SHEET_FROZEN for the others.
+  frozen_version: null as number | null,
+  permissions: { can_edit: false, can_promote: false },
   completion: { filled: 7, required: 20, percent: 35 },
   blocks: [
     {
@@ -74,4 +78,28 @@ export const API_SHEET = {
       fields: [{ field: "traffic_light", required: false, value: "green", source: "auto" }],
     },
   ],
+};
+
+/** A partner or director looking at an incomplete sheet in phase 1: can edit, cannot promote yet. */
+export const API_SHEET_EDITABLE = { ...API_SHEET, permissions: { can_edit: true, can_promote: false } };
+
+/** Phase 1 sheet with every required field filled (20 of 20). */
+export const API_SHEET_COMPLETE = {
+  ...API_SHEET_EDITABLE,
+  completion: { filled: 20, required: 20, percent: 100 },
+  permissions: { can_edit: true, can_promote: true },
+  blocks: API_SHEET.blocks.map((b) => ({
+    ...b,
+    filled: b.required,
+    complete: true,
+    fields: b.fields.map((f) => (f.required && f.value === null ? { ...f, value: "Dato de prueba" } : f)),
+  })),
+};
+
+/** The frozen version 1 shown once the project is past phase 1: complete, nobody can edit or promote. */
+export const API_SHEET_FROZEN = {
+  ...API_SHEET_COMPLETE,
+  phase: 3,
+  frozen_version: 1 as number | null,
+  permissions: { can_edit: false, can_promote: false },
 };

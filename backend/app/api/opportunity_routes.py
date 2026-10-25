@@ -14,12 +14,14 @@ from backend.app.api.dependencies import (
     PortfolioUnitOfWork,
     ProjectPlanUnitOfWork,
     ProjectSheetUnitOfWork,
+    PromoteProjectSheetUnitOfWork,
     StartProjectUnitOfWork,
     UpdateProjectSheetUnitOfWork,
     opportunity_unit_of_work,
     portfolio_unit_of_work,
     project_plan_unit_of_work,
     project_sheet_unit_of_work,
+    promote_project_sheet_unit_of_work,
     request_context,
     start_project_unit_of_work,
     update_project_sheet_unit_of_work,
@@ -30,6 +32,7 @@ from backend.app.opportunity.domain.errors import (
     PlanAlreadyConfirmed,
     PlanNotFound,
     ProjectNotInOpportunityPhase,
+    PromotionRejected,
     SheetFieldError,
     SheetNotEditable,
     SheetNotFound,
@@ -48,6 +51,9 @@ ReadUnit = Annotated[PortfolioUnitOfWork, Depends(portfolio_unit_of_work)]
 StartUnit = Annotated[StartProjectUnitOfWork, Depends(start_project_unit_of_work)]
 PlanUnit = Annotated[ProjectPlanUnitOfWork, Depends(project_plan_unit_of_work)]
 SheetUnit = Annotated[ProjectSheetUnitOfWork, Depends(project_sheet_unit_of_work)]
+PromoteSheetUnit = Annotated[
+    PromoteProjectSheetUnitOfWork, Depends(promote_project_sheet_unit_of_work)
+]
 UpdateSheetUnit = Annotated[
     UpdateProjectSheetUnitOfWork, Depends(update_project_sheet_unit_of_work)
 ]
@@ -60,6 +66,7 @@ _START_STATUS = {
 }
 
 _SHEET_STATUS = {NoAuthority: 403, SheetNotEditable: 409}
+_PROMOTE_STATUS = {**_SHEET_STATUS, IncompleteDeliverable: 422}
 
 
 # Values are typed as Any on purpose: the domain is the single place that validates them, so
@@ -221,7 +228,7 @@ def get_project_plan(code: str, context: Context, open_unit: PlanUnit) -> dict:
 def get_project_sheet(code: str, context: Context, open_unit: SheetUnit) -> dict:
     try:
         with open_unit(context) as reader:
-            sheet = reader.read(code)
+            sheet = reader.read(context, code)
     except (OpportunityProjectNotFound, SheetNotFound) as error:
         raise _not_found(error, error.code) from error
     return asdict(sheet)
@@ -253,3 +260,35 @@ def update_project_sheet(
             detail.update(error.details())
         raise HTTPException(_SHEET_STATUS.get(type(error), 422), detail=detail)
     return asdict(result.sheet)
+
+
+def _business_detail(error: Any) -> dict[str, Any]:
+    details = error.details() if hasattr(error, "details") else {}
+    return {"code": error.code, "message": error.message, **details}
+
+
+@router.post("/projects/{code}/sheet/promote")
+def promote_project_sheet(code: str, context: Context, open_unit: PromoteSheetUnit) -> dict:
+    try:
+        with open_unit(context) as promoter:
+            result = promoter.execute(context, code)
+    except OpportunityProjectNotFound as error:
+        raise _not_found(error, error.code) from error
+    except PromotionRejected as rejected:
+        error = rejected.error
+        raise HTTPException(
+            _PROMOTE_STATUS.get(type(error), 422), detail=_business_detail(error)
+        ) from rejected
+    # The transaction has already committed: the rejection is audited before responding.
+    if result.error is not None:
+        error = result.error
+        raise HTTPException(_PROMOTE_STATUS.get(type(error), 422), detail=_business_detail(error))
+    transition = result.transition
+    return {
+        "code": code,
+        "action": transition.action,
+        "previous_phase": transition.previous_phase,
+        "current_phase": transition.current_phase,
+        "frozen_version": transition.frozen_version,
+        "sheet": asdict(result.sheet),
+    }

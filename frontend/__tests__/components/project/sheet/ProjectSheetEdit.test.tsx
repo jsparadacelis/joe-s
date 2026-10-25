@@ -1,22 +1,26 @@
 /**
  * RGB-17b contract of `@/components/project/sheet/ProjectSheet` (extended):
- *   <ProjectSheet sheet editable? save? loadPlan? />
- *     editable?: boolean (default false) -> passed to every <SheetBlock> with code={sheet.code}
+ *   <ProjectSheet sheet save? loadPlan? />
+ *     RGB-19: the `editable` prop is gone; «Editar» comes from `sheet.permissions.can_edit` (server-computed),
+ *     passed to every <SheetBlock> with code={sheet.code}. Tests below that used `editable` now use an editable sheet.
  *     save?, loadPlan?: as in SheetBlock (default saveProjectSheet / fetchProposedPlan)
  *   Holds the sheet in state: after a successful save it shows the sheet returned by the API (summary percentage,
  *   missing list and block status «Completo» / «Faltan N» updated). The description no longer says «Solo lectura»
  *   when editable.
  */
+jest.mock("next/navigation", () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
+
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { ProjectSheet } from "@/components/project/sheet/ProjectSheet";
 import type { ProjectSheet as ProjectSheetModel } from "@/lib/sheet";
-import { API_SHEET } from "../../../helpers/sheet-fixtures";
+import { API_SHEET, API_SHEET_EDITABLE } from "../../../helpers/sheet-fixtures";
 
 const SHEET = API_SHEET as unknown as ProjectSheetModel;
+const EDITABLE = API_SHEET_EDITABLE as unknown as ProjectSheetModel;
 const AFTER_GOVERNANCE = {
-  ...API_SHEET,
+  ...API_SHEET_EDITABLE,
   completion: { filled: 9, required: 20, percent: 45 },
   blocks: API_SHEET.blocks.map((b) =>
     b.block === "governance"
@@ -48,7 +52,7 @@ describe("<ProjectSheet> editing (RGB-17b)", () => {
   });
 
   it("editable: seven blocks have «Editar» (all but «Estado») and the description is not «Solo lectura»", () => {
-    render(<ProjectSheet sheet={SHEET} editable />);
+    render(<ProjectSheet sheet={EDITABLE} />);
     expect(screen.getAllByRole("button", { name: /^Editar/ })).toHaveLength(7);
     expect(within(region("Estado")).queryByRole("button", { name: /Editar/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Solo lectura/)).not.toBeInTheDocument();
@@ -57,7 +61,7 @@ describe("<ProjectSheet> editing (RGB-17b)", () => {
   it("saving a block refreshes the summary, the missing list and the block status from the returned sheet", async () => {
     const save = jest.fn().mockResolvedValue(AFTER_GOVERNANCE);
     const user = userEvent.setup();
-    render(<ProjectSheet sheet={SHEET} editable save={save} />);
+    render(<ProjectSheet sheet={EDITABLE} save={save} />);
     expect(within(region("Gobierno")).getByText("Faltan 3")).toBeInTheDocument();
     await user.click(within(region("Gobierno")).getByRole("button", { name: /^Editar/ }));
     await user.type(screen.getByLabelText("Promotor"), "Promotora de prueba");
@@ -77,7 +81,7 @@ describe("<ProjectSheet> editing (RGB-17b)", () => {
   it("when the last missing field is filled the block says «Completo»", async () => {
     const save = jest.fn().mockResolvedValue(AFTER_ALL);
     const user = userEvent.setup();
-    render(<ProjectSheet sheet={AFTER_GOVERNANCE} editable save={save} />);
+    render(<ProjectSheet sheet={AFTER_GOVERNANCE} save={save} />);
     await user.click(within(region("Gobierno")).getByRole("button", { name: /^Editar/ }));
     await user.type(screen.getByLabelText("Dirección del proyecto"), "Dirección de prueba");
     await user.click(screen.getByRole("button", { name: "Guardar" }));
@@ -95,7 +99,7 @@ describe("<ProjectSheet> editing (RGB-17b)", () => {
       ),
     } as unknown as ProjectSheetModel;
     const user = userEvent.setup();
-    render(<ProjectSheet sheet={SHEET} editable save={jest.fn().mockResolvedValue(recalculated)} loadPlan={jest.fn().mockResolvedValue({ projectType: "single_family_house", scale: "large", weeksByPhase: [3, 4, 6, 8, 9, 40, 5], total: 75 })} />);
+    render(<ProjectSheet sheet={EDITABLE} save={jest.fn().mockResolvedValue(recalculated)} loadPlan={jest.fn().mockResolvedValue({ projectType: "single_family_house", scale: "large", weeksByPhase: [3, 4, 6, 8, 9, 40, 5], total: 75 })} />);
     await user.click(within(region("Identificación")).getByRole("button", { name: /^Editar/ }));
     await user.selectOptions(screen.getByLabelText("Escala"), "Grande");
     await user.click(await screen.findByRole("button", { name: "Confirmar recálculo" }));
@@ -104,7 +108,7 @@ describe("<ProjectSheet> editing (RGB-17b)", () => {
 
   it("no axe violations editable, and with one block in edit mode", async () => {
     const user = userEvent.setup();
-    const { container } = render(<ProjectSheet sheet={SHEET} editable />);
+    const { container } = render(<ProjectSheet sheet={EDITABLE} />);
     expect(await axe(container)).toHaveNoViolations();
     await user.click(within(region("Gobierno")).getByRole("button", { name: /^Editar/ }));
     expect(await axe(container)).toHaveNoViolations();

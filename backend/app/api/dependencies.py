@@ -16,6 +16,7 @@ from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLife
 from backend.app.opportunity.application.create_opportunity import CreateOpportunity
 from backend.app.opportunity.application.get_project_sheet import GetProjectSheet
 from backend.app.opportunity.application.plan_settings import PlanSettingsService
+from backend.app.opportunity.application.promote_project_sheet import PromoteProjectSheet
 from backend.app.opportunity.application.scoring import ScoringService, ScoringSettingsService
 from backend.app.opportunity.application.start_project import ProjectPlanReader, StartProject
 from backend.app.opportunity.application.update_project_sheet import UpdateProjectSheet
@@ -236,6 +237,31 @@ def update_project_sheet_unit_of_work(
         with study_transaction(settings.database_url, context) as conn:
             yield UpdateProjectSheet(
                 PostgresProjectSheets(conn), PostgresProjectPlans(conn), PostgresAuditLog(conn)
+            )
+
+    return open_unit
+
+
+PromoteProjectSheetUnitOfWork = Callable[
+    [RequestContext], AbstractContextManager[PromoteProjectSheet]
+]
+
+
+def promote_project_sheet_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> PromoteProjectSheetUnitOfWork:
+    """Composition root for promoting from phase 1: finalized content, frozen version, phase
+    change, next deliverable and audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[PromoteProjectSheet]:
+        with study_transaction(settings.database_url, context) as conn:
+            audit_log = PostgresAuditLog(conn)
+            yield PromoteProjectSheet(
+                PostgresProjectSheets(conn),
+                PostgresProjectPlans(conn),
+                PromotionService(PostgresLifecycle(conn), audit_log, VALIDATORS_BY_PHASE),
+                audit_log,
             )
 
     return open_unit

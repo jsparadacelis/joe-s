@@ -9,6 +9,9 @@ Names fixed here for the Developer:
   SheetNotEditable 409, anything else 422 (+ `field` when the error has one). Unknown project
   raised -> 404 project_not_found. Detail is always {"code", "message", ...}. A body that is
   not an object -> 422 invalid_request (global handler).
+
+RGB-19 extension of the contract (docs/plans/RGB-19/plan.md): the body also carries
+`frozen_version` and `permissions`, because it is the same shape as GET /sheet.
 """
 
 import json
@@ -113,7 +116,16 @@ class TestOk:
 
         assert response.status_code == 200
         assert response.json() == json.loads(json.dumps(asdict(a_sheet())))
-        assert set(response.json()) == {"code", "phase", "completion", "blocks"}
+        assert set(response.json()) == {
+            "code",
+            "phase",
+            "completion",
+            "blocks",
+            "frozen_version",
+            "permissions",
+        }
+        assert response.json()["permissions"] == {"can_edit": False, "can_promote": False}
+        assert response.json()["frozen_version"] is None
 
     def test_passes_fields_and_plan_to_the_use_case(self, client, writer, contexts):
         client.put(URL, json={"fields": {"team": ""}, "plan": PLAN})

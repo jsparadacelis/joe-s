@@ -6,9 +6,13 @@ Names fixed here for the Developer:
 - Route in backend/app/api/opportunity_routes.py: GET /api/projects/{code}/sheet ->
   GetProjectSheet.read(code); ProjectNotFound -> 404 project_not_found; SheetNotFound -> 404
   sheet_not_found; both as {"detail": {"code", "message"}} with the Spanish message.
+
+RGB-19 extension of the contract (docs/plans/RGB-19/plan.md): the use case is called as
+read(context, code) and the body gains `frozen_version` and `permissions` (the old keys stay).
 """
 
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import datetime, timezone
 from unittest.mock import create_autospec
 
@@ -21,7 +25,11 @@ from backend.app.opportunity.application.get_project_sheet import GetProjectShee
 from backend.app.opportunity.domain.errors import ProjectNotFound, SheetNotFound
 from backend.app.opportunity.domain.plan import ProjectType, Scale
 from backend.app.opportunity.domain.project_plan import ConfirmedPlan
-from backend.app.opportunity.domain.project_sheet import SheetProject, build_sheet
+from backend.app.opportunity.domain.project_sheet import (
+    SheetPermissions,
+    SheetProject,
+    build_sheet,
+)
 from backend.app.shared.config import Settings
 
 CODE = "PRY-2026-001"
@@ -77,13 +85,50 @@ def client(reader, contexts):
     return TestClient(app)
 
 
+class TestPermissionsAndVersion:
+    def test_the_defaults_of_a_live_sheet(self, client):
+        body = client.get(f"/api/projects/{CODE}/sheet").json()
+
+        assert body["frozen_version"] is None
+        assert body["permissions"] == {"can_edit": False, "can_promote": False}
+
+    def test_what_the_use_case_decides_reaches_the_body(self, client, reader):
+        reader.read.return_value = replace(
+            a_sheet(), permissions=SheetPermissions(True, True), frozen_version=None
+        )
+
+        body = client.get(f"/api/projects/{CODE}/sheet").json()
+
+        assert body["permissions"] == {"can_edit": True, "can_promote": True}
+
+    def test_a_frozen_sheet_reports_its_version(self, client, reader):
+        reader.read.return_value = replace(a_sheet(), phase=2, frozen_version=1)
+
+        body = client.get(f"/api/projects/{CODE}/sheet").json()
+
+        assert (body["phase"], body["frozen_version"]) == (2, 1)
+        assert body["permissions"] == {"can_edit": False, "can_promote": False}
+
+    def test_the_context_is_the_first_argument(self, client, reader, contexts):
+        client.get(f"/api/projects/{CODE}/sheet")
+
+        assert reader.read.call_args.args[0] is contexts[0]
+
+
 class TestGetSheet:
     def test_returns_the_contract(self, client, reader):
         response = client.get(f"/api/projects/{CODE}/sheet")
 
         assert response.status_code == 200
         body = response.json()
-        assert set(body) == {"code", "phase", "completion", "blocks"}
+        assert set(body) == {
+            "code",
+            "phase",
+            "completion",
+            "blocks",
+            "frozen_version",
+            "permissions",
+        }
         assert body["code"] == CODE
         assert body["phase"] == 1
         assert body["completion"] == {"filled": 8, "required": 20, "percent": 40}
@@ -97,7 +142,8 @@ class TestGetSheet:
             "information",
             "status",
         ]
-        reader.read.assert_called_once_with(CODE)
+        reader.read.assert_called_once()
+        assert reader.read.call_args.args[1] == CODE
 
     def test_blocks_and_fields_have_the_literal_shape(self, client):
         body = client.get(f"/api/projects/{CODE}/sheet").json()

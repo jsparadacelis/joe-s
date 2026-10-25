@@ -5,6 +5,8 @@
  * («35 %»), «7 de 20 campos obligatorios» and the missing required fields by label; then one <SheetBlock>
  * per block, in the order received.
  */
+jest.mock("next/navigation", () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
+
 import { render, screen, within } from "@testing-library/react";
 import { axe } from "jest-axe";
 import { ProjectSheet } from "@/components/project/sheet/ProjectSheet";

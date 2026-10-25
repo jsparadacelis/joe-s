@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import date
 from typing import Any
 
 from backend.app.opportunity.domain.errors import (
+    SHEET_FIELD_LABELS,
     InvalidSheetField,
     InvalidSheetRequest,
     UnknownSheetField,
@@ -180,11 +182,21 @@ class Completion:
 
 
 @dataclass(frozen=True)
+class SheetPermissions:
+    """What the person may do with the sheet; computed by the server, never by the client."""
+
+    can_edit: bool
+    can_promote: bool
+
+
+@dataclass(frozen=True)
 class ProjectSheet:
     code: str
     phase: int
     completion: Completion
     blocks: tuple[SheetBlock, ...]
+    frozen_version: int | None = None
+    permissions: SheetPermissions = SheetPermissions(can_edit=False, can_promote=False)
 
 
 def _clean(value: Any) -> Any:
@@ -267,4 +279,67 @@ def build_sheet(
     percent = completion_percent(filled, required)
     return ProjectSheet(
         project.code, project.current_phase, Completion(filled, required, percent), tuple(blocks)
+    )
+
+
+SHEET_PHASE = 1  # the sheet is the exit deliverable of phase 1 and is editable only there
+FROZEN_SHEET_VERSION = 1  # the sheet is frozen once, when promoting from phase 1
+SHEET_KEY = "sheet"  # key of the frozen content that holds the resolved sheet
+
+_PREFILLED_LABELS = {
+    "code": "Código",
+    "name": "Nombre",
+    "client": "Cliente",
+    "location": "Localización",
+    "project_type": "Tipología",
+    "scale": "Escala",
+    "confirmed_plan": "Plan confirmado",
+}
+
+
+def missing_required_labels(sheet: ProjectSheet) -> list[str]:
+    """Spanish labels of the required fields without a value, in display order."""
+    labels = {**_PREFILLED_LABELS, **SHEET_FIELD_LABELS}
+    return [
+        labels.get(f.field, f.field)
+        for block in sheet.blocks
+        for f in block.fields
+        if f.required and f.value is None
+    ]
+
+
+def sheet_permissions(*, phase: int, authorized: bool, completion: Completion) -> SheetPermissions:
+    """Edit: phase 1 and authority. Promote: that, plus every required field filled."""
+    can_edit = phase == SHEET_PHASE and authorized
+    return SheetPermissions(can_edit, can_edit and completion.percent == 100)
+
+
+def sheet_content(sheet: ProjectSheet) -> dict[str, Any]:
+    """The JSON stored under `sheet` when freezing: the sheet as seen, without the
+    per-request permissions or the version."""
+    content = {
+        "code": sheet.code,
+        "phase": sheet.phase,
+        "completion": asdict(sheet.completion),
+        "blocks": [asdict(block) for block in sheet.blocks],
+    }
+    return json.loads(json.dumps(content))  # tuples become lists, as when read back
+
+
+def sheet_from_content(content: Mapping[str, Any]) -> ProjectSheet:
+    """Inverse of `sheet_content`."""
+    blocks = tuple(
+        SheetBlock(
+            b["block"],
+            b["filled"],
+            b["required"],
+            b["complete"],
+            tuple(
+                SheetField(f["field"], f["required"], f["value"], f["source"]) for f in b["fields"]
+            ),
+        )
+        for b in content["blocks"]
+    )
+    return ProjectSheet(
+        content["code"], content["phase"], Completion(**content["completion"]), blocks
     )

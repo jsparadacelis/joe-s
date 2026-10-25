@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-25 (tras RGB-17b, edición de la ficha del proyecto). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-25 (tras RGB-19, completitud de la ficha y promoción a Briefing). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -29,6 +29,7 @@ Actualizado: 2026-10-25 (tras RGB-17b, edición de la ficha del proyecto). Fuent
 | **RGB-16** · Plan propuesto y promoción a Inicio o «no perseguir» (full-stack, desplegada el 2026-10-25) | Migración `009_project_plans` (línea base solo de inserción, con RLS), caso de uso `StartProject` (autoridad de la fase 0 antes de escribir, exige scoring, guarda la línea base, deja scoring y plan en el entregable de salida y promueve en una sola transacción, con rechazos auditados), `POST /api/projects/{code}/start`, `GET /api/projects/{code}/plan` y `project_type` en `GET /api/projects/{code}`. Front: `StartPanel` bajo el scoring con escala, plan propuesto editable (7 semanas, 1–520), «Promover a 1 · Inicio» con confirmación y «No perseguir» con motivo. Veredicto del Juez: aprobado; 1085 tests de back y 1579 de front; 34 pantallazos con el build real | [plan](plans/RGB-16/plan.md) · [log](plans/RGB-16/implementation_log.md) |
 | **RGB-17a** · Ficha del proyecto, parte de solo lectura (full-stack, mergeada) | `GET /api/projects/{code}/sheet`: 8 bloques (identificación, encargo, gobierno, cliente, tiempo, riesgo, información, estado) con 20 campos obligatorios, completitud por bloque y total, y datos precargados de la oportunidad y el plan confirmado. Sin migración: la ficha es el contenido del entregable de la fase 1. Front: ficha en `/projects/[code]/phase/1` con «Obligatorio · falta», «Falta N»/«Completo», etiqueta «del scoring» y resumen accesible. El semáforo es opcional y automático (si fuera obligatorio, la ficha nunca llegaría al 100 %). Veredicto del Juez: aprobado; 1154 tests de back y 1664 de front; 10 pantallazos con el build real | [plan](plans/RGB-17/plan.md) · [log](plans/RGB-17/implementation_log.md) |
 | **RGB-17b** · Edición de la ficha del proyecto (full-stack, sin desplegar) | `PUT /api/projects/{code}/sheet`: guarda los 15 campos manuales por bloque (texto, fechas ISO, límites de longitud, sin caracteres no almacenables) y el plan recalculado al cambiar tipología o escala. Solo con autoridad de la fase 1 y solo en la fase 1 (403/409/422 auditados). Sin migración: se fusiona en el contenido del entregable de la fase 1; la línea base `project_plans` no se toca y el plan recalculado gana al leer la ficha. Front: «Editar» por bloque con errores junto al campo, foco gestionado, recálculo con plan propuesto editable y «Confirmar recálculo». Veredicto del Juez: aprobado; 1355 tests de back y 1764 de front; 20 pantallazos `edit-*` | [plan](plans/RGB-17/plan-17b.md) · [log](plans/RGB-17/implementation_log.md) |
+| **RGB-19** · Completitud de la ficha y promoción a Briefing, ficha v1 (full-stack, sin desplegar) | `POST /api/projects/{code}/sheet/promote`: solo con la ficha al 100 % (20 obligatorios) y con autoridad de la fase 1; congela la ficha como versión 1 (con el `sheet` ya resuelto dentro, que no se recalcula), marca el entregable de la fase 1 completo y aprobado y promueve a Briefing en una sola transacción, con `FOR UPDATE` sobre el proyecto (la perdedora de una carrera recibe 409 auditado). `GET`/`PUT /sheet` devuelven `frozen_version` y `permissions {can_edit, can_promote}` que calcula el servidor; con la fase > 1 se muestra la versión congelada en solo lectura. Auditoría de `promote` y `freeze` y de los rechazos. Sin migración. Front: `PromotePanel` (porcentaje, faltantes por bloque, botón con la razón visible, confirmación, éxito con enlace a la fase 2, 403/409/422 accesibles) y aviso «Ficha v1 congelada · solo lectura». Veredicto del Juez: aprobado; 1491 tests de back y 1814 de front; 24 pantallazos | [plan](plans/RGB-19/plan.md) · [log](plans/RGB-19/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 | Reordenado del repo (PR #23) y URLs en inglés (PR #24) | `frontend/` y `backend/` separados (Dockerfile y dependencias de Python dentro de `backend/`), URLs de página en inglés (`/projects`, `/portfolio`, `/to-promote`, `/settings`, `/weekly-report`, `plan-and-timing`, `phase`, `#content`). `main` protegida con el ruleset `main-rule`: todo por PR y checks `front`, `backend` y `Vercel` en verde | — |
 | Infra desplegada | API en Cloud Run (`https://rgb-api-368607571687.us-central1.run.app`, pública, con CORS para `https://joe-s.vercel.app` y `http://localhost:3000`), base en Supabase, front en Vercel (*Root Directory* `frontend`). Verificado el 2026-10-24: `/api/health`, `/api/settings/plan` y `/api/plan` responden. Falta `NEXT_PUBLIC_API_URL` en Vercel | [despliegue](despliegue.md) |
@@ -140,6 +141,14 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - Elegir tipología y escala a partir del scoring (RGB-16) y usar la recomendación en la ficha (RGB-17); la recomendación no cambia el estado del proyecto.
 - Los roles de Escritor de tests, Desarrollador, Tester y verificación se ejecutaron en sesión única por frente; falta el veredicto independiente del Juez.
 
+## Pendientes de RGB-19
+
+- Desplegar RGB-17 y RGB-19: solo el backend en Cloud Run (sin migración). Sin desplegar, producción no tiene ficha ni promoción a Briefing.
+- Tras un 409 o tras promover, la página queda desactualizada hasta recargar: siguen visibles «Guardar» y «Editar» (el servidor los rechaza) y «Cambios guardados» en los bloques.
+- El resumen de la ficha y el panel de promoción repiten «Faltan por rellenar» y el porcentaje; hay un aviso de lint por un import sin usar en un test.
+- No verificado: roles reales (RGB-2 y RGB-4), producción y lector de pantalla real.
+- Siguiente en el backlog: la épica E5 (brief manual y promoción a Anteproyecto) y RGB-2/RGB-4 (acceso con usuarios y roles) antes de dar acceso a más personas.
+
 ## Pendientes de RGB-17
 
 - Desplegar RGB-17a y 17b: solo el backend en Cloud Run (sin migración).
@@ -147,7 +156,6 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - Hay dos planes (el de la ficha y la línea base de `project_plans`) hasta que RGB-19 congele la ficha v1; `/plan` y `/plan-and-timing` siguen con la línea base.
 - Seguimientos de 17a: límite de tiempo en la carga de la ficha, `dl`/`dt`/`dd` para etiqueta y valor, la cabecera de la página desborda con nombres largos sin espacios (previo), «Guardar» del entregable convive con los de cada bloque, 360 px.
 - El semáforo lo rellenará el consumo de tiempos; RGB-19 no debe exigirlo. Falta añadir `.mcp.json` a `.gitignore`.
-- Siguiente en la épica: RGB-19 (completitud de la ficha y promoción a Briefing, ficha v1).
 
 ## Pendientes de RGB-16
 

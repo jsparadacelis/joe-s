@@ -88,8 +88,9 @@ class ProjectPlans(Protocol):
 
 
 class ProjectSheets(Protocol):
-    def get_project(self, code: str) -> SheetProject | None:
-        """The project of the study with the data its sheet is prefilled from."""
+    def get_project(self, code: str, *, lock: bool = False) -> SheetProject | None:
+        """The project of the study with the data its sheet is prefilled from; `lock`
+        serializes concurrent writers (edit, promotion) of the same project until commit."""
         ...
 
     def get_content(self, project_id: str) -> dict[str, Any] | None:
@@ -102,4 +103,12 @@ class ProjectSheets(Protocol):
         Keys not in `content` are kept; a key whose value is None is removed. The deliverable's
         `complete` and `approved` flags are never changed.
         """
+        ...
+
+    def finalize_content(self, project_id: str, content: dict[str, Any]) -> None:
+        """Replace the phase 1 exit deliverable content and leave it complete and approved."""
+        ...
+
+    def get_frozen(self, project_id: str, phase: int) -> dict[str, Any] | None:
+        """Content of the latest frozen version of the phase, or None when there is none."""
         ...
