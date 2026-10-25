@@ -26,7 +26,7 @@ Actualizado: 2026-10-25 (tras RGB-16, plan propuesto y promoción a Inicio). Fue
 | **RGB-15** · Plantillas de semanas y factor de escala | `make_plan(project_type, scale)` con redondeo half-up y mínimo 1 semana (industrial grande = 3-3-5-7-10-52-5); valores del PRD por defecto en el dominio y ajustes editables por estudio (`plan_templates`, `scale_factors`, con RLS y auditoría); rutas `GET /api/plan`, `GET /api/settings/plan` y `PUT` de plantillas y factores; 274 tests | [plan](plans/RGB-15/plan.md) · [log](plans/RGB-15/implementation_log.md) |
 | **RGB-20** · Reloj activo por fase y calendario | Funciones puras `summarize_time` y `phase_spans_from_entries` (días → semanas con un decimal): activas y pausa por fase, pausa por motivo, total activo, calendario y desviación; pausa que cruza fases repartida; 317 tests. Sin persistencia ni ruta (RGB-21) | [plan](plans/RGB-20/plan.md) · [log](plans/RGB-20/implementation_log.md) |
 | **RGB-14** · Scoring de oportunidades (full-stack, lista salvo despliegue y veredicto del Juez) | Migración `008_scoring` (`scoring_settings` por estudio, `opportunity_scorings` insert-only con ratings, pesos y umbral usados), dominio `compute_score` (half-up con `Decimal`), `GET/PUT /api/settings/scoring`, `POST/GET /api/projects/{code}/scoring`, auditoría; página `/projects/[code]/scoring` con nota en vivo, recomendación («la decisión es de la persona») e historial, sección «Scoring» en `/settings`, enlace desde la ficha de fase 0. Integración: mensajes de pesos del front iguales a los de la API y `computeScore` en aritmética entera (test cruzado con `score_cases.json`); 910 tests de back y 1479 de front en verde; prueba de punta a punta con la API real | [plan](plans/RGB-14/plan.md) · [log](plans/RGB-14/implementation_log.md) |
-| **RGB-16** · Plan propuesto y promoción a Inicio o «no perseguir» (full-stack, lista salvo despliegue) | Migración `009_project_plans` (línea base solo de inserción, con RLS), caso de uso `StartProject` (autoridad de la fase 0 antes de escribir, exige scoring, guarda la línea base, deja scoring y plan en el entregable de salida y promueve en una sola transacción, con rechazos auditados), `POST /api/projects/{code}/start`, `GET /api/projects/{code}/plan` y `project_type` en `GET /api/projects/{code}`. Front: `StartPanel` bajo el scoring con escala, plan propuesto editable (7 semanas, 1–520), «Promover a 1 · Inicio» con confirmación y «No perseguir» con motivo. Veredicto del Juez: aprobado; 1085 tests de back y 1579 de front; 34 pantallazos con el build real | [plan](plans/RGB-16/plan.md) · [log](plans/RGB-16/implementation_log.md) |
+| **RGB-16** · Plan propuesto y promoción a Inicio o «no perseguir» (full-stack, desplegada el 2026-10-25) | Migración `009_project_plans` (línea base solo de inserción, con RLS), caso de uso `StartProject` (autoridad de la fase 0 antes de escribir, exige scoring, guarda la línea base, deja scoring y plan en el entregable de salida y promueve en una sola transacción, con rechazos auditados), `POST /api/projects/{code}/start`, `GET /api/projects/{code}/plan` y `project_type` en `GET /api/projects/{code}`. Front: `StartPanel` bajo el scoring con escala, plan propuesto editable (7 semanas, 1–520), «Promover a 1 · Inicio» con confirmación y «No perseguir» con motivo. Veredicto del Juez: aprobado; 1085 tests de back y 1579 de front; 34 pantallazos con el build real | [plan](plans/RGB-16/plan.md) · [log](plans/RGB-16/implementation_log.md) |
 | Regla de pantallazos (PR #4) | Todo PR de front incluye pantallazos en `docs/plans/RGB-N/screenshots/` | — |
 | Reordenado del repo (PR #23) y URLs en inglés (PR #24) | `frontend/` y `backend/` separados (Dockerfile y dependencias de Python dentro de `backend/`), URLs de página en inglés (`/projects`, `/portfolio`, `/to-promote`, `/settings`, `/weekly-report`, `plan-and-timing`, `phase`, `#content`). `main` protegida con el ruleset `main-rule`: todo por PR y checks `front`, `backend` y `Vercel` en verde | — |
 | Infra desplegada | API en Cloud Run (`https://rgb-api-368607571687.us-central1.run.app`, pública, con CORS para `https://joe-s.vercel.app` y `http://localhost:3000`), base en Supabase, front en Vercel (*Root Directory* `frontend`). Verificado el 2026-10-24: `/api/health`, `/api/settings/plan` y `/api/plan` responden. Falta `NEXT_PUBLIC_API_URL` en Vercel | [despliegue](despliegue.md) |
@@ -113,7 +113,7 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - «Plan y tiempos» de un proyecto real con fase mayor que 0 debería decir «Sin calcular», no «Sin plan hasta promover».
 - La ficha de una oportunidad real muestra «Guardar» sobre un entregable sin campos (llega con RGB-36).
 - `/opportunities/new` sin entrada de menú; `trim` de JS y `strip` de Python recortan distinto; permisos por rol (RGB-4).
-- Hecho el 2026-10-25: backend en Cloud Run y migración 006 en Supabase. Falta sembrar el estudio ficticio en producción para poder escribir (ver [despliegue](despliegue.md)).
+- Hecho el 2026-10-25: backend en Cloud Run y migración 006 en Supabase. El estudio ficticio se sembró el 2026-10-25 (ver [despliegue](despliegue.md)).
 
 ## Pendientes de RGB-21
 
@@ -132,7 +132,7 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 
 ## Pendientes de RGB-14
 
-- Desplegado el 2026-10-25: migración `008_scoring.sql` y backend (`GET /api/settings/scoring` responde 200). Falta sembrar el estudio ficticio en producción para escribir.
+- Desplegado el 2026-10-25: migración `008_scoring.sql` y backend (`GET /api/settings/scoring` responde 200). Estudio ficticio sembrado el mismo día.
 - Permisos por rol (RGB-2 y RGB-4): hoy cualquier rol puntúa y edita pesos y umbral.
 - Un 422 del servidor en los pesos no nombra el criterio: el front marca los siete pesos (solo con el cliente validando antes se marca uno).
 - Elegir tipología y escala a partir del scoring (RGB-16) y usar la recomendación en la ficha (RGB-17); la recomendación no cambia el estado del proyecto.
@@ -140,7 +140,7 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 
 ## Pendientes de RGB-16
 
-- Desplegar: migración `009_project_plans.sql` en Supabase y backend en Cloud Run (hoy `/start` y `/plan` darían 404).
+- Desplegado el 2026-10-25: migración `009_project_plans.sql` en Supabase y backend en Cloud Run (revisión `rgb-api-00005-9tj`). Estudio ficticio sembrado en producción (`Estudio de desarrollo`), así que las escrituras ya funcionan.
 - «No perseguir» solo registra la decisión (heredado de RGB-9): la fase sigue en 0 y el panel vuelve a ofrecer «Promover». Decidir si descartar cierra la oportunidad (tarea aparte).
 - Con el proyecto ya promovido, un rol sin autoridad recibe 409 en vez de 403 (ordenar con RGB-4).
 - Tras promover, el formulario de scoring sigue visible hasta recargar (guardar daría 409).
