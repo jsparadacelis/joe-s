@@ -98,6 +98,12 @@ Estaba pendiente: producción tenía migradas la 001–005 y el backend anterior
 - **Estudio ficticio sembrado** en producción por decisión expresa de la persona responsable: fila `studies` con `00000000-0000-0000-0000-00000000e001` y nombre «Estudio de desarrollo», insertada con el MCP (equivale a `seed_dev --force`). Las escrituras ya no fallan por clave foránea. Sigue valiendo solo mientras la API use el contexto ficticio (RGB-2).
 - **Comprobado (solo lectura):** `/api/health`, `/api/portfolio`, `/api/settings/scoring` en 200 y `/api/projects/PRY-0000-000/plan` en 404 con `project_not_found` (la ruta nueva existe).
 
+### Puesta al día: RGB-17 y RGB-19 (hecha el 2026-10-25)
+
+- **Sin migraciones:** RGB-17 (ficha del proyecto, lectura y edición) y RGB-19 (promoción a Briefing y ficha v1) no tocan el esquema; usan `exit_deliverables`, `frozen_versions` y `project_plans` ya existentes.
+- **Backend:** `gcloud run deploy rgb-api --source backend --region us-central1` desde `main` (`17d9e0a`). Revisión `rgb-api-00006-r42` con el 100 % del tráfico; la anterior, `rgb-api-00005-9tj`. Vuelta atrás: `gcloud run services update-traffic rgb-api --to-revisions rgb-api-00005-9tj=100`.
+- **Comprobado (solo lectura):** `/api/health`, `/api/portfolio` y `/api/settings/scoring` en 200; `/api/projects/PRY-0000-000/sheet` y `/plan` en 404 con `project_not_found` (las rutas existen). No se lanzó ningún `POST`/`PUT`.
+
 La guía de abajo se conserva como referencia del procedimiento.
 
 1. **Antes:** CI en verde en `main` y `curl https://rgb-api-368607571687.us-central1.run.app/api/health` responde `ok`.
