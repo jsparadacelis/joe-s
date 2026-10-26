@@ -104,6 +104,15 @@ Estaba pendiente: producción tenía migradas la 001–005 y el backend anterior
 - **Backend:** `gcloud run deploy rgb-api --source backend --region us-central1` desde `main` (`17d9e0a`). Revisión `rgb-api-00006-r42` con el 100 % del tráfico; la anterior, `rgb-api-00005-9tj`. Vuelta atrás: `gcloud run services update-traffic rgb-api --to-revisions rgb-api-00005-9tj=100`.
 - **Comprobado (solo lectura):** `/api/health`, `/api/portfolio` y `/api/settings/scoring` en 200; `/api/projects/PRY-0000-000/sheet` y `/plan` en 404 con `project_not_found` (las rutas existen). No se lanzó ningún `POST`/`PUT`.
 
+### Puesta al día: RGB-2, RGB-4, RGB-4b, RGB-2b y RGB-18 (hecha el 2026-10-26)
+
+- **Migraciones:** `010_study_members` y `011_project_members` aplicadas con el MCP de Supabase (`apply_migration`, en orden) y registradas a mano en `schema_migrations` (`010_study_members.sql`, `011_project_members.sql`). La 010 se aplicó sin errores con el rol `postgres` de Supabase (el `GRANT/REVOKE CREATE` alrededor de `ALTER FUNCTION … OWNER` funciona). Comprobado: RLS forzada, `resolve_member` propiedad de `rgb_member_resolver`, que no puede crear objetos; ninguna tabla sin RLS; `rgb_app` no puede modificar `project_members`; ambas tablas vacías.
+- **Backend:** `gcloud run deploy rgb-api --source backend --region us-central1` desde `main` (`6a90af1`). Revisión `rgb-api-00007-5tc` con el 100 % del tráfico; la anterior, `rgb-api-00006-r42`. Vuelta atrás: `gcloud run services update-traffic rgb-api --to-revisions rgb-api-00006-r42=100`. Secretos y variables intactos: **sin `AUTH_MODE`, es decir `dev`**.
+- **Comprobado (solo lectura):** `/api/health`, `/api/me` (`partner`, el usuario de desarrollo), `/api/portfolio`, `/api/settings/scoring`, `/api/settings/plan` y `/api/members` en 200, y `/api/projects/PRY-0000-000/members` en 404 con `project_not_found` (la ruta existe). No se lanzó ningún `POST`/`PUT`/`DELETE`.
+- **Front:** Vercel despliega solo al mergear en `main`; despliegue de producción `READY` sobre `6a90af1`. Sin `NEXT_PUBLIC_AUTH_MODE`, queda en `dev`: `/login`, `/login/mfa` y `/auth/callback` redirigen a `/`, `/portfolio`, `/projects` y `/settings` cargan y el CORS con la API es correcto.
+- **Qué NO se hizo a propósito:** activar el acceso con usuarios. Sigue el orden de la sección siguiente: Google en Supabase y primer socio → `NEXT_PUBLIC_AUTH_MODE=supabase` y variables de Supabase en Vercel (redesplegar) → solo entonces `AUTH_MODE=supabase` en Cloud Run.
+- **Qué cambia ya en producción con el usuario de desarrollo (socio):** nada visible. Con otro rol o con el acceso activado, puntuar, cambiar ajustes y dar de alta oportunidades queda para los roles de la política (RGB-4/4b), y las fases 2 y 3 las promueve el director de proyecto asignado a ese proyecto.
+
 La guía de abajo se conserva como referencia del procedimiento.
 
 1. **Antes:** CI en verde en `main` y `curl https://rgb-api-368607571687.us-central1.run.app/api/health` responde `ok`.
