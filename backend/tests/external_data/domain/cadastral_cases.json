@@ -1,0 +1,19 @@
+[
+  {"name": "valid, 20 alphanumerics", "input": "0000000AA0000A0000AA", "valid": true, "value": "0000000AA0000A0000AA", "message": null},
+  {"name": "lowercase is uppercased", "input": "0000000aa0000a0000aa", "valid": true, "value": "0000000AA0000A0000AA", "message": null},
+  {"name": "surrounding spaces are removed", "input": "  0000000AA0000A0000AA  ", "valid": true, "value": "0000000AA0000A0000AA", "message": null},
+  {"name": "inner spaces are removed", "input": "0000000 AA 0000A 0000 AA", "valid": true, "value": "0000000AA0000A0000AA", "message": null},
+  {"name": "tabs and non-breaking spaces are removed", "input": "0000000AA\t0000A 0000AA", "valid": true, "value": "0000000AA0000A0000AA", "message": null},
+  {"name": "plot reference of 14", "input": "0000000AA0000A", "valid": false, "value": "0000000AA0000A", "message": "Has escrito 14 caracteres: es la referencia de la parcela. La referencia catastral completa tiene 20 (14 de la parcela y 6 del inmueble); añade los 6 que faltan."},
+  {"name": "plot reference of 14 with spaces and lowercase", "input": " 0000000aa 0000a ", "valid": false, "value": "0000000AA0000A", "message": "Has escrito 14 caracteres: es la referencia de la parcela. La referencia catastral completa tiene 20 (14 de la parcela y 6 del inmueble); añade los 6 que faltan."},
+  {"name": "too short", "input": "0000000AA", "valid": false, "value": "0000000AA", "message": "La referencia catastral tiene 20 caracteres (14 de la parcela y 6 del inmueble) y has escrito 9."},
+  {"name": "too long", "input": "0000000AA0000A0000AA1", "valid": false, "value": "0000000AA0000A0000AA1", "message": "La referencia catastral tiene 20 caracteres (14 de la parcela y 6 del inmueble) y has escrito 21."},
+  {"name": "empty", "input": "", "valid": false, "value": "", "message": "Introduce la referencia catastral."},
+  {"name": "only spaces", "input": "   ", "valid": false, "value": "", "message": "Introduce la referencia catastral."},
+  {"name": "hyphens", "input": "0000000-AA0000A-0000AA", "valid": false, "value": null, "message": "La referencia catastral solo puede llevar letras y números, sin símbolos ni guiones."},
+  {"name": "symbols", "input": "0000000AA0000A0000A#", "valid": false, "value": null, "message": "La referencia catastral solo puede llevar letras y números, sin símbolos ni guiones."},
+  {"name": "accented letters are not allowed", "input": "0000000AA0000A0000AÑ", "valid": false, "value": null, "message": "La referencia catastral solo puede llevar letras y números, sin símbolos ni guiones."},
+  {"name": "sharp s is not expanded into SS", "input": "0000000AA0000A0000Aß", "valid": false, "value": null, "message": "La referencia catastral solo puede llevar letras y números, sin símbolos ni guiones."},
+  {"name": "symbols win over a wrong length", "input": "AB-12", "valid": false, "value": null, "message": "La referencia catastral solo puede llevar letras y números, sin símbolos ni guiones."},
+  {"name": "control characters are symbols", "input": "0000000AA0000A0000A\u001f", "valid": false, "value": null, "message": "La referencia catastral solo puede llevar letras y números, sin símbolos ni guiones."}
+]

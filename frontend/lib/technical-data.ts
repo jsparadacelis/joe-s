@@ -5,6 +5,8 @@
  * the components. The front end never calls external services.
  */
 
+import { validateCadastralReference } from "@/lib/cadastral-reference";
+
 export type DataGroupId = "plot" | "conditions" | "planning";
 export type DatumType = "text" | "number" | "list";
 
@@ -111,7 +113,7 @@ export function markAllVerified(data: TechnicalDatum[]): TechnicalDatum[] {
 }
 
 export function isValidCadastralReference(ref: string): boolean {
-  return /^[0-9A-Za-z]{20}$/.test(ref.trim());
+  return validateCadastralReference(ref).valid;
 }
 
 const GROUP_BY_ID = new Map(DEFINITIONS.map((d) => [d.id, d.group]));
