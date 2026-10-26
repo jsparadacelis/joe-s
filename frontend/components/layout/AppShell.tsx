@@ -1,8 +1,25 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
-export function AppShell({ children }: { children: ReactNode }) {
+/** Access screens are shown without the application chrome (sidebar and header). */
+const ACCESS_PATHS = new Set(["/login", "/login/mfa"]);
+
+export function AppShell({ children, account }: { children: ReactNode; account?: ReactNode }) {
+  const pathname = usePathname() ?? "";
+  const bare = ACCESS_PATHS.has(pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname);
+
+  if (bare) {
+    return (
+      <main id="content" className="flex min-h-screen flex-col px-7 py-6">
+        {children}
+      </main>
+    );
+  }
+
   return (
     <div className="flex min-h-screen">
       <a
@@ -13,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar account={account} />
         <main id="content" className="flex flex-col gap-5 px-7 py-6">
           {children}
         </main>

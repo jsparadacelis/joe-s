@@ -133,3 +133,40 @@ Procesos levantados (uvicorn 8010–8015 y servidor JWKS 9100) detenidos al term
 6. Sin reactivación de un revocado (hace falta SQL manual) y sin ruta para reinvitar; JWKS caído se ve como 401 (conviene alerta); clave recién rotada tarda hasta 30 s; el listado de miembros lo ve cualquier rol; `/docs` y `openapi.json` públicos; doble aviso de producción al arrancar. Informativos.
 7. Google real, `aal2` real de Supabase (TOTP), forma exacta de los claims (`email_verified`, `kid`, `iss`) y la colación de `lower()` en Supabase no están verificados: comprobarlo en la prueba de RGB-2b con un proyecto real antes de activar `supabase` en Cloud Run.
 8. Microsoft queda pendiente (criterio de Notion parcial).
+
+---
+
+## RGB-2b · Registro del Tester (front)
+
+Rama `rgb-2b-acceso`. Verificación con el **build real** (`next build` + `next start`, Node 20, Chrome vía Playwright, `es-ES`, claro y oscuro, axe-core sin violaciones en cada pantalla). Datos ficticios (`ana.partner@example.com`). No se tocó código de producción. Los scripts y el servidor simulado viven fuera del repo (scratchpad de la sesión).
+
+### Qué fue real y qué simulado
+
+| Parte | Real | Simulado |
+| --- | --- | --- |
+| Build de Next, `proxy.ts`, rutas, componentes, CSS, `@supabase/ssr` y `@supabase/supabase-js` (servidor y navegador) | Sí | |
+| Modo `dev` (sin variables) | Sí (build y servidor reales) | |
+| Modo `supabase` con `https://example.supabase.co` y clave `dummy` | Sí: redirecciones, `/login`, avisos, `/auth/callback` | Sin red a Supabase (no hay sesión) |
+| Supabase Auth | | Servidor local mínimo (`/auth/v1/.well-known/jwks.json`, `user`, `factors`, `challenge`, `verify`, `logout`) que firma tokens ES256 propios; el `proxy` verifica de verdad la firma con ese JWKS. Código TOTP válido: `123456` |
+| API (`GET /api/me`, `/api/portfolio`) | | Mismo servidor local; `/api/portfolio` devuelve cartera vacía |
+| Sesión | | Cookie `sb-127-auth-token` fabricada con el formato de `@supabase/ssr` |
+| Código QR de `mfa-enroll-*` | | Dibujo de relleno (no escaneable); la clave secreta también es ficticia |
+| Google (consentimiento), `aal2` real, claims reales | **No verificado** | |
+
+### Pantallazos (`screenshots-2b/`, sufijos `-light` y `-dark`)
+
+| Archivo | Muestra | Origen |
+| --- | --- | --- |
+| `dev-portfolio-unchanged-*` | Cartera en modo `dev`: sin cabecera nueva ni «Cerrar sesión» | Real |
+| `login-*` | `/login` con «Entrar con Google» | Real (build `supabase`) |
+| `login-error-not-invited-*` | Aviso «No tienes invitación…» con foco en el aviso | Real |
+| `login-error-member-revoked-*` | Aviso «Tu acceso ha sido retirado…» | Real |
+| `login-error-email-not-verified-*` | Aviso de correo no verificado | Real |
+| `mfa-enroll-*` | Alta del TOTP: QR, clave y campo de 6 dígitos | Real + Supabase simulado |
+| `mfa-error-*` | Código incorrecto: aviso, campo vacío y con foco | Real + Supabase simulado |
+| `mfa-verify-*` | Verificación con un factor ya activo | Real + Supabase simulado |
+| `topbar-with-account-*` | Cabecera con correo, rol «Socio» y «Cerrar sesión» | Real + API y sesión simuladas |
+
+### RGB-2b · Veredicto del Juez (2026-10-26)
+
+**Aprobado**, sin bloqueantes. Comprobó: 2009 tests de front, lint (sin errores), typecheck, build sin variables de Supabase, `ruff` y 278 tests de la API; TDD por el orden de commits; sin redirecciones abiertas, `?error=` escapado, la cookie de ayuda solo empuja hacia más restricción y no concede acceso; modo `dev` intacto; pantallazos claros y oscuros con datos ficticios. Seguimientos no bloqueantes y decisiones de negocio: ver `docs/estado.md` («Pendientes de RGB-2b»). No verificado: Google, el TOTP y `aal2` reales.

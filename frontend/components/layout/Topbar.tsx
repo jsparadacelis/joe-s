@@ -1,9 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { findNavItem } from "@/lib/nav";
 
-export function Topbar() {
+export function Topbar({ account }: { account?: ReactNode }) {
   const pathname = usePathname();
   const current = findNavItem(pathname);
 
@@ -22,6 +23,7 @@ export function Topbar() {
           ) : null}
         </ol>
       </nav>
+      {account}
     </header>
   );
 }

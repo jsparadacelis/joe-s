@@ -142,6 +142,16 @@ gcloud run services update rgb-api --region $REGION \
   --update-env-vars AUTH_MODE=dev,ENVIRONMENT=production,SUPABASE_URL=https://teiegxepgraxxsuisgtb.supabase.co
 ```
 
+### 2b. Variables del front en Vercel (RGB-2b)
+
+| Variable | Valor | Notas |
+| --- | --- | --- |
+| `NEXT_PUBLIC_AUTH_MODE` | `dev` (por defecto) o `supabase` | Con `dev` el front no cambia: sin pantalla de acceso, sin cabecera nueva y sin variables de Supabase. Un valor distinto falla. |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://teiegxepgraxxsuisgtb.supabase.co` | Obligatoria con `supabase`; sin ella el front falla con un mensaje claro. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | clave **publicable** del proyecto | Obligatoria con `supabase`. Nunca la `service_role`. Se fija en el panel de Vercel, no en el repo. |
+
+Son `NEXT_PUBLIC_*`: Next las incrusta en el build, así que cambiar cualquiera exige **redesplegar** el front. La sesión va en cookies (`@supabase/ssr`); el `proxy` de Next refresca la sesión y redirige a `/login`, y las páginas que leen la API en el servidor envían el token leído de esas cookies. Rutas nuevas: `/login`, `/login/mfa` y `/auth/callback`. Añade `https://<dominio-de-vercel>/auth/callback` a «Redirect URLs» de Supabase (y `http://localhost:3000/auth/callback` para local).
+
 ### 3. Orden recomendado
 
 1. **Migración 010** (`study_members` y la función `resolve_member`): pruébala antes en una rama de Supabase o, si no, con cuidado y en una ventana tranquila. Crea el rol `rgb_member_resolver` y cambia el propietario de la función; para eso concede `CREATE` sobre el esquema a ese rol solo durante la migración y lo revoca justo después, de modo que se aplica con el rol `postgres` (no superusuario). Aplícala con el Job de migraciones, como las anteriores.
@@ -155,11 +165,18 @@ gcloud run services update rgb-api --region $REGION \
 
    Es idempotente y solo deja una invitación pendiente (con su evento de auditoría); la persona la activa al entrar por primera vez con ese correo verificado. El estudio debe existir ya.
 4. **Comprobar** con la API aún en `dev`: que la fila existe en `study_members` con estado `invited`.
-5. **Pasar a `AUTH_MODE=supabase`:** `gcloud run services update rgb-api --region $REGION --update-env-vars AUTH_MODE=supabase`. Comprueba que sin token un endpoint de negocio responde 401 `unauthenticated` y que `/api/health` sigue en 200. La pantalla de acceso del front llega con RGB-2b; hasta entonces el front actual dejará de poder llamar a la API, así que no hagas este paso hasta tener RGB-2b o acepta esa interrupción.
+5. **Pasar a `AUTH_MODE=supabase`:** `gcloud run services update rgb-api --region $REGION --update-env-vars AUTH_MODE=supabase`. Comprueba que sin token un endpoint de negocio responde 401 `unauthenticated` y que `/api/health` sigue en 200. Con RGB-2b el front ya envía el token, pero hazlo **después** de los pasos de front siguientes.
+
+**Orden de activación completo (back y front):**
+
+1. Desplegar el front con `NEXT_PUBLIC_AUTH_MODE=dev` (o sin la variable): nada cambia.
+2. Configurar Google en Supabase (apartado 1) y crear al primer socio (paso 3).
+3. En Vercel, fijar `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `NEXT_PUBLIC_AUTH_MODE=supabase`, y redesplegar el front. Comprobar que `/login` se muestra y que el primer socio entra y da de alta el doble factor.
+4. Con el front ya en `supabase`, pasar Cloud Run a `AUTH_MODE=supabase` (paso 5).
 
 ### 4. Vuelta atrás
 
-Vuelve a `dev`: `gcloud run services update rgb-api --region $REGION --update-env-vars AUTH_MODE=dev`. Es inmediato y no pierde datos. La migración 010 solo añade una tabla y una función, así que se puede dejar aplicada con el backend anterior.
+Vuelve a `dev`: `gcloud run services update rgb-api --region $REGION --update-env-vars AUTH_MODE=dev`. Es inmediato y no pierde datos. En el front, vuelve a `NEXT_PUBLIC_AUTH_MODE=dev` en Vercel y redespliega (sin variables de Supabase vuelve el comportamiento anterior). Si solo vuelves el back a `dev`, el front en `supabase` sigue pidiendo acceso, pero funciona. La migración 010 solo añade una tabla y una función, así que se puede dejar aplicada con el backend anterior.
 
 ### 5. Qué no está verificado aún
 

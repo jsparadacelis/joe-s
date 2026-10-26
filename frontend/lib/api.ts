@@ -1,3 +1,5 @@
+import { getSessionToken } from "@/lib/auth-token";
+
 const UNEXPECTED_MESSAGE = "Ocurrió un error inesperado. Inténtalo de nuevo.";
 const NETWORK_MESSAGE = "No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.";
 const DEFAULT_BASE_URL = "http://localhost:8000";
@@ -34,6 +36,8 @@ export interface ResponseLike {
 export interface ApiClientOptions {
   baseUrl?: string;
   fetch?: (input: string, init?: RequestInit) => Promise<ResponseLike>;
+  /** Called on every request (tokens rotate); a non-empty token is sent as `Authorization: Bearer`. */
+  getToken?: () => string | null | undefined | Promise<string | null | undefined>;
 }
 
 function parseJson(text: string): unknown {
@@ -65,10 +69,22 @@ export function createApiClient(options: ApiClientOptions = {}): { request: ApiR
   const request: ApiRequest = async <T = unknown>(path: string, init: ApiRequestInit = {}): Promise<T> => {
     const doFetch = options.fetch ?? ((input: string, requestInit?: RequestInit) => globalThis.fetch(input, requestInit));
     const requestInit: RequestInit = { method: init.method ?? "GET" };
+    const headers: Record<string, string> = {};
     if (init.body !== undefined) {
       requestInit.body = JSON.stringify(init.body);
-      requestInit.headers = { "Content-Type": "application/json" };
+      headers["Content-Type"] = "application/json";
     }
+    if (options.getToken) {
+      let token: string | null | undefined;
+      try {
+        token = await options.getToken();
+      } catch {
+        // Never fall back to an unauthenticated request when the session cannot be read.
+        throw new ApiError(0, "network_error", NETWORK_MESSAGE);
+      }
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
+    if (Object.keys(headers).length > 0) requestInit.headers = headers;
 
     let response: ResponseLike;
     try {
@@ -85,4 +101,8 @@ export function createApiClient(options: ApiClientOptions = {}): { request: ApiR
   return { request };
 }
 
-export const { request } = createApiClient();
+/**
+ * Default client. In `dev` mode it sends no token; in `supabase` mode the token comes from the
+ * session cookies (server) or the browser session (client), see `@/lib/auth-token`.
+ */
+export const { request } = createApiClient({ getToken: getSessionToken });
