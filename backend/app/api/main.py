@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from backend.app.access.domain.errors import NotPermitted
 from backend.app.api.me_routes import router as me_routes
 from backend.app.api.member_routes import router as member_routes
 from backend.app.api.opportunity_routes import router as opportunity_routes
@@ -52,6 +53,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(RequestValidationError)
     def invalid_request(request: Request, error: RequestValidationError) -> JSONResponse:
         return _invalid_request()
+
+    @app.exception_handler(NotPermitted)
+    def not_permitted(request: Request, error: NotPermitted) -> JSONResponse:
+        return JSONResponse(
+            status_code=403, content={"detail": {"code": error.code, "message": error.message}}
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, error: StarletteHTTPException) -> JSONResponse:

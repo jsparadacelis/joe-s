@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
+from backend.app.access.application.guard import require
+from backend.app.access.domain.actions import Action
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.opportunity.domain.plan import (
@@ -51,6 +53,7 @@ class PlanSettingsService:
     def update_template(
         self, context: RequestContext, project_type: ProjectType, weeks: Any
     ) -> None:
+        require(context, Action.EDIT_SETTINGS)
         valid = validate_weeks(weeks)
         old = self.get_settings().templates[project_type]
         self._repo.save_template(project_type, valid)
@@ -65,6 +68,7 @@ class PlanSettingsService:
         )
 
     def update_scale_factor(self, context: RequestContext, scale: Scale, factor: Any) -> None:
+        require(context, Action.EDIT_SETTINGS)
         valid = validate_factor(factor)
         old = self.get_settings().scale_factors[scale]
         self._repo.save_scale_factor(scale, valid)

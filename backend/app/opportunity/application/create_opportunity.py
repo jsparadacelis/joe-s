@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+from backend.app.access.application.guard import require
+from backend.app.access.domain.actions import Action
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.opportunity.domain.opportunity import Opportunity
@@ -39,6 +41,7 @@ class CreateOpportunity:
         self._clock = clock
 
     def execute(self, context: RequestContext, data: Mapping[str, Any]) -> CreatedOpportunity:
+        require(context, Action.CREATE_OPPORTUNITY)
         opportunity = Opportunity.from_input(data)
         code = self._repo.next_code(self._clock().astimezone(timezone.utc).year)
         self._repo.add(code, opportunity)

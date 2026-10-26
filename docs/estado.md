@@ -1,6 +1,6 @@
 # Estado del MVP
 
-Actualizado: 2026-10-26 (tras RGB-2b, pantalla de acceso). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
+Actualizado: 2026-10-26 (tras RGB-4b, permisos de scoring, ajustes y alta). Fuente de verdad del backlog: Notion («RGB Proyectos · PRD y backlog del MVP»).
 
 ## Hecho
 
@@ -185,7 +185,7 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - **Desplegar (PR #47 mergeado el 2026-10-26):** migración `011_project_members.sql` en Supabase y backend en Cloud Run. Mientras `AUTH_MODE=dev`, nada cambia para el front.
 - **Antes de `AUTH_MODE=supabase`:** asignar el equipo de cada proyecto (director de proyecto en los proyectos en fase 2 o 3, etc.); sin asignaciones nadie salvo socio y director promueve en fases 0 y 1, y nadie en las siguientes. No hay pantalla para asignar equipo (tarea de front aparte).
 - **Cambia el comportamiento en fases 2 y 3:** promueve el director de proyecto **de ese proyecto** (decisión del 2026-10-26, según el PRD); socio y director ya no lo suplen.
-- **Sin comprobar todavía:** scoring (`SCORE`), ajustes del plan y del scoring (`EDIT_SETTINGS`) y alta de oportunidades (`CREATE_OPPORTUNITY`) están en la política y probados en el dominio, pero sus casos de uso y rutas aún no la consultan: hoy los puede usar cualquier rol (RGB-4b).
+- **RGB-4b (2026-10-26):** scoring, ajustes del plan y del scoring y alta de oportunidades ya consultan la política: puntuar y cambiar ajustes, solo socio y director (antes, cualquier rol); alta de oportunidades, socio, director y director de proyecto. Un rol sin permiso recibe 403 `no_authority`. Esos rechazos no se auditan.
 - `APPROVE_DELIVERABLE` y `MANAGE_STUDY_MEMBERS` existen en la política pero los usarán RGB-36 y la gestión de miembros de RGB-2a (que mantiene su propia regla de invitación).
 - Una persona con la cualificación pero sin la función en el proyecto no promueve: la cualificación solo la habilita para recibirla.
 - Veredicto del Juez: pendiente.
@@ -206,3 +206,10 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 - `getSession()` en el servidor escribe un aviso por render (solo reenvía el token; la API lo verifica). `isAsset` del proxy deja pasar rutas cuyo último segmento tenga extensión. La cookie de ayuda del doble factor puede caducar hasta una hora mal.
 - Sin aviso al caer en `/login` por un 401. Volver a `dev` exige cambiar la variable en Vercel y redesplegar. Microsoft queda fuera (segundo botón más adelante).
 - `.mcp.json` sigue sin seguir ni ignorar (añadirlo a `.gitignore`).
+
+## Pendientes de RGB-4b
+
+- **Cambia el comportamiento:** en `AUTH_MODE=supabase` (y en `dev` con otro rol) un arquitecto, líder técnico, colaborador de obra o administración ya no puede puntuar, cambiar ajustes ni dar de alta oportunidades. Con el usuario de desarrollo por defecto (socio) nada cambia.
+- Los rechazos de estas tres acciones no quedan en el registro de auditoría.
+- El front no oculta aún los botones a quien no tiene permiso (recibe el 403 y su mensaje).
+- Veredicto del Juez: pendiente.

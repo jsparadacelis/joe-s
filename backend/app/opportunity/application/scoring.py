@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
+from backend.app.access.application.guard import require
+from backend.app.access.domain.actions import Action
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.opportunity.domain.errors import NotAnOpportunity, ProjectNotFound, ScoringNotFound
@@ -46,6 +48,7 @@ class ScoringSettingsService:
         return self._repo.get() or default_settings()
 
     def update(self, context: RequestContext, data: Any) -> None:
+        require(context, Action.EDIT_SETTINGS)
         new = validate_settings(data)
         old = self.get_settings()
         self._repo.save(new)
@@ -78,7 +81,8 @@ class ScoringService:
         self._audit_log = audit_log
 
     def score(self, context: RequestContext, code: str, body: Any) -> Scoring:
-        """Errors in the contract's order: project, phase, ratings."""
+        """Errors in the contract's order: permission, project, phase, ratings."""
+        require(context, Action.SCORE)
         project = self._scorings.get_project(code)
         if project is None:
             raise ProjectNotFound(code)
