@@ -166,3 +166,7 @@ Rama `rgb-2b-acceso`. Verificación con el **build real** (`next build` + `next 
 | `mfa-error-*` | Código incorrecto: aviso, campo vacío y con foco | Real + Supabase simulado |
 | `mfa-verify-*` | Verificación con un factor ya activo | Real + Supabase simulado |
 | `topbar-with-account-*` | Cabecera con correo, rol «Socio» y «Cerrar sesión» | Real + API y sesión simuladas |
+
+### RGB-2b · Veredicto del Juez (2026-10-26)
+
+**Aprobado**, sin bloqueantes. Comprobó: 2009 tests de front, lint (sin errores), typecheck, build sin variables de Supabase, `ruff` y 278 tests de la API; TDD por el orden de commits; sin redirecciones abiertas, `?error=` escapado, la cookie de ayuda solo empuja hacia más restricción y no concede acceso; modo `dev` intacto; pantallazos claros y oscuros con datos ficticios. Seguimientos no bloqueantes y decisiones de negocio: ver `docs/estado.md` («Pendientes de RGB-2b»). No verificado: Google, el TOTP y `aal2` reales.
