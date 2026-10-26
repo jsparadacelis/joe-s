@@ -75,3 +75,21 @@ class MissingQualification(AccessError):
             "Esa persona no tiene la cualificación necesaria para esta función. "
             "Un socio debe concedérsela primero."
         )
+
+
+_NOT_PERMITTED = {
+    "score": "Solo un socio o un director puede puntuar una oportunidad.",
+    "edit_settings": "Solo un socio o un director puede cambiar los ajustes.",
+    "create_opportunity": (
+        "Solo un socio, un director o un director de proyecto puede dar de alta una oportunidad."
+    ),
+}
+
+
+class NotPermitted(AccessError):
+    """The role may not do this study-wide action (scoring, settings, sign-up)."""
+
+    code = "no_authority"
+
+    def __init__(self, action: str) -> None:
+        super().__init__(_NOT_PERMITTED.get(action, "No tienes permiso para hacer esto."))

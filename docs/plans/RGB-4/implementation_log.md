@@ -22,6 +22,14 @@ Estado: 1500 → 1626 tests unitarios y de rutas; ruff limpio. Ningún caso de u
 - **De punta a punta con Postgres real** (`test_project_roles_end_to_end.py`): sin la función se rechaza y se audita; asignada, promueve solo ese proyecto; quitada o con la persona revocada, pierde la autoridad; el socio no hereda; altas y bajas auditadas.
 - Suite completa con Postgres: 2020 tests en verde (baja respecto a 2025 porque se retiraron `test_authority.py` y `TestAuthority` de pausas, cuya cobertura pasó a `tests/access`). Sin veredicto de Juez independiente.
 
+## 2026-10-26 · Tramo 3 (RGB-4b): scoring, ajustes y alta consultan la política
+
+- `access/application/guard.py: require(context, action)` pregunta a `can` y lanza `NotPermitted` (código `no_authority`, mensaje en español propio de cada acción). Se llama **lo primero** en `ScoringService.score`, `ScoringSettingsService.update`, `PlanSettingsService.update_template`/`update_scale_factor` y `CreateOpportunity.execute`: el 403 gana al 404 y al 422, y no se guarda nada.
+- Un único manejador en `create_app` convierte `NotPermitted` en `403 {detail:{code,message}}`.
+- Quién puede: puntuar y cambiar ajustes, **socio y director**; dar de alta una oportunidad, **socio, director y director de proyecto**. Leer sigue abierto a todo miembro.
+- Tests: `test_require.py` (matriz de roles), `test_permissions.py` (cada servicio, con puertos simulados: nada se lee ni se guarda), `test_permission_routes.py` (403 antes que 422 en las cinco rutas; una primera versión enviaba cuerpos mal formados y daba 422 por el esquema, se corrigió el test). Los tests existentes usaban socio y no cambian.
+- No se audita el rechazo (son errores lanzados y la transacción se deshace, como el resto de errores de estos servicios); queda como mejora si se quiere traza de intentos.
+
 ## Fuera de este PR (seguimiento)
 
-Scoring, ajustes y alta de oportunidades no comprueban rol todavía. La política ya lo decide (`SCORE`, `EDIT_SETTINGS`, `CREATE_OPPORTUNITY`) pero añadir la comprobación crea rechazos nuevos en tres servicios y sus rutas; se hace aparte (RGB-4b).
+Hecho en el tramo 3 (RGB-4b). Quedan `APPROVE_DELIVERABLE` y `MANAGE_STUDY_MEMBERS`, que usarán RGB-36 y la gestión de miembros.
