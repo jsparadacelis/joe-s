@@ -4,9 +4,9 @@ from datetime import date
 
 import pytest
 
-from backend.app.study.domain.context import RequestContext, Role
+from backend.app.study.domain.context import RequestContext
 from backend.app.timing.domain.errors import InvalidField, RequiredField
-from backend.app.timing.domain.pause import Pause, PauseRequest, can_manage_pauses
+from backend.app.timing.domain.pause import Pause, PauseRequest
 from backend.app.timing.domain.time_tracking import PauseReason
 
 TODAY = date(2026, 10, 24)
@@ -28,16 +28,6 @@ def a_pause(**overrides):
 
 def a_context(role):
     return RequestContext(study_id="study-1", user_id="demo-user", role=role)
-
-
-class TestAuthority:
-    @pytest.mark.parametrize("role", [Role.PROJECT_DIRECTOR, Role.DIRECTOR, Role.PARTNER])
-    def test_project_director_director_and_partner_can_manage_pauses(self, role):
-        assert can_manage_pauses(a_context(role)) is True
-
-    @pytest.mark.parametrize("role", [Role.TECHNICAL_LEAD, Role.ARCHITECT, Role.SITE_COLLABORATOR])
-    def test_other_roles_cannot(self, role):
-        assert can_manage_pauses(a_context(role)) is False
 
 
 class TestOverdue:

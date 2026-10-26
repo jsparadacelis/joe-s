@@ -11,17 +11,10 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from backend.app.study.domain.context import RequestContext, Role
 from backend.app.timing.domain.errors import InvalidField, RequiredField
 from backend.app.timing.domain.time_tracking import FIRST_PLANNED_PHASE, PauseReason
 
 _ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
-_AUTHORISED_ROLES = frozenset({Role.PROJECT_DIRECTOR, Role.DIRECTOR, Role.PARTNER})
-
-
-def can_manage_pauses(context: RequestContext) -> bool:
-    """Project director and management (director, partner) pause and resume."""
-    return context.role in _AUTHORISED_ROLES
 
 
 def days_past(expected_resumption: date, today: date) -> int:

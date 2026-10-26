@@ -8,6 +8,9 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import Any
 
+from backend.app.access.application.actors import decide
+from backend.app.access.domain.actions import Action
+from backend.app.access.domain.ports import ProjectRoleReader
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
@@ -25,7 +28,6 @@ from backend.app.timing.domain.pause import (
     PausableProject,
     Pause,
     PauseRequest,
-    can_manage_pauses,
 )
 from backend.app.timing.domain.ports import PauseRepository
 
@@ -64,10 +66,12 @@ class PauseService:
         self,
         repo: PauseRepository,
         audit_log: AuditLog,
+        project_roles: ProjectRoleReader,
         clock: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._repo = repo
         self._audit_log = audit_log
+        self._project_roles = project_roles
         self._clock = clock
 
     def pause(self, context: RequestContext, code: str, data: Mapping[str, Any]) -> PauseResult:
@@ -75,7 +79,7 @@ class PauseService:
         (422), already paused (409)."""
         project = self._load(code)
         today = self._today()
-        if not can_manage_pauses(context):
+        if not self._may(context, project, Action.PAUSE):
             return self._reject(context, project, "pause_project", NotAllowed())
         if not project.has_clock:
             return PauseResult(error=CannotPauseOpportunity())
@@ -112,10 +116,14 @@ class PauseService:
         )
         return PauseResult(view=PauseView.of(pause, today))
 
+    def _may(self, context: RequestContext, project: PausableProject, action: Action) -> bool:
+        roles = self._project_roles.roles_of(project.id, context.user_id)
+        return decide(context, action, project.id, project.current_phase, roles).allowed
+
     def resume(self, context: RequestContext, code: str) -> PauseResult:
         project = self._load(code)
         today = self._today()
-        if not can_manage_pauses(context):
+        if not self._may(context, project, Action.RESUME):
             return self._reject(context, project, "resume_project", NotAllowed())
         open_pause = self._repo.get_open_pause(project.id)
         if open_pause is None:

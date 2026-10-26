@@ -7,6 +7,7 @@ import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
+from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
 from backend.app.api.dependencies import get_settings
 from backend.app.api.main import create_app
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
@@ -362,7 +363,9 @@ class TestAtomicity:
                 use_case = PromoteProjectSheet(
                     PostgresProjectSheets(conn),
                     PostgresProjectPlans(conn),
-                    PromotionService(PostgresLifecycle(conn), audit_log, {1: validator}),
+                    PromotionService(
+                        PostgresLifecycle(conn), audit_log, {1: validator}, DevProjectRoles(context)
+                    ),
                     audit_log,
                 )
                 use_case.execute(context, CODE)
@@ -391,7 +394,9 @@ class TestAtomicity:
                 PromoteProjectSheet(
                     PostgresProjectSheets(conn),
                     PostgresProjectPlans(conn),
-                    PromotionService(PostgresLifecycle(conn), audit_log, {}),
+                    PromotionService(
+                        PostgresLifecycle(conn), audit_log, {}, DevProjectRoles(context)
+                    ),
                     audit_log,
                 ).execute(context, CODE)
 

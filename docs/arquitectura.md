@@ -44,7 +44,8 @@ Regla de dependencias, vigilada con un test de arquitectura: `domain` no importa
 
 | Contexto | Conceptos | Tareas |
 | --- | --- | --- |
-| `study` | Estudio, contexto de solicitud | RGB-3, RGB-4 (después) |
+| `study` | Estudio, contexto de solicitud, miembros e invitaciones | RGB-3, RGB-2 |
+| `access` | Permisos: `can(actor, acción, recurso)`, roles por proyecto, el actor de IA sin permisos de estado | RGB-4 |
 | `audit` | Registro inalterable (quién, qué, cuándo, versión) | RGB-5 |
 | `lifecycle` | Proyecto (raíz), Fase, Entregable de salida, Promoción, versión congelada | RGB-8, RGB-9, RGB-11, RGB-12 |
 | `opportunity` | Oportunidad, Scoring, plantillas de semanas, factor de escala | RGB-13 a RGB-16 |

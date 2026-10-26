@@ -9,6 +9,11 @@ from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException
 
+from backend.app.access.application.manage_project_members import ManageProjectMembers
+from backend.app.access.domain.ports import ProjectRoleReader
+from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
+from backend.app.access.infrastructure.postgres_project_directory import PostgresProjectDirectory
+from backend.app.access.infrastructure.postgres_project_members import PostgresProjectMembers
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
@@ -150,6 +155,34 @@ def members_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -
     return open_unit
 
 
+def project_roles(conn, settings: Settings, context: RequestContext) -> ProjectRoleReader:
+    """Who holds which function in a project: the real assignments, except in `dev` mode."""
+    if settings.auth_mode == "dev":
+        return DevProjectRoles(context)
+    return PostgresProjectMembers(conn)
+
+
+ProjectMembersUnitOfWork = Callable[[RequestContext], AbstractContextManager[ManageProjectMembers]]
+
+
+def project_members_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ProjectMembersUnitOfWork:
+    """Composition root for the project team: assignments and audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[ManageProjectMembers]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield ManageProjectMembers(
+                PostgresProjectDirectory(conn),
+                PostgresProjectMembers(conn),
+                PostgresMembers(conn),
+                PostgresAuditLog(conn),
+            )
+
+    return open_unit
+
+
 UnitOfWork = Callable[[RequestContext], AbstractContextManager[PromotionService]]
 
 
@@ -163,6 +196,7 @@ def unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> UnitOf
                 PostgresLifecycle(conn),
                 PostgresAuditLog(conn),
                 VALIDATORS_BY_PHASE,
+                project_roles(conn, settings, context),
             )
 
     return open_unit
@@ -224,7 +258,11 @@ def pause_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> 
     @contextmanager
     def open_unit(context: RequestContext) -> Iterator[PauseService]:
         with study_transaction(settings.database_url, context) as conn:
-            yield PauseService(PostgresPauses(conn), PostgresAuditLog(conn))
+            yield PauseService(
+                PostgresPauses(conn),
+                PostgresAuditLog(conn),
+                project_roles(conn, settings, context),
+            )
 
     return open_unit
 
@@ -279,7 +317,12 @@ def start_project_unit_of_work(
             yield StartProject(
                 PostgresProjectPlans(conn),
                 PostgresScorings(conn),
-                PromotionService(PostgresLifecycle(conn), audit_log, VALIDATORS_BY_PHASE),
+                PromotionService(
+                    PostgresLifecycle(conn),
+                    audit_log,
+                    VALIDATORS_BY_PHASE,
+                    project_roles(conn, settings, context),
+                ),
                 audit_log,
             )
 
@@ -356,7 +399,12 @@ def promote_project_sheet_unit_of_work(
             yield PromoteProjectSheet(
                 PostgresProjectSheets(conn),
                 PostgresProjectPlans(conn),
-                PromotionService(PostgresLifecycle(conn), audit_log, VALIDATORS_BY_PHASE),
+                PromotionService(
+                    PostgresLifecycle(conn),
+                    audit_log,
+                    VALIDATORS_BY_PHASE,
+                    project_roles(conn, settings, context),
+                ),
                 audit_log,
             )
 

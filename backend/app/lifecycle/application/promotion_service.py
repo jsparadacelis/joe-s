@@ -6,10 +6,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from backend.app.access.application.actors import person_actor
+from backend.app.access.domain.actions import Action as Permission
+from backend.app.access.domain.policy import can
+from backend.app.access.domain.ports import ProjectRoleReader
+from backend.app.access.domain.resource import ProjectResource
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
-from backend.app.lifecycle.domain.authority import has_authority, who_can
 from backend.app.lifecycle.domain.errors import (
     ActionNotAllowed,
     BusinessError,
@@ -20,7 +24,7 @@ from backend.app.lifecycle.domain.errors import (
     ReasonRequired,
 )
 from backend.app.lifecycle.domain.frozen_version import FrozenVersion
-from backend.app.lifecycle.domain.phases import LAST_PHASE, phase_definition
+from backend.app.lifecycle.domain.phases import LAST_PHASE
 from backend.app.lifecycle.domain.ports import DeliverableValidator, LifecycleRepository
 from backend.app.lifecycle.domain.project import Project
 from backend.app.lifecycle.domain.promotion import Action, Promotion
@@ -43,10 +47,12 @@ class PromotionService:
         repo: LifecycleRepository,
         audit: AuditLog,
         validators: dict[int, DeliverableValidator],
+        project_roles: ProjectRoleReader,
     ) -> None:
         self._repo = repo
         self._audit_log = audit
         self._validadores = validators
+        self._project_roles = project_roles
 
     def promote(self, context: RequestContext, code: str) -> Transition:
         project = self._load(code)
@@ -129,12 +135,16 @@ class PromotionService:
             raise ProjectNotFound(code)
         return project
 
-    @staticmethod
-    def _missing_authority(context: RequestContext, project: Project) -> NoAuthority | None:
-        authority = phase_definition(project.current_phase).authority
-        if has_authority(authority, context):
+    def _missing_authority(self, context: RequestContext, project: Project) -> NoAuthority | None:
+        roles = self._project_roles.roles_of(project.id, context.user_id)
+        decision = can(
+            person_actor(context, roles),
+            Permission.PROMOTE,
+            ProjectResource(project_id=project.id, phase=project.current_phase),
+        )
+        if decision.allowed:
             return None
-        return NoAuthority(project.current_phase, who_can(authority))
+        return NoAuthority(project.current_phase, list(decision.who))
 
     def _reject(
         self, context: RequestContext, project: Project, action: str, error: BusinessError

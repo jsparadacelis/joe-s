@@ -9,14 +9,13 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
+from backend.app.access.application.actors import decide
+from backend.app.access.domain.actions import Action as Permission
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService, Transition
-from backend.app.lifecycle.domain.authority import who_can
 from backend.app.lifecycle.domain.errors import NoAuthority
-from backend.app.lifecycle.domain.phases import phase_definition
-from backend.app.opportunity.application.get_project_sheet import can_act_on_sheet
 from backend.app.opportunity.domain.errors import (
     IncompleteSheet,
     ProjectNotFound,
@@ -67,9 +66,9 @@ class PromoteProjectSheet:
             raise ProjectNotFound(code)
         if project.current_phase != SHEET_PHASE:
             return self._reject(context, project, SheetNotEditable())
-        authority = phase_definition(SHEET_PHASE).authority
-        if not can_act_on_sheet(context):
-            return self._reject(context, project, NoAuthority(SHEET_PHASE, who_can(authority)))
+        decision = decide(context, Permission.PROMOTE, project.id, SHEET_PHASE)
+        if not decision.allowed:
+            return self._reject(context, project, NoAuthority(SHEET_PHASE, list(decision.who)))
 
         stored = self._sheets.get_content(project.id) or {}
         sheet = build_sheet(project=project, plan=self._plans.get(project.id), manual=stored)

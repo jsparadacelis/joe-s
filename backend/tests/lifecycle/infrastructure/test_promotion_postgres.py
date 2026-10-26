@@ -5,6 +5,7 @@ from unittest.mock import create_autospec
 import psycopg
 import pytest
 
+from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
@@ -51,7 +52,9 @@ def url(schema_url):
 def run(url, action, context=None, log=None, **kwargs):
     context = context or a_context()
     with study_transaction(url, context) as conn:
-        service = PromotionService(PostgresLifecycle(conn), log or PostgresAuditLog(conn), {})
+        service = PromotionService(
+            PostgresLifecycle(conn), log or PostgresAuditLog(conn), {}, DevProjectRoles(context)
+        )
         return getattr(service, action)(context, CODE, **kwargs)
 
 

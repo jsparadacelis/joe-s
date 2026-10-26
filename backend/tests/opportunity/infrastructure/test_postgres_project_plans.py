@@ -15,6 +15,7 @@ from datetime import datetime
 import psycopg
 import pytest
 
+from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
@@ -358,7 +359,7 @@ def start(url, scale="medium", weeks=WEEKS, context=None, audit_class=None):
         use_case = StartProject(
             PostgresProjectPlans(conn),
             PostgresScorings(conn),
-            PromotionService(PostgresLifecycle(conn), audit_log, {}),
+            PromotionService(PostgresLifecycle(conn), audit_log, {}, DevProjectRoles(context)),
             audit_log,
         )
         return use_case.execute(context, CODE, scale, list(weeks))

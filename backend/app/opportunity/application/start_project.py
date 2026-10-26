@@ -5,13 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from backend.app.access.application.actors import decide
+from backend.app.access.domain.actions import Action as Permission
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService, Transition
-from backend.app.lifecycle.domain.authority import has_authority, who_can
 from backend.app.lifecycle.domain.errors import IncompleteDeliverable, NoAuthority
-from backend.app.lifecycle.domain.phases import phase_definition
 from backend.app.opportunity.domain.errors import (
     InvalidScale,
     InvalidWeeks,
@@ -94,9 +94,9 @@ class StartProject:
             return self._reject(context, project, ProjectNotInOpportunityPhase())
         if self._plans.get(project.id) is not None:
             return self._reject(context, project, PlanAlreadyConfirmed())
-        authority = phase_definition(phase).authority
-        if not has_authority(authority, context):
-            return self._reject(context, project, NoAuthority(phase, who_can(authority)))
+        decision = decide(context, Permission.PROMOTE, project.id, phase)
+        if not decision.allowed:
+            return self._reject(context, project, NoAuthority(phase, list(decision.who)))
         try:
             plan = ProposedPlan.from_input(project.project_type, scale, weeks)
         except (InvalidScale, InvalidWeeks) as error:
