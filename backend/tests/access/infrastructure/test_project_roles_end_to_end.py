@@ -50,7 +50,7 @@ def url(schema_url):
             )
             admin.execute(
                 "INSERT INTO exit_deliverables (study_id, project_id, phase, content, complete, "
-                "approved) VALUES (%s, %s, 2, '{\"titulo\": \"Brief (sample)\"}', true, true)",
+                'approved) VALUES (%s, %s, 2, \'{"titulo": "Brief (sample)"}\', true, true)',
                 (STUDY, project),
             )
         admin.execute(

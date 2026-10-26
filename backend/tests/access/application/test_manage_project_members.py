@@ -100,7 +100,11 @@ class TestAssign:
             assigned_by="subject-9",
         )
         event = last_event(audit_log)
-        assert (event.entity, event.action, event.outcome) == ("project_member", "assign", Outcome.OK)
+        assert (event.entity, event.action, event.outcome) == (
+            "project_member",
+            "assign",
+            Outcome.OK,
+        )
         assert event.new_value["role"] == "architect"
 
     def test_the_project_director_of_that_project_assigns_team_functions(
@@ -173,7 +177,9 @@ class TestAssign:
     def test_a_director_may_hand_out_signing_functions(self, service, members):
         members.get.return_value = a_member(qualifications=frozenset({Qualification.SPONSOR}))
 
-        result = service.assign(a_context(Role.DIRECTOR), "PRY-T-001", "member-1", ProjectRole.SPONSOR)
+        result = service.assign(
+            a_context(Role.DIRECTOR), "PRY-T-001", "member-1", ProjectRole.SPONSOR
+        )
 
         assert result.error is None
 
@@ -229,9 +235,7 @@ class TestUnassign:
         project_members.remove.assert_not_called()
         assert last_event(audit_log).outcome is Outcome.REJECTED
 
-    def test_the_project_director_cannot_remove_a_signing_function(
-        self, service, project_members
-    ):
+    def test_the_project_director_cannot_remove_a_signing_function(self, service, project_members):
         project_members.roles_of.return_value = frozenset({ProjectRole.PROJECT_DIRECTOR})
         project_members.list_for_project.return_value = [an_assignment(ProjectRole.SPONSOR)]
 

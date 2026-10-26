@@ -36,9 +36,7 @@ _LABELS = {
     ProjectRole.SPONSOR: "Sponsor",
 }
 
-_PHASE_ACTIONS = frozenset(
-    {Action.PROMOTE, Action.APPROVE_DELIVERABLE, Action.EDIT_DELIVERABLE}
-)
+_PHASE_ACTIONS = frozenset({Action.PROMOTE, Action.APPROVE_DELIVERABLE, Action.EDIT_DELIVERABLE})
 _PROJECT_RUNNING = frozenset({Action.PAUSE, Action.RESUME, Action.MANAGE_PROJECT_MEMBERS})
 _MANAGEMENT_ONLY = frozenset({Action.EDIT_SETTINGS, Action.SCORE, Action.MANAGE_STUDY_MEMBERS})
 

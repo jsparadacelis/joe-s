@@ -52,9 +52,7 @@ class GetProjectSheet:
         )
         permissions = sheet_permissions(
             phase=project.current_phase,
-            authorized=decide(
-                context, Permission.PROMOTE, project.id, SHEET_PHASE
-            ).allowed,
+            authorized=decide(context, Permission.PROMOTE, project.id, SHEET_PHASE).allowed,
             completion=sheet.completion,
         )
         return replace(sheet, permissions=permissions)

@@ -394,7 +394,9 @@ class TestAtomicity:
                 PromoteProjectSheet(
                     PostgresProjectSheets(conn),
                     PostgresProjectPlans(conn),
-                    PromotionService(PostgresLifecycle(conn), audit_log, {}, DevProjectRoles(context)),
+                    PromotionService(
+                        PostgresLifecycle(conn), audit_log, {}, DevProjectRoles(context)
+                    ),
                     audit_log,
                 ).execute(context, CODE)
 

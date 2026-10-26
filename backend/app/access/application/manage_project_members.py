@@ -96,9 +96,7 @@ class ManageProjectMembers:
         )
         return AssignmentResult(assignment=assignment)
 
-    def unassign(
-        self, context: RequestContext, code: str, assignment_id: str
-    ) -> AssignmentResult:
+    def unassign(self, context: RequestContext, code: str, assignment_id: str) -> AssignmentResult:
         project = self._directory.find(code)
         if project is None:
             return AssignmentResult(error=ProjectNotFound())

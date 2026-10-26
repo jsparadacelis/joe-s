@@ -78,9 +78,7 @@ class UpdateProjectSheet:
             return self._reject(context, project, SheetNotEditable())
         decision = decide(context, Permission.EDIT_DELIVERABLE, project.id, EDITABLE_PHASE)
         if not decision.allowed:
-            return self._reject(
-                context, project, NoAuthority(EDITABLE_PHASE, list(decision.who))
-            )
+            return self._reject(context, project, NoAuthority(EDITABLE_PHASE, list(decision.who)))
         try:
             update = validate_sheet_update(fields, plan)
         except _INPUT_ERRORS as error:

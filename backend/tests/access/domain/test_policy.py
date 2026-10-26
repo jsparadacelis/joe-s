@@ -77,11 +77,16 @@ class TestPromotionMatrix:
         others = [r for r in ProjectRole if r is not function]
 
         for other in others:
-            assert can(a_person(project_roles=[other]), Action.PROMOTE, at_phase(phase)).allowed is False
+            assert (
+                can(a_person(project_roles=[other]), Action.PROMOTE, at_phase(phase)).allowed
+                is False
+            )
 
     @pytest.mark.parametrize("phase", range(2, 8))
     def test_a_person_without_a_role_in_the_project_does_not_promote(self, phase):
-        assert can(a_person(Role.PROJECT_DIRECTOR), Action.PROMOTE, at_phase(phase)).allowed is False
+        assert (
+            can(a_person(Role.PROJECT_DIRECTOR), Action.PROMOTE, at_phase(phase)).allowed is False
+        )
 
     def test_several_project_roles_add_up(self):
         person = a_person(project_roles=[ProjectRole.ARCHITECT, ProjectRole.SPONSOR])

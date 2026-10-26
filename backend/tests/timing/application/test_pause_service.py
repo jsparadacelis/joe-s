@@ -145,9 +145,7 @@ class TestPause:
         assert isinstance(result.error, NotAllowed)
         repo.add.assert_not_called()
 
-    def test_management_pauses_any_project_without_a_project_function(
-        self, service, project_roles
-    ):
+    def test_management_pauses_any_project_without_a_project_function(self, service, project_roles):
         project_roles.roles_of.return_value = frozenset()
 
         assert service.pause(a_context(Role.DIRECTOR), CODE, VALID).error is None
