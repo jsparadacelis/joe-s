@@ -6,6 +6,7 @@ from threading import Barrier, Thread
 import psycopg
 import pytest
 
+from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.shared.db import study_transaction
 from backend.app.shared.migrate import MIGRATIONS_DIR, apply_migrations
@@ -53,7 +54,9 @@ def url(schema_url):
 def run(url, action, *args, context=None, clock=lambda: NOW):
     context = context or a_context()
     with study_transaction(url, context) as conn:
-        service = PauseService(PostgresPauses(conn), PostgresAuditLog(conn), clock=clock)
+        service = PauseService(
+            PostgresPauses(conn), PostgresAuditLog(conn), DevProjectRoles(context), clock=clock
+        )
         return getattr(service, action)(*((context,) if action != "history" else ()), *args)
 
 
@@ -144,7 +147,10 @@ class TestPauseAndResume:
         with pytest.raises(Boom):
             with study_transaction(url, a_context()) as conn:
                 service = PauseService(
-                    PostgresPauses(conn), PostgresAuditLog(conn), clock=lambda: NOW
+                    PostgresPauses(conn),
+                    PostgresAuditLog(conn),
+                    DevProjectRoles(a_context()),
+                    clock=lambda: NOW,
                 )
                 service.pause(a_context(), CODE, VALID)
                 raise Boom
@@ -258,7 +264,10 @@ class TestSchema:
             with study_transaction(url, context) as conn:
                 barrier.wait()
                 service = PauseService(
-                    PostgresPauses(conn), PostgresAuditLog(conn), clock=lambda: NOW
+                    PostgresPauses(conn),
+                    PostgresAuditLog(conn),
+                    DevProjectRoles(a_context()),
+                    clock=lambda: NOW,
                 )
                 results.append(service.pause(context, CODE, VALID))
 

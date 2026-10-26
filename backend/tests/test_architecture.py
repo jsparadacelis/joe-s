@@ -179,3 +179,27 @@ def test_only_the_composition_root_wires_the_study_adapters(adapter):
     ]
 
     assert violations == []
+
+
+# Contexts whose use cases ask the central policy (`access`) instead of looking at roles.
+POLICY_CLIENTS = ("lifecycle", "opportunity", "timing", "portfolio")
+
+
+def test_use_cases_do_not_decide_permissions_by_role():
+    """Who may do what lives in `access.domain.policy` (RGB-4): no `Role`/`Qualification`
+    comparisons in the application layer of the other contexts."""
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for context in POLICY_CLIENTS
+        for p in (APP / context / "application").rglob("*.py")
+        for name in _imports(p)
+        if name == "backend.app.study.domain.context"
+        and any(
+            alias.name in ("Role", "Qualification")
+            for node in ast.walk(ast.parse(p.read_text()))
+            if isinstance(node, ast.ImportFrom) and node.module == name
+            for alias in node.names
+        )
+    ]
+
+    assert violations == []

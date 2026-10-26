@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from backend.app.lifecycle.domain.authority import has_authority
-from backend.app.lifecycle.domain.phases import phase_definition
+from backend.app.access.application.actors import decide
+from backend.app.access.domain.actions import Action as Permission
 from backend.app.opportunity.domain.errors import ProjectNotFound, SheetNotFound
 from backend.app.opportunity.domain.ports import ProjectPlans, ProjectSheets
 from backend.app.opportunity.domain.project_sheet import (
@@ -23,11 +23,6 @@ from backend.app.opportunity.domain.project_sheet import (
     sheet_permissions,
 )
 from backend.app.study.domain.context import RequestContext
-
-
-def can_act_on_sheet(context: RequestContext) -> bool:
-    """Authority of phase 1 (partner or director)."""
-    return has_authority(phase_definition(SHEET_PHASE).authority, context)
 
 
 class GetProjectSheet:
@@ -57,7 +52,9 @@ class GetProjectSheet:
         )
         permissions = sheet_permissions(
             phase=project.current_phase,
-            authorized=can_act_on_sheet(context),
+            authorized=decide(
+                context, Permission.PROMOTE, project.id, SHEET_PHASE
+            ).allowed,
             completion=sheet.completion,
         )
         return replace(sheet, permissions=permissions)

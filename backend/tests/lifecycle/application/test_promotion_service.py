@@ -2,6 +2,8 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from backend.app.access.domain.ports import ProjectRoleReader
+from backend.app.access.domain.project_roles import ProjectRole
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.lifecycle.application.promotion_service import PromotionService
@@ -18,7 +20,7 @@ from backend.app.lifecycle.domain.frozen_version import FrozenVersion
 from backend.app.lifecycle.domain.ports import DeliverableValidator, LifecycleRepository
 from backend.app.lifecycle.domain.project import Project
 from backend.app.lifecycle.domain.promotion import Action, Promotion
-from backend.app.study.domain.context import Qualification, RequestContext, Role
+from backend.app.study.domain.context import RequestContext, Role
 
 CODE = "PRY-EJ-001"
 
@@ -72,8 +74,16 @@ def validators():
 
 
 @pytest.fixture
-def service(repo, audit, validators):
-    return PromotionService(repo, audit, validators)
+def project_roles():
+    """The caller directs the project by default: tests of refusals empty it."""
+    reader = create_autospec(ProjectRoleReader, spec_set=True, instance=True)
+    reader.roles_of.return_value = frozenset({ProjectRole.PROJECT_DIRECTOR})
+    return reader
+
+
+@pytest.fixture
+def service(repo, audit, validators, project_roles):
+    return PromotionService(repo, audit, validators, project_roles)
 
 
 def audited(audit):
@@ -144,7 +154,11 @@ class TestPromote:
 
 
 class TestPromoteRejected:
-    def test_without_authority_names_who_can_and_changes_nothing(self, service, repo):
+    def test_without_authority_names_who_can_and_changes_nothing(
+        self, service, repo, project_roles
+    ):
+        project_roles.roles_of.return_value = frozenset()
+
         transition = service.promote(a_context(Role.ARCHITECT), CODE)
 
         assert transition.ok is False
@@ -153,14 +167,46 @@ class TestPromoteRejected:
         repo.freeze.assert_not_called()
         repo.change_phase.assert_not_called()
 
-    def test_with_the_right_qualification_a_qualified_phase_is_allowed(self, service, repo):
+    def test_the_project_function_of_the_phase_is_what_allows_it(
+        self, service, repo, project_roles
+    ):
         repo.get_project.return_value = a_project(phase=4)
         repo.get_deliverable.return_value = a_deliverable(phase=4)
-        context = a_context(Role.ARCHITECT, [Qualification.LICENSED_SIGNATORY])
+        project_roles.roles_of.return_value = frozenset({ProjectRole.LICENSED_SIGNATORY})
 
-        transition = service.promote(context, CODE)
+        transition = service.promote(a_context(Role.ARCHITECT), CODE)
 
         assert transition.ok is True
+        project_roles.roles_of.assert_called_once_with("project-1", "demo-user")
+
+    def test_a_project_director_of_another_project_does_not_promote(
+        self, service, repo, project_roles
+    ):
+        """The studio role is not enough: the function is held per project (RGB-4)."""
+        project_roles.roles_of.return_value = frozenset()
+
+        transition = service.promote(a_context(Role.PROJECT_DIRECTOR), CODE)
+
+        assert isinstance(transition.error, NoAuthority)
+        repo.change_phase.assert_not_called()
+
+    def test_partner_and_director_do_not_inherit_the_late_phases(
+        self, service, repo, project_roles
+    ):
+        project_roles.roles_of.return_value = frozenset()
+        repo.get_project.return_value = a_project(phase=3)
+
+        assert isinstance(service.promote(a_context(Role.PARTNER), CODE).error, NoAuthority)
+        assert isinstance(service.promote(a_context(Role.DIRECTOR), CODE).error, NoAuthority)
+
+    def test_partner_promotes_the_first_phases_without_a_project_function(
+        self, service, repo, project_roles
+    ):
+        project_roles.roles_of.return_value = frozenset()
+        repo.get_project.return_value = a_project(phase=1)
+        repo.get_deliverable.return_value = a_deliverable(phase=1)
+
+        assert service.promote(a_context(Role.PARTNER), CODE).ok is True
 
     @pytest.mark.parametrize(
         ("overrides", "missing"),
@@ -200,15 +246,16 @@ class TestPromoteRejected:
 
         assert transition.error.missing == ["referencia catastral"]
 
-    def test_closing_phase_has_no_next_phase(self, service, repo):
+    def test_closing_phase_has_no_next_phase(self, service, repo, project_roles):
         repo.get_project.return_value = a_project(phase=7)
-        context = a_context(Role.ARCHITECT, [Qualification.SPONSOR])
+        project_roles.roles_of.return_value = frozenset({ProjectRole.SPONSOR})
 
-        transition = service.promote(context, CODE)
+        transition = service.promote(a_context(Role.ARCHITECT), CODE)
 
         assert isinstance(transition.error, NoNextPhase)
 
-    def test_every_rejection_is_audited_with_its_reason(self, service, audit):
+    def test_every_rejection_is_audited_with_its_reason(self, service, audit, project_roles):
+        project_roles.roles_of.return_value = frozenset()
         service.promote(a_context(Role.ARCHITECT), CODE)
 
         event = audited(audit)
@@ -218,7 +265,8 @@ class TestPromoteRejected:
             {"error": "no_authority"},
         )
 
-    def test_a_rejection_does_not_record_a_promotion(self, service, repo):
+    def test_a_rejection_does_not_record_a_promotion(self, service, repo, project_roles):
+        project_roles.roles_of.return_value = frozenset()
         service.promote(a_context(Role.ARCHITECT), CODE)
 
         repo.record_promotion.assert_not_called()
@@ -246,7 +294,8 @@ class TestHold:
         assert isinstance(transition.error, ReasonRequired)
         repo.record_promotion.assert_not_called()
 
-    def test_requires_authority_in_the_current_phase(self, service):
+    def test_requires_authority_in_the_current_phase(self, service, project_roles):
+        project_roles.roles_of.return_value = frozenset()
         transition = service.hold(a_context(Role.ARCHITECT), CODE, "reason")
 
         assert isinstance(transition.error, NoAuthority)

@@ -8,12 +8,12 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
+from backend.app.access.application.actors import decide
+from backend.app.access.domain.actions import Action as Permission
 from backend.app.audit.application.record import audit
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
-from backend.app.lifecycle.domain.authority import has_authority, who_can
 from backend.app.lifecycle.domain.errors import NoAuthority
-from backend.app.lifecycle.domain.phases import phase_definition
 from backend.app.opportunity.domain.errors import (
     InvalidProjectType,
     InvalidScale,
@@ -76,9 +76,11 @@ class UpdateProjectSheet:
             raise ProjectNotFound(code)
         if project.current_phase != EDITABLE_PHASE:
             return self._reject(context, project, SheetNotEditable())
-        authority = phase_definition(EDITABLE_PHASE).authority
-        if not has_authority(authority, context):
-            return self._reject(context, project, NoAuthority(EDITABLE_PHASE, who_can(authority)))
+        decision = decide(context, Permission.EDIT_DELIVERABLE, project.id, EDITABLE_PHASE)
+        if not decision.allowed:
+            return self._reject(
+                context, project, NoAuthority(EDITABLE_PHASE, list(decision.who))
+            )
         try:
             update = validate_sheet_update(fields, plan)
         except _INPUT_ERRORS as error:

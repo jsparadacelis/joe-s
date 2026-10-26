@@ -1,7 +1,10 @@
 import pytest
 
-from backend.app.lifecycle.domain.authority import has_authority
-from backend.app.study.domain.context import RequestContext, Role
+from backend.app.access.domain.actions import Action
+from backend.app.access.domain.actor import PersonActor
+from backend.app.access.domain.policy import can
+from backend.app.access.domain.resource import ProjectResource
+from backend.app.study.domain.context import Role
 from backend.app.study.domain.mfa import AAL2, requires_mfa
 
 
@@ -34,8 +37,10 @@ def test_administration_role_is_a_valid_role_value():
     assert Role("administration") is Role.ADMINISTRATION
 
 
-@pytest.mark.parametrize("authority", ["partner_director", "project_director"])
-def test_administration_gains_no_promotion_authority(authority):
-    context = RequestContext(study_id="demo-study", user_id="demo-user", role=Role.ADMINISTRATION)
+@pytest.mark.parametrize("phase", range(8))
+def test_administration_gains_no_promotion_authority(phase):
+    actor = PersonActor(study_id="demo-study", user_id="demo-user", study_role=Role.ADMINISTRATION)
 
-    assert has_authority(authority, context) is False
+    decision = can(actor, Action.PROMOTE, ProjectResource(project_id="project-1", phase=phase))
+
+    assert decision.allowed is False

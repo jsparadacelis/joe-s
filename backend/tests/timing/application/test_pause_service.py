@@ -5,6 +5,8 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from backend.app.access.domain.ports import ProjectRoleReader
+from backend.app.access.domain.project_roles import ProjectRole
 from backend.app.audit.domain.event import Outcome
 from backend.app.audit.domain.ports import AuditLog
 from backend.app.study.domain.context import RequestContext, Role
@@ -75,8 +77,16 @@ def audit_log():
 
 
 @pytest.fixture
-def service(repo, audit_log):
-    return PauseService(repo, audit_log, clock=lambda: NOW)
+def project_roles():
+    """The caller directs the project by default: tests of refusals empty it."""
+    reader = create_autospec(ProjectRoleReader, spec_set=True, instance=True)
+    reader.roles_of.return_value = frozenset({ProjectRole.PROJECT_DIRECTOR})
+    return reader
+
+
+@pytest.fixture
+def service(repo, audit_log, project_roles):
+    return PauseService(repo, audit_log, project_roles, clock=lambda: NOW)
 
 
 def events(audit_log):
@@ -126,7 +136,26 @@ class TestPause:
         with pytest.raises(ProjectNotFound):
             service.pause(a_context(), CODE, VALID)
 
-    def test_other_roles_are_rejected_and_the_attempt_is_audited(self, service, repo, audit_log):
+    def test_a_project_director_of_another_project_is_rejected(self, service, repo, project_roles):
+        """The studio role is not enough: the function is held per project (RGB-4)."""
+        project_roles.roles_of.return_value = frozenset()
+
+        result = service.pause(a_context(Role.PROJECT_DIRECTOR), CODE, VALID)
+
+        assert isinstance(result.error, NotAllowed)
+        repo.add.assert_not_called()
+
+    def test_management_pauses_any_project_without_a_project_function(
+        self, service, project_roles
+    ):
+        project_roles.roles_of.return_value = frozenset()
+
+        assert service.pause(a_context(Role.DIRECTOR), CODE, VALID).error is None
+
+    def test_other_roles_are_rejected_and_the_attempt_is_audited(
+        self, service, repo, audit_log, project_roles
+    ):
+        project_roles.roles_of.return_value = frozenset()
         result = service.pause(a_context(Role.ARCHITECT), CODE, VALID)
 
         assert isinstance(result.error, NotAllowed)
@@ -136,7 +165,10 @@ class TestPause:
         assert (event.action, event.outcome) == ("pause_project", Outcome.REJECTED)
         assert event.new_value == {"error": "not_allowed"}
 
-    def test_permission_is_checked_before_the_phase_and_the_fields(self, service, repo):
+    def test_permission_is_checked_before_the_phase_and_the_fields(
+        self, service, repo, project_roles
+    ):
+        project_roles.roles_of.return_value = frozenset()
         repo.get_project.return_value = a_project(phase=0)
 
         result = service.pause(a_context(Role.ARCHITECT), CODE, {})
@@ -208,7 +240,8 @@ class TestResume:
         with pytest.raises(ProjectNotFound):
             service.resume(a_context(), CODE)
 
-    def test_other_roles_are_rejected_and_audited(self, service, repo, audit_log):
+    def test_other_roles_are_rejected_and_audited(self, service, repo, audit_log, project_roles):
+        project_roles.roles_of.return_value = frozenset()
         repo.get_open_pause.return_value = a_pause()
 
         result = service.resume(a_context(Role.SITE_COLLABORATOR), CODE)
