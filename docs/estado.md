@@ -217,3 +217,6 @@ Qué falta en el backend para quitar los datos de ejemplo del front, con su tare
 ## Despliegue del 2026-10-26
 
 Producción lleva ya RGB-2a/2b, RGB-4/4b y RGB-18: migraciones 010 y 011, backend `rgb-api-00007-5tc` y front en Vercel (`6a90af1`), todo en modo `dev` (sin acceso con usuarios). Detalle y vuelta atrás en [despliegue](despliegue.md). **Falta** (acciones de la persona responsable): activar Google en Supabase, crear al primer socio con `bootstrap_member` y encender el acceso en el orden indicado.
+
+## Rendimiento (PERF-1, 2026-10-27)
+Las acciones tardaban ≥ 1,2 s porque la API (`us-central1`) abría una conexión nueva a la base de datos (Irlanda) en cada petición. Pool de conexiones desplegado (`DB_POOL_MAX=4`): ~0,64 s en servidor. El resto es distancia API↔BD; pendiente decidir el traslado (Railway o región UE). Detalle en `docs/plans/PERF-1/`.
