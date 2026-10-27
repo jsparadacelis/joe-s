@@ -55,3 +55,13 @@ def test_supabase_mode_without_a_project_url_is_refused():
 def test_supabase_mode_with_a_blank_project_url_is_refused():
     with pytest.raises(ValidationError):
         Settings(_env_file=None, auth_mode="supabase", supabase_url="   ")
+
+
+def test_connection_pool_is_off_by_default():
+    assert Settings(_env_file=None).db_pool_max == 0
+
+
+def test_connection_pool_size_is_read_from_environment(monkeypatch):
+    monkeypatch.setenv("DB_POOL_MAX", "4")
+
+    assert Settings(_env_file=None).db_pool_max == 4
