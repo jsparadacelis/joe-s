@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exception_handlers import http_exception_handler
@@ -21,6 +23,7 @@ from backend.app.api.project_member_routes import router as project_member_route
 from backend.app.api.promotion_routes import router as promotion_routes
 from backend.app.api.scoring_routes import router as scoring_routes
 from backend.app.shared.config import Settings
+from backend.app.shared.db import close_pools, open_pool
 
 
 def _invalid_request() -> JSONResponse:
@@ -42,7 +45,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         logging.getLogger(__name__).warning(
             "AUTH_MODE=dev in production: every request runs as the fictitious development user."
         )
-    app = FastAPI(title="RGB Proyectos")
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if settings.db_pool_max > 0:
+            open_pool(settings.database_url, max_size=settings.db_pool_max)
+        yield
+        close_pools()
+
+    app = FastAPI(title="RGB Proyectos", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

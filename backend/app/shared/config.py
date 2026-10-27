@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql://rgb:rgb@localhost:54329/rgb"
+    # Maximum connections kept open per process; 0 opens one connection per transaction.
+    db_pool_max: int = 0
     # Fictitious context until authentication exists (RGB-2).
     dev_study_id: str = "00000000-0000-0000-0000-00000000e001"
     dev_user_id: str = "sample-user"
