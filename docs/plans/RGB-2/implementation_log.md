@@ -241,3 +241,17 @@ Mismo método: build real con `AUTH_MODE=supabase`, SDK real de `@supabase/supab
 Suite tras la corrección: lint 0 errores (3 avisos previos), typecheck limpio, **2035 tests pasan** (92 suites), build correcto sin variables. axe no se repitió; el marcado no cambió.
 
 **Veredicto final del Tester: APROBADO.** El bloqueante está resuelto con el SDK real; quedan los menores 2 y 3, no bloqueantes. No verificado: Supabase real (el rechazo por nombre repetido es una emulación).
+
+## RGB-2c · Juez
+
+**Veredicto: APROBADO.**
+
+Evidencia propia sobre `rgb-2c/mfa-recovery` (hasta `8108cd4`): lint 0 errores (3 avisos previos), typecheck limpio, 92 suites y 2035 tests en verde.
+
+1. **Plan y alcance:** `MfaPanel.tsx` lee `data.all` para los TOTP no verificados y los retira (`unenroll`) antes de `enroll`; con un verificado no toca nada. Los fallos de preparación, desafío y verificación añaden «Código de error: x»; el QR va sobre `bg-qr-bg` (#fff). `AuthClient` gana `unenroll`. Solo se tocan `MfaPanel.tsx`, `lib/auth.ts`, el token en `globals.css`, tests y docs. Sin nada fuera de alcance.
+2. **Tests no debilitados:** `color-classes.test.ts` solo amplía el patrón de token a `var(` o `#`; la vigilancia de clases que no son tokens sigue. El cambio del helper `withUnverifiedFactors` y del test «verificado + pendiente» (commit `55b1581`) hace que los dobles reflejen la forma real del SDK (`totp` solo verificados, `all` todos); todas las aserciones de comportamiento (orden unenroll antes de enroll, nunca retirar el verificado, sin enroll si falla el unenroll) se mantienen.
+3. **Seguridad:** solo se muestra `code` (string) de Supabase, nunca `message`, tokens ni correos (tests lo comprueban); un factor verificado nunca se retira; no se toca el estado de ningún proyecto; sin secretos ni datos reales (la clave y el correo de los pantallazos y tests son ficticios).
+4. **Pantallazos:** 17 en `docs/plans/RGB-2c/screenshots/`, en claro y oscuro, referenciados en el log del Tester; abiertos `mfa-enroll-qr-on-white-dark` (QR sobre blanco en tema oscuro) y `mfa-error-challenge-with-code-light` (aviso con «Código de error: over_request_rate_limit»): corresponden al cambio.
+5. **Estilo:** código y comentarios en inglés, textos de interfaz en español.
+
+Observaciones no bloqueantes (ya anotadas por el Tester): los errores 5xx/de red no traen `code`, y no se ha probado contra un Supabase real.
