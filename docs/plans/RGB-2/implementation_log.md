@@ -173,7 +173,7 @@ Rama `rgb-2b-acceso`. Verificación con el **build real** (`next build` + `next 
 
 ## RGB-2c · Tester
 
-Rama `rgb-2c/mfa-recovery` (commits `8b35a2b` tests y `a439c3a` Desarrollador). Veredicto del Tester: **rechazado**, con un bloqueante (hallazgo 1). Pantallazos en [`docs/plans/RGB-2c/screenshots/`](../RGB-2c/screenshots/) (datos ficticios). No se tocó código de producción ni tests.
+Rama `rgb-2c/mfa-recovery` (commits `8b35a2b` tests y `a439c3a` Desarrollador). Veredicto del Tester: primera pasada **rechazado** (hallazgo 1, bloqueante); tras la corrección `55b1581`, **APROBADO** (ver «Segunda pasada»). Pantallazos en [`docs/plans/RGB-2c/screenshots/`](../RGB-2c/screenshots/) (datos ficticios). No se tocó código de producción ni tests.
 
 ### 1. Suite completa (reales, tras el último ajuste)
 
@@ -202,8 +202,8 @@ El cambio solo añade `#` al patrón de tokens (`var(` o `#`). Hoy el único tok
 | `mfa-error-challenge-with-code` | Fallo del desafío |
 | `mfa-error-verify-with-code` | Fallo de la verificación con otro código |
 | `mfa-error-enroll-with-code` | Fallo del alta |
-| `mfa-pending-factor-conflict` | Factor pendiente, alta rechazada con `mfa_factor_name_conflict` (ver hallazgo 1) |
-| `mfa-pending-factor-not-removed` | Factor pendiente: no se retira (hallazgo 1) |
+| `mfa-pending-factor-replaced` | Segunda pasada: factor pendiente retirado y QR del factor nuevo |
+| `mfa-pending-factor-unenroll-fails` | Segunda pasada: el `DELETE` falla, aviso con `Código de error: insufficient_aal`, sin QR |
 | `mfa-verify-existing-factor-light`, `mfa-keyboard-focus-light`, `mfa-keyboard-focus-button-light` | Factor verificado; foco del teclado |
 
 ### 4. Intentos de romperlo
@@ -217,9 +217,27 @@ El cambio solo añade `#` al patrón de tokens (`var(` o `#`). Hoy el único tok
 
 ### Hallazgos
 
-1. **BLOQUEANTE: el factor pendiente nunca se retira con el SDK real; la funcionalidad principal de 2c no hace nada.** `MfaPanel.tsx:49-57` busca los factores sin verificar en `data.totp`, pero `supabase.auth.mfa.listFactors()` (`@supabase/auth-js` 2.118.0, `GoTrueClient.js` `_listFactors`, ~l. 5029-5037) mete en `totp` **solo** los de `status === 'verified'`; los pendientes solo aparecen en `data.all`. Los tests (`MfaPanel.recovery.test.tsx`, helper `withUnverifiedFactors`) fabrican `totp: factors` con factores `unverified`, un contrato que el SDK real no cumple, así que están en verde sin probar nada real.
+1. **BLOQUEANTE (corregido en `55b1581`, verificado en la segunda pasada): el factor pendiente nunca se retira con el SDK real; la funcionalidad principal de 2c no hace nada.** `MfaPanel.tsx:49-57` busca los factores sin verificar en `data.totp`, pero `supabase.auth.mfa.listFactors()` (`@supabase/auth-js` 2.118.0, `GoTrueClient.js` `_listFactors`, ~l. 5029-5037) mete en `totp` **solo** los de `status === 'verified'`; los pendientes solo aparecen en `data.all`. Los tests (`MfaPanel.recovery.test.tsx`, helper `withUnverifiedFactors`) fabrican `totp: factors` con factores `unverified`, un contrato que el SDK real no cumple, así que están en verde sin probar nada real.
    Pasos para reproducir: construir con `AUTH_MODE=supabase` contra un Auth cuyo `GET /auth/v1/user` devuelva `factors: [{id:"f0",factor_type:"totp",status:"unverified"}]`; con sesión `aal1`, abrir `/login/mfa`. Resultado: llamadas `GET /user` y `POST /factors`; **ninguna** `DELETE /factors/f0`; se crea otro factor y f0 queda huérfano (cada recarga suma uno). Si el servidor rechaza el nombre repetido (`mfa_factor_name_conflict`, emulado; no verificado con Supabase real), la persona queda bloqueada con «No se pudo preparar el doble factor… Código de error: mfa_factor_name_conflict», justo lo que 2c quería evitar. Corrección sugerida (no aplicada): leer `data.all` filtrando `factor_type === "totp" && status !== "verified"`, y corregir el helper y los tests para que reflejen la forma real (`totp` solo verificados, `all` todos).
 2. Menor: los fallos 5xx/de red del SDK (`AuthRetryableFetchError`, 500/502-504) no traen `code`, así que ese aviso sale sin «Código de error» (comprobado con un 500). Es un límite del SDK; si se quiere la pista, mostrar `status` como alternativa. No bloquea.
 3. Menor: la excepción hex del test de colores no vigila futuros tokens hex que no cambien con el tema (ver punto 2). No bloquea.
 
 Procesos: servidor Next (3102) y mock (9200) detenidos; nada en segundo plano. Scripts y mock en el scratchpad de la sesión (fuera del repo).
+
+### RGB-2c · Tester · Segunda pasada (commit `55b1581`)
+
+Mismo método: build real con `AUTH_MODE=supabase`, SDK real de `@supabase/supabase-js` (no el doble de tests) contra el Supabase simulado, que ahora persiste los factores creados y emite un secreto distinto por factor. Los pantallazos antiguos de `pending-factor-conflict` y `not-removed` se eliminaron por obsoletos.
+
+| Caso (sesión aal1, `/login/mfa`) | Peticiones de escritura observadas | Resultado |
+| --- | --- | --- |
+| Un factor `unverified` (el servidor rechazaría el alta mientras exista) | `DELETE /factors/old1` y después `POST /factors` | QR y clave del factor nuevo (`NEWSECRET…N1`); en el servidor solo queda el nuevo |
+| Dos factores `unverified` | `DELETE old1`, `DELETE old2`, `POST` | Correcto, orden respetado |
+| Recarga x2 | Cada carga retira el factor anterior y crea uno | Siempre 1 factor en el servidor (`n3`); la clave mostrada es la del vigente; verificar con `123456` entra a `/` |
+| Factor verificado | Ninguna (ni `DELETE` ni `POST`) | Botón «Verificar código», sin QR |
+| Verificado + pendiente | Ninguna | El verificado nunca se toca |
+| `DELETE` falla con 403 `insufficient_aal` | Solo `DELETE`; **no** hay `POST` | Aviso «No se pudo preparar el doble factor… Código de error: insufficient_aal», sin QR |
+| `DELETE` falla con 500 sin `code` | Solo `DELETE`, sin `POST` | Mismo aviso sin línea de código (límite del SDK, hallazgo 2) |
+
+Suite tras la corrección: lint 0 errores (3 avisos previos), typecheck limpio, **2035 tests pasan** (92 suites), build correcto sin variables. axe no se repitió; el marcado no cambió.
+
+**Veredicto final del Tester: APROBADO.** El bloqueante está resuelto con el SDK real; quedan los menores 2 y 3, no bloqueantes. No verificado: Supabase real (el rechazo por nombre repetido es una emulación).
