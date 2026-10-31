@@ -170,3 +170,56 @@ Rama `rgb-2b-acceso`. Verificación con el **build real** (`next build` + `next 
 ### RGB-2b · Veredicto del Juez (2026-10-26)
 
 **Aprobado**, sin bloqueantes. Comprobó: 2009 tests de front, lint (sin errores), typecheck, build sin variables de Supabase, `ruff` y 278 tests de la API; TDD por el orden de commits; sin redirecciones abiertas, `?error=` escapado, la cookie de ayuda solo empuja hacia más restricción y no concede acceso; modo `dev` intacto; pantallazos claros y oscuros con datos ficticios. Seguimientos no bloqueantes y decisiones de negocio: ver `docs/estado.md` («Pendientes de RGB-2b»). No verificado: Google, el TOTP y `aal2` reales.
+
+## RGB-2c · Tester
+
+Rama `rgb-2c/mfa-recovery` (commits `8b35a2b` tests y `a439c3a` Desarrollador). Veredicto del Tester: **rechazado**, con un bloqueante (hallazgo 1). Pantallazos en [`docs/plans/RGB-2c/screenshots/`](../RGB-2c/screenshots/) (datos ficticios). No se tocó código de producción ni tests.
+
+### 1. Suite completa (reales, tras el último ajuste)
+
+| Comprobación | Resultado |
+| --- | --- |
+| `npm --prefix frontend run lint` | 0 errores, 3 avisos preexistentes (`API_SHEET`, `_omit` x2) |
+| `npm --prefix frontend run typecheck` | limpio |
+| `npm --prefix frontend test` | 92 suites, **2035 tests pasan** (110 s) |
+| `npm --prefix frontend run build` | compila, sin variables y también con `AUTH_MODE=supabase` |
+
+### 2. `color-classes.test.ts`: amplía, no debilita
+
+El cambio solo añade `#` al patrón de tokens (`var(` o `#`). Hoy el único token con valor literal es `--color-qr-bg: #ffffff` (`globals.css:136`); el patrón anterior lo rechazaba, por eso hacía falta. Lo que protege el test (clases de color que no son tokens) sigue intacto: sustituí temporalmente `bg-qr-bg` en `MfaPanel.tsx` por `bg-qr-bgx` y por `bg-notacolor` y el test falla con `MfaPanel.tsx: bg-qr-bgx` / `bg-notacolor` (1 fallo, 1 pasa); restaurado, vuelve a verde. Riesgo residual menor: un futuro token hex no cambia con el tema y el test no lo vigila; la excepción está comentada en el propio test. Conclusión: ampliación legítima.
+
+### 3. Verificación con build real
+
+`next build` + `next start`, `AUTH_MODE=supabase`, Chrome (Playwright, `es-ES`, claro y oscuro, axe-core), Supabase Auth simulado (mismo mock que 2b, ampliado con `DELETE /factors/:id`, errores configurables y factores no verificados en `user.factors`). El QR simulado tiene **fondo transparente** (peor caso). Real: build, proxy, componentes, CSS y `@supabase/supabase-js` 2.x (`auth-js` 2.118.0). Simulado: servidor de Auth, QR, clave. No verificado: Supabase real.
+
+- QR sobre blanco en ambos temas: contenedor `rgb(255,255,255)`; píxel del relleno medido en captura `255,255,255`, píxel más oscuro del QR `0,0,0`, contraste **21:1** en claro y en oscuro. Visualmente correcto (borde fino sobre el panel oscuro). axe: 0 violaciones en todos los estados.
+- Avisos con causa, en ambos temas: enroll `Código de error: mfa_totp_enroll_not_enabled`; challenge `over_request_rate_limit`; verify con otro código `mfa_challenge_expired`; código equivocado (`mfa_verification_failed`) mantiene su texto y **sin** línea de código, con `aria-invalid`, `aria-describedby` apuntando al `role=alert` y foco en el campo.
+
+| Archivo (`-light` / `-dark`) | Muestra |
+| --- | --- |
+| `mfa-enroll-qr-on-white` | Alta con QR |
+| `mfa-error-wrong-code-no-code` | Código equivocado, sin código de error |
+| `mfa-error-challenge-with-code` | Fallo del desafío |
+| `mfa-error-verify-with-code` | Fallo de la verificación con otro código |
+| `mfa-error-enroll-with-code` | Fallo del alta |
+| `mfa-pending-factor-conflict` | Factor pendiente, alta rechazada con `mfa_factor_name_conflict` (ver hallazgo 1) |
+| `mfa-pending-factor-not-removed` | Factor pendiente: no se retira (hallazgo 1) |
+| `mfa-verify-existing-factor-light`, `mfa-keyboard-focus-light`, `mfa-keyboard-focus-button-light` | Factor verificado; foco del teclado |
+
+### 4. Intentos de romperlo
+
+- Doble clic + clic forzado + Enter con la red lenta (600 ms): 1 `challenge`, 1 `verify`. Correcto (`submittingRef`).
+- Factor verificado existente (con otro sin verificar): solo `GET /user`; ni `enroll` ni `unenroll`; sin QR; botón «Verificar código». Correcto.
+- Teclado: el campo recibe el foco al cargar; con menos de 6 dígitos el botón está deshabilitado y Tab sale de la página; con 6, Tab llega a «Activar doble factor» y Enter envía; el campo filtra no dígitos (`12a3456789` queda `123456`). Foco visible en ambos.
+- Lector: `h1`, etiqueta asociada al campo, `img` con `alt`, avisos `role=alert` enlazados con `aria-describedby`; sin roles inventados. Nota: `getByRole("alert")` coincide también con el anunciador de rutas de Next (`__next-route-announcer__`), normal.
+- Recarga durante el alta (1 y 2 recargas): cada carga hace su `POST /factors` (3 altas en 3 cargas) y no retira las anteriores (consecuencia del hallazgo 1). El efecto de Strict Mode no se dobla en producción.
+- `unenroll` que falla: **no se pudo ejercitar** de punta a punta, porque nunca se llama (hallazgo 1). Solo lo cubren los tests unitarios.
+
+### Hallazgos
+
+1. **BLOQUEANTE: el factor pendiente nunca se retira con el SDK real; la funcionalidad principal de 2c no hace nada.** `MfaPanel.tsx:49-57` busca los factores sin verificar en `data.totp`, pero `supabase.auth.mfa.listFactors()` (`@supabase/auth-js` 2.118.0, `GoTrueClient.js` `_listFactors`, ~l. 5029-5037) mete en `totp` **solo** los de `status === 'verified'`; los pendientes solo aparecen en `data.all`. Los tests (`MfaPanel.recovery.test.tsx`, helper `withUnverifiedFactors`) fabrican `totp: factors` con factores `unverified`, un contrato que el SDK real no cumple, así que están en verde sin probar nada real.
+   Pasos para reproducir: construir con `AUTH_MODE=supabase` contra un Auth cuyo `GET /auth/v1/user` devuelva `factors: [{id:"f0",factor_type:"totp",status:"unverified"}]`; con sesión `aal1`, abrir `/login/mfa`. Resultado: llamadas `GET /user` y `POST /factors`; **ninguna** `DELETE /factors/f0`; se crea otro factor y f0 queda huérfano (cada recarga suma uno). Si el servidor rechaza el nombre repetido (`mfa_factor_name_conflict`, emulado; no verificado con Supabase real), la persona queda bloqueada con «No se pudo preparar el doble factor… Código de error: mfa_factor_name_conflict», justo lo que 2c quería evitar. Corrección sugerida (no aplicada): leer `data.all` filtrando `factor_type === "totp" && status !== "verified"`, y corregir el helper y los tests para que reflejen la forma real (`totp` solo verificados, `all` todos).
+2. Menor: los fallos 5xx/de red del SDK (`AuthRetryableFetchError`, 500/502-504) no traen `code`, así que ese aviso sale sin «Código de error» (comprobado con un 500). Es un límite del SDK; si se quiere la pista, mostrar `status` como alternativa. No bloquea.
+3. Menor: la excepción hex del test de colores no vigila futuros tokens hex que no cambien con el tema (ver punto 2). No bloquea.
+
+Procesos: servidor Next (3102) y mock (9200) detenidos; nada en segundo plano. Scripts y mock en el scratchpad de la sesión (fuera del repo).
