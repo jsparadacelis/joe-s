@@ -48,12 +48,15 @@ export function MfaPanel({ client, onVerified }: MfaPanelProps) {
       try {
         const { data, error: listError } = await client.auth.mfa.listFactors();
         if (listError || !data) throw listError ?? new Error("no factors");
-        const verified = data.totp?.find((factor) => factor.status === "verified");
+        const verified =
+          data.totp?.find((factor) => factor.status === "verified") ??
+          data.all?.find((factor) => factor.factor_type === "totp" && factor.status === "verified");
         if (verified) {
           setPhase({ kind: "verify", factorId: verified.id });
           return;
         }
-        const unverified = (data.totp ?? []).filter((factor) => factor.status !== "verified");
+        // auth-js puts only verified factors in `totp`; pending ones appear only in `all`.
+        const unverified = (data.all ?? []).filter((factor) => factor.factor_type === "totp" && factor.status !== "verified");
         for (const factor of unverified) {
           const { error: unenrollError } = await client.auth.mfa.unenroll({ factorId: factor.id });
           if (unenrollError) throw unenrollError;

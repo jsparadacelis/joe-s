@@ -52,6 +52,7 @@ export function withVerifiedFactor(client: FakeAuthClient, factorId = "factor-9"
 /** A client whose person left TOTP factors half-enrolled (never verified) and has no verified one. */
 export function withUnverifiedFactors(client: FakeAuthClient, factorIds: string[] = ["factor-stale"]): FakeAuthClient {
   const factors = factorIds.map((id) => ({ id, factor_type: "totp", status: "unverified" }));
-  client.auth.mfa.listFactors.mockResolvedValue({ data: { all: factors, totp: factors }, error: null });
+  // Real SDK shape (auth-js `_listFactors`): `totp` holds ONLY verified factors; pending ones appear only in `all`.
+  client.auth.mfa.listFactors.mockResolvedValue({ data: { all: factors, totp: [] }, error: null });
   return client;
 }

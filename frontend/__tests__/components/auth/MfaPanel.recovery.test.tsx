@@ -1,7 +1,7 @@
 /**
  * RGB-2c · contract for `@/components/auth/MfaPanel` (additions to RGB-2b):
  *   AuthClient.auth.mfa.unenroll(params: { factorId: string }): AuthResult<unknown>
- *   - No verified TOTP but unverified TOTP factors in `data.totp`: unenroll({ factorId }) once per unverified factor,
+ *   - No verified TOTP but unverified TOTP factors in `data.all` (the SDK puts only verified ones in `data.totp`): unenroll({ factorId }) once per unverified factor,
  *     all BEFORE enroll; the QR shown is the new factor's. If an unenroll fails: no enroll, setup-failed alert.
  *   - A verified TOTP: never unenroll nor enroll (even if unverified ones coexist); goes to verify.
  *   - No factors: only enroll.
@@ -92,7 +92,7 @@ describe("MfaPanel · pending factors are removed before enrolling", () => {
     const client = withVerifiedFactor(createFakeAuthClient(), "factor-9");
     const verified = { id: "factor-9", factor_type: "totp", status: "verified" };
     const stale = { id: "stale-1", factor_type: "totp", status: "unverified" };
-    client.auth.mfa.listFactors.mockResolvedValue({ data: { all: [stale, verified], totp: [stale, verified] }, error: null });
+    client.auth.mfa.listFactors.mockResolvedValue({ data: { all: [stale, verified], totp: [verified] }, error: null });
     render(<MfaPanel client={client} onVerified={jest.fn()} />);
     await screen.findByRole("button", { name: "Verificar código" });
     expect(client.auth.mfa.unenroll).not.toHaveBeenCalled();
