@@ -220,3 +220,6 @@ Producción lleva ya RGB-2a/2b, RGB-4/4b y RGB-18: migraciones 010 y 011, backen
 
 ## Rendimiento (PERF-1, 2026-10-27)
 Las acciones tardaban ≥ 1,2 s porque la API (`us-central1`) abría una conexión nueva a la base de datos (Irlanda) en cada petición. Pool de conexiones desplegado (`DB_POOL_MAX=4`): ~0,64 s en servidor. El resto es distancia API↔BD; pendiente decidir el traslado (Railway o región UE). Detalle en `docs/plans/PERF-1/`.
+
+## RGB-2c · alta del doble factor (2026-11-01)
+Primer contacto con Supabase real: Google, TOTP y `aal2` funcionan. El socio quedó bloqueado por dos fallos de `/login/mfa`: recargar dejaba un factor pendiente sin QR recuperable y el QR (SVG transparente) no se veía en tema oscuro. Arreglo: la pantalla retira los factores pendientes (los lee de `listFactors().all`, no de `totp`) antes de crear uno nuevo, muestra «Código de error» con el `code` de Supabase y pinta el QR sobre blanco. Sigue sin haber recuperación del segundo factor perdido. Plan: [plan-2c](plans/RGB-2/plan-2c.md).
