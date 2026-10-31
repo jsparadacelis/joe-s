@@ -12,6 +12,7 @@ export interface FakeAuthClient {
       enroll: jest.Mock;
       challenge: jest.Mock;
       verify: jest.Mock;
+      unenroll: jest.Mock;
     };
   };
 }
@@ -33,6 +34,7 @@ export function createFakeAuthClient(): FakeAuthClient {
         }),
         challenge: jest.fn().mockResolvedValue({ data: { id: "challenge-1" }, error: null }),
         verify: jest.fn().mockResolvedValue({ data: {}, error: null }),
+        unenroll: jest.fn().mockResolvedValue({ data: { id: "removed" }, error: null }),
       },
     },
   };
@@ -44,5 +46,12 @@ export function withVerifiedFactor(client: FakeAuthClient, factorId = "factor-9"
     data: { all: [{ id: factorId, factor_type: "totp", status: "verified" }], totp: [{ id: factorId, factor_type: "totp", status: "verified" }] },
     error: null,
   });
+  return client;
+}
+
+/** A client whose person left TOTP factors half-enrolled (never verified) and has no verified one. */
+export function withUnverifiedFactors(client: FakeAuthClient, factorIds: string[] = ["factor-stale"]): FakeAuthClient {
+  const factors = factorIds.map((id) => ({ id, factor_type: "totp", status: "unverified" }));
+  client.auth.mfa.listFactors.mockResolvedValue({ data: { all: factors, totp: factors }, error: null });
   return client;
 }
