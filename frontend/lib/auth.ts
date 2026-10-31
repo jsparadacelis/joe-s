@@ -81,6 +81,7 @@ export interface AuthClient {
       enroll(params: { factorType: "totp" }): AuthResult<{ id: string; totp: { qr_code: string; secret: string; uri?: string } } | null>;
       challenge(params: { factorId: string }): AuthResult<{ id: string } | null>;
       verify(params: { factorId: string; challengeId: string; code: string }): AuthResult<unknown>;
+      unenroll(params: { factorId: string }): AuthResult<unknown>;
     };
   };
 }

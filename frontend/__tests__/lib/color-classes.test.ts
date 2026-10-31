@@ -3,7 +3,8 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const css = readFileSync(join(root, "app/globals.css"), "utf8");
-const tokens = new Set([...css.matchAll(/--color-([\w-]+):\s*var\(/g)].map((m) => m[1]));
+// Tokens map to a theme variable (var(...)) or, for theme-independent ones such as --color-qr-bg, to a literal hex.
+const tokens = new Set([...css.matchAll(/--color-([\w-]+):\s*(?:var\(|#)/g)].map((m) => m[1]));
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((n) => {

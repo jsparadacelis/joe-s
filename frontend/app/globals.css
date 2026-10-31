@@ -133,6 +133,7 @@
   --color-side-active: var(--side-active);
   --color-focus: var(--focus);
   --color-focus-on-side: var(--focus-on-side);
+  --color-qr-bg: #ffffff;
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-serif: var(--font-newsreader), Georgia, serif;
