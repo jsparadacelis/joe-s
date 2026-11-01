@@ -15,6 +15,12 @@ from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
 from backend.app.access.infrastructure.postgres_project_directory import PostgresProjectDirectory
 from backend.app.access.infrastructure.postgres_project_members import PostgresProjectMembers
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
+from backend.app.external_data.application.get_cadastral_property import GetCadastralProperty
+from backend.app.external_data.domain.ports import CadastreGateway
+from backend.app.external_data.infrastructure.http_cadastre_gateway import HttpCadastreGateway
+from backend.app.external_data.infrastructure.postgres_cadastre_cache import (
+    PostgresCadastreCache,
+)
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
@@ -407,5 +413,38 @@ def promote_project_sheet_unit_of_work(
                 ),
                 audit_log,
             )
+
+    return open_unit
+
+
+@lru_cache
+def _http_cadastre_gateway() -> HttpCadastreGateway:
+    """One HTTP client per process, so connections to the Catastro are reused."""
+    return HttpCadastreGateway()
+
+
+def cadastre_gateway() -> CadastreGateway:
+    return _http_cadastre_gateway()
+
+
+CadastreUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetCadastralProperty]]
+
+
+def cadastre_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    gateway: Annotated[CadastreGateway, Depends(cadastre_gateway)],
+) -> CadastreUnitOfWork:
+    """Composition root for the cadastre lookup. No connection is taken here: the use case
+    opens one short transaction to read the study's cache and, only on a miss, another to store
+    the answer, so the (slow) Catastro call runs with the pool untouched."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetCadastralProperty]:
+        @contextmanager
+        def open_cache() -> Iterator[PostgresCadastreCache]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield PostgresCadastreCache(conn)
+
+        yield GetCadastralProperty(gateway, open_cache)
 
     return open_unit

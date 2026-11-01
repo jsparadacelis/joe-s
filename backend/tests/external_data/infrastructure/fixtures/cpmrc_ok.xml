@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<consulta_coordenadas xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.catastro.meh.es/">
+  <control>
+    <cucoor>1</cucoor>
+    <cuerr>0</cuerr>
+  </control>
+  <coordenadas>
+    <coord>
+      <pc>
+        <pc1>9872023</pc1>
+        <pc2>VH5797S</pc2>
+      </pc>
+      <geo>
+        <xcen>-3.5</xcen>
+        <ycen>38.5</ycen>
+        <srs>EPSG:4326</srs>
+      </geo>
+      <ldt>CL EJEMPLO 1 MUNICIPIO DE EJEMPLO (PROVINCIA DE EJEMPLO)</ldt>
+    </coord>
+  </coordenadas>
+</consulta_coordenadas>
