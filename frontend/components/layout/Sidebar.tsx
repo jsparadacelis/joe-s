@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ReadyCountBadge } from "@/components/layout/ReadyCountBadge";
 import { NAV_ITEMS } from "@/lib/nav";
 
 export function Sidebar() {
@@ -27,6 +28,7 @@ export function Sidebar() {
                 >
                   <Icon aria-hidden="true" size={16} />
                   {label}
+                  {href === "/to-promote" ? <ReadyCountBadge /> : null}
                 </Link>
               </li>
             );
