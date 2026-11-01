@@ -13,10 +13,9 @@ from backend.app.external_data.application.get_plot_geometry import (
 from backend.app.external_data.domain.cadastral_reference import InvalidCadastralReference
 from backend.app.external_data.domain.errors import CadastreUnavailable, PlotNotFound
 from backend.app.external_data.domain.ports import PlotCache, PlotGateway
+from backend.tests.external_data.domain.test_plot import PROPERTY_REFERENCE, a_plot
 from backend.tests.external_data.domain.test_plot import REFERENCE as PLOT_REFERENCE
-from backend.tests.external_data.domain.test_plot import a_plot
 
-PROPERTY_REFERENCE = PLOT_REFERENCE + "0001FY"
 NOW = datetime(2026, 11, 1, 10, 0, tzinfo=timezone.utc)
 
 

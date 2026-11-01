@@ -18,6 +18,7 @@ from backend.app.external_data.domain.plot import (
 )
 
 REFERENCE = "4714805BC6841S"
+PROPERTY_REFERENCE = REFERENCE + "0001FY"  # the 20-character reference of the test plot
 
 # Closed rings of (lon, lat), counter-clockwise.
 OUTER = (
