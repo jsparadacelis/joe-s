@@ -75,6 +75,7 @@ from backend.app.study.infrastructure.postgres_members import (
 )
 from backend.app.study.infrastructure.supabase_jwt_verifier import SupabaseJwtVerifier
 from backend.app.technical_data.application.edit_datum import EditDatum
+from backend.app.technical_data.application.get_alerts import GetAlerts
 from backend.app.technical_data.application.get_capacity import GetCapacity
 from backend.app.technical_data.application.get_technical_data import GetTechnicalData
 from backend.app.technical_data.application.refresh_technical_data import (
@@ -85,6 +86,9 @@ from backend.app.technical_data.application.restore_datum import RestoreDatum
 from backend.app.technical_data.application.use_cases import TechnicalDataUseCases
 from backend.app.technical_data.application.verify_all import VerifyAll
 from backend.app.technical_data.application.verify_datum import VerifyDatum
+from backend.app.technical_data.infrastructure.postgres_project_facts import (
+    PostgresProjectFacts,
+)
 from backend.app.technical_data.infrastructure.postgres_technical_data import (
     PostgresTechnicalData,
 )
@@ -602,6 +606,7 @@ def technical_data_unit_of_work(
             yield TechnicalDataUseCases(
                 get=GetTechnicalData(projects, data),
                 capacity=GetCapacity(projects, data),
+                alerts=GetAlerts(projects, data, PostgresProjectFacts(conn)),
                 edit=EditDatum(projects, data, roles, audit_log),
                 restore=RestoreDatum(projects, data, roles, audit_log),
                 verify=VerifyDatum(projects, data, roles, audit_log),
