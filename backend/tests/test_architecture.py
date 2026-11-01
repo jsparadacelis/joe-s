@@ -182,7 +182,7 @@ def test_only_the_composition_root_wires_the_study_adapters(adapter):
 
 
 # Contexts whose use cases ask the central policy (`access`) instead of looking at roles.
-POLICY_CLIENTS = ("lifecycle", "opportunity", "timing", "portfolio")
+POLICY_CLIENTS = ("lifecycle", "opportunity", "timing", "portfolio", "technical_data")
 
 
 def test_use_cases_do_not_decide_permissions_by_role():
@@ -220,6 +220,32 @@ def test_the_external_data_domain_is_pure_and_its_adapters_are_wired_by_the_comp
         for p in APP.rglob("*.py")
         for name in _imports(p)
         if name.endswith(("http_cadastre_gateway", "postgres_cadastre_cache"))
+        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+    ]
+
+    assert domain_violations == []
+    assert wiring_violations == []
+
+
+def test_the_technical_data_domain_is_pure_and_its_adapters_are_wired_by_the_composition_root():
+    """RGB-28: the datum rules import no driver, framework or other context (the Catastro is
+    mapped in the application layer); the Postgres adapters are imported by
+    `api/dependencies` alone."""
+    domain_violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in (APP / "technical_data" / "domain").rglob("*.py")
+        for name in _imports(p)
+        if name.split(".")[0] in EXTERNAL
+        or name.startswith("backend.app.")
+        and (
+            not name.startswith("backend.app.technical_data.") and name != "backend.app.shared.text"
+        )
+    ]
+    wiring_violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith(("postgres_technical_data", "postgres_technical_projects"))
         and p.relative_to(APP).as_posix() != "api/dependencies.py"
     ]
 
