@@ -59,7 +59,7 @@ def test_ai_packages_never_import_the_promotion_service():
         for p in APP.rglob("*.py")
         if pkg in p.relative_to(APP).parts
         for name in _imports(p)
-        if "lifecycle" in name
+        if "lifecycle" in name or "briefing" in name
     ]
 
     assert violations == []
@@ -182,7 +182,7 @@ def test_only_the_composition_root_wires_the_study_adapters(adapter):
 
 
 # Contexts whose use cases ask the central policy (`access`) instead of looking at roles.
-POLICY_CLIENTS = ("lifecycle", "opportunity", "timing", "portfolio", "technical_data")
+POLICY_CLIENTS = ("lifecycle", "opportunity", "timing", "portfolio", "technical_data", "briefing")
 
 
 def test_use_cases_do_not_decide_permissions_by_role():
@@ -272,3 +272,31 @@ def test_normative_tables_are_not_wired_into_use_cases_or_the_api_yet():
     ]
 
     assert violations == []
+
+
+def test_the_brief_domain_is_pure_and_its_adapter_is_wired_by_the_composition_root_only():
+    """RGB-32: the brief rules import no driver, framework or other context's infrastructure; the
+    Postgres adapter is imported by `api/dependencies` alone, and the brief promotion changes the
+    phase only through the lifecycle's promotion service."""
+    domain_violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in (APP / "briefing" / "domain").rglob("*.py")
+        for name in _imports(p)
+        if name.split(".")[0] in EXTERNAL
+        or "infrastructure" in name
+        or name.startswith("backend.app.api")
+    ]
+    wiring_violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith("postgres_briefs")
+        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+    ]
+    promote = _imports(APP / "briefing" / "application" / "promote_brief.py")
+
+    assert domain_violations == []
+    assert wiring_violations == []
+    assert "backend.app.lifecycle.application.promotion_service" in promote
+    assert not [name for name in promote if "lifecycle.infrastructure" in name]
+    assert not [name for name in promote if "lifecycle.domain.ports" in name]

@@ -15,6 +15,10 @@ from backend.app.access.infrastructure.dev_project_roles import DevProjectRoles
 from backend.app.access.infrastructure.postgres_project_directory import PostgresProjectDirectory
 from backend.app.access.infrastructure.postgres_project_members import PostgresProjectMembers
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
+from backend.app.briefing.application.get_brief import GetBrief
+from backend.app.briefing.application.promote_brief import PromoteBrief
+from backend.app.briefing.application.update_brief import UpdateBrief
+from backend.app.briefing.infrastructure.postgres_briefs import PostgresBriefs
 from backend.app.external_data.application.get_cadastral_property import GetCadastralProperty
 from backend.app.external_data.application.get_plot_geometry import GetPlotGeometry
 from backend.app.external_data.application.get_pv_yield import GetPvYield
@@ -446,6 +450,70 @@ def promote_project_sheet_unit_of_work(
                     VALIDATORS_BY_PHASE,
                     project_roles(conn, settings, context),
                 ),
+                audit_log,
+            )
+
+    return open_unit
+
+
+BriefUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetBrief]]
+
+
+def brief_unit_of_work(settings: Annotated[Settings, Depends(get_settings)]) -> BriefUnitOfWork:
+    """Composition root for reading the brief: one RLS-scoped transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetBrief]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield GetBrief(
+                PostgresBriefs(conn),
+                PostgresTechnicalData(conn),
+                project_roles(conn, settings, context),
+            )
+
+    return open_unit
+
+
+UpdateBriefUnitOfWork = Callable[[RequestContext], AbstractContextManager[UpdateBrief]]
+
+
+def update_brief_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> UpdateBriefUnitOfWork:
+    """Composition root for editing the brief: draft and audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[UpdateBrief]:
+        with study_transaction(settings.database_url, context) as conn:
+            yield UpdateBrief(
+                PostgresBriefs(conn),
+                PostgresTechnicalData(conn),
+                project_roles(conn, settings, context),
+                PostgresAuditLog(conn),
+            )
+
+    return open_unit
+
+
+PromoteBriefUnitOfWork = Callable[[RequestContext], AbstractContextManager[PromoteBrief]]
+
+
+def promote_brief_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> PromoteBriefUnitOfWork:
+    """Composition root for promoting from phase 2: finalized content, frozen version, phase
+    change, next deliverable and audit in one transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[PromoteBrief]:
+        with study_transaction(settings.database_url, context) as conn:
+            audit_log = PostgresAuditLog(conn)
+            roles = project_roles(conn, settings, context)
+            yield PromoteBrief(
+                PostgresBriefs(conn),
+                PostgresTechnicalData(conn),
+                roles,
+                PromotionService(PostgresLifecycle(conn), audit_log, VALIDATORS_BY_PHASE, roles),
                 audit_log,
             )
 
