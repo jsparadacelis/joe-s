@@ -25,7 +25,7 @@ describe("ReliefViewer · reference input", () => {
   it("trims a pasted reference with surrounding spaces and queries with the trimmed value", async () => {
     const user = userEvent.setup();
     const obtain = fetcher();
-    render(<ReliefViewer initialReference="" fetcher={obtain} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={obtain} />);
     const field = screen.getByLabelText("Referencia catastral");
     await user.click(field);
     await user.paste(`  ${REF}  `);
@@ -38,7 +38,7 @@ describe("ReliefViewer · reference input", () => {
 
   it("marks the field aria-invalid with an invalid reference and clears it after a valid one", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={fetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher()} />);
     const field = screen.getByLabelText("Referencia catastral");
     expect(field).toHaveAttribute("aria-invalid", "false");
     await user.type(field, "ABC");
