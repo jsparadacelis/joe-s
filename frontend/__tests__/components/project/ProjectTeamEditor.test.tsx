@@ -1,7 +1,7 @@
 /**
  * RGB-49 · contract for `@/components/project/ProjectTeamEditor` (client component, named export):
  *   props: code: string; all the rest optional and defaulting to lib/project-team + lib/members:
- *     teamFetcher(code): Promise<ProjectAssignment[]>, membersFetcher(): Promise<Member[]>,
+ *     teamFetcher(code): Promise<ProjectAssignment[]>, membersFetcher(): Promise<Member[]> (default fetchMembers from @/lib/members, RGB-48),
  *     assigner(code, memberId, role): Promise<ProjectAssignment>, unassigner(code, assignmentId): Promise<ProjectAssignment>
  *   Panel h2 «Equipo del proyecto»; loading «Cargando el equipo…»; table «Equipo del proyecto» (Persona, Función, Acciones);
  *   empty «Todavía no hay equipo asignado» (no table, form still there); unknown person «Persona desconocida».
@@ -19,9 +19,10 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { ProjectTeamEditor } from "@/components/project/ProjectTeamEditor";
 import { ApiError } from "@/lib/api";
+import type { Member } from "@/lib/members";
 
 const CODE = "PRY-2026-001";
-const MEMBERS = [
+const MEMBERS: Member[] = [
   { id: "m-1", email: "ana@example.com", role: "architect", qualifications: [], status: "active" },
   { id: "m-2", email: "luis@example.com", role: "director", qualifications: ["sponsor"], status: "active" },
   { id: "m-3", email: "invitada@example.com", role: "architect", qualifications: [], status: "invited" },

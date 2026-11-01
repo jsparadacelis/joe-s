@@ -10,7 +10,7 @@
  *   fetchProjectTeam(code, request?): Promise<ProjectAssignment[]>   GET  /api/projects/{code}/members
  *   assignProjectRole(code, memberId, role, request?): Promise<ProjectAssignment>   POST body {member_id, role}
  *   unassignProjectRole(code, assignmentId, request?): Promise<ProjectAssignment>   DELETE .../members/{id}
- *   buildTeamRows(assignments, members): TeamRow[]   (members: {id, email, ...}; order of assignments kept)
+ *   buildTeamRows(assignments, members): TeamRow[]   (members: Member[] from @/lib/members, RGB-48; order of assignments kept)
  */
 import {
   PROJECT_ROLES,
@@ -23,6 +23,7 @@ import {
   requiredQualificationLabel,
   unassignProjectRole,
 } from "@/lib/project-team";
+import type { Member } from "@/lib/members";
 
 const ASSIGNMENT = { id: "a-1", member_id: "m-1", role: "architect" };
 
@@ -128,7 +129,7 @@ describe("function labels", () => {
 });
 
 describe("buildTeamRows", () => {
-  const MEMBERS = [
+  const MEMBERS: Member[] = [
     { id: "m-1", email: "ana@example.com", role: "architect", qualifications: [], status: "active" },
     { id: "m-2", email: "luis@example.com", role: "director", qualifications: ["sponsor"], status: "revoked" },
   ];
