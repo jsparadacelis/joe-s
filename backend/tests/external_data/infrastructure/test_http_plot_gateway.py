@@ -53,7 +53,7 @@ def test_one_get_with_the_stored_query_and_always_epsg_4326():
 
 
 def test_the_base_url_is_the_public_inspire_wfs_for_cadastral_parcels():
-    assert BASE_URL == "http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx"
+    assert BASE_URL == "https://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx"
 
 
 def test_an_exception_report_with_status_200_is_not_found_and_is_not_retried():

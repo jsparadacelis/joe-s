@@ -1,4 +1,4 @@
-"""HTTP client of the public INSPIRE WFS of the Catastro (cadastral parcels, no certificate).
+"""HTTP client of the public INSPIRE WFS of the Catastro (cadastral parcels; HTTPS answers too).
 
 One read-only call per plot: the stored query `GetParcel` with the 14-character plot reference.
 `srsname=EPSG::4326` is always requested: it is valid for the whole territory (25830 fails for
@@ -14,7 +14,7 @@ from backend.app.external_data.domain.plot import Plot
 from backend.app.external_data.infrastructure.http_retry import build_client, get_body
 from backend.app.external_data.infrastructure.plot_parser import parse_plot
 
-BASE_URL = "http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx"
+BASE_URL = "https://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx"
 
 
 class HttpPlotGateway:
