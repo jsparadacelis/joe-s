@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<consulta_coordenadas xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.catastro.meh.es/">
+  <control>
+    <cuerr>1</cuerr>
+  </control>
+  <lerr>
+    <err>
+      <cod>9</cod>
+      <des>LA REFERENCIA CATASTRAL NO EXISTE</des>
+    </err>
+  </lerr>
+</consulta_coordenadas>
