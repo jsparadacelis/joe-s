@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Protocol
 
 from backend.app.external_data.domain.cadastral_property import CadastralProperty
-from backend.app.external_data.domain.plot import Plot
+from backend.app.external_data.domain.plot import Plot, Position
+from backend.app.external_data.domain.pv import PvLocation, PvYield
+from backend.app.external_data.domain.terrain import TerrainProfile
 
 
 class CadastreGateway(Protocol):
@@ -44,4 +47,42 @@ class PlotCache(Protocol):
 
     def put(self, plot: Plot, fetched_at: datetime) -> None:
         """Store (or replace) the plot for its reference."""
+        ...
+
+
+class ElevationGateway(Protocol):
+    def fetch(self, positions: Sequence[Position]) -> list[float]:
+        """Ground elevations in metres, one per `(lon, lat)` position and in the same order.
+
+        Raises `ExternalServiceUnavailable`.
+        """
+        ...
+
+
+class TerrainCache(Protocol):
+    def get(self, plot_reference: str, max_age: timedelta) -> TerrainProfile | None:
+        """The stored profile if it is no older than `max_age`; an older one counts as absent."""
+        ...
+
+    def put(self, profile: TerrainProfile, fetched_at: datetime) -> None:
+        """Store (or replace) the profile for its plot reference."""
+        ...
+
+
+class PvGateway(Protocol):
+    def fetch(self, location: PvLocation) -> PvYield:
+        """The annual yield of the reference system at the (rounded) location.
+
+        Raises `ExternalServiceUnavailable`.
+        """
+        ...
+
+
+class PvCache(Protocol):
+    def get(self, location: PvLocation, max_age: timedelta) -> PvYield | None:
+        """The stored yield if it is no older than `max_age`; an older one counts as absent."""
+        ...
+
+    def put(self, pv_yield: PvYield, fetched_at: datetime) -> None:
+        """Store (or replace) the yield for its location."""
         ...

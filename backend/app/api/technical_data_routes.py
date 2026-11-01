@@ -134,7 +134,11 @@ def refresh(code: str, body: RefreshInput, context: Context, open_unit: RefreshU
         raise HTTPException(
             status, detail={"code": error.code, "message": error.message}
         ) from error
-    return {**_sheet_json(_answer(result)), "unmapped": list(result.unmapped)}
+    return {
+        **_sheet_json(_answer(result)),
+        "unmapped": list(result.unmapped),
+        "unavailable": list(result.unavailable),
+    }
 
 
 @router.post("/{field_id}/restore")

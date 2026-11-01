@@ -280,6 +280,20 @@ class TestRefresh:
         (context,) = client.contexts
         refresher.execute.assert_called_once_with(context, "PRY-T-001", REFERENCE)
 
+    def test_answers_the_unavailable_origins(self, client, refresher):
+        refresher.execute.return_value = a_result(unavailable=("open_meteo", "pvgis"))
+
+        body = client.post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE}).json()
+
+        assert body["unavailable"] == ["open_meteo", "pvgis"]
+
+    def test_with_every_origin_answering_unavailable_is_empty(self, client, refresher):
+        refresher.execute.return_value = a_result()
+
+        body = client.post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE}).json()
+
+        assert body["unavailable"] == []
+
     @pytest.mark.parametrize(
         ("error", "status", "code"),
         [

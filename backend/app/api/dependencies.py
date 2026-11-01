@@ -17,13 +17,24 @@ from backend.app.access.infrastructure.postgres_project_members import PostgresP
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.external_data.application.get_cadastral_property import GetCadastralProperty
 from backend.app.external_data.application.get_plot_geometry import GetPlotGeometry
-from backend.app.external_data.domain.ports import CadastreGateway, PlotGateway
+from backend.app.external_data.application.get_pv_yield import GetPvYield
+from backend.app.external_data.application.get_terrain_profile import GetTerrainProfile
+from backend.app.external_data.domain.ports import (
+    CadastreGateway,
+    ElevationGateway,
+    PlotGateway,
+    PvGateway,
+)
 from backend.app.external_data.infrastructure.http_cadastre_gateway import HttpCadastreGateway
+from backend.app.external_data.infrastructure.http_elevation_gateway import HttpElevationGateway
 from backend.app.external_data.infrastructure.http_plot_gateway import HttpPlotGateway
+from backend.app.external_data.infrastructure.http_pv_gateway import HttpPvGateway
 from backend.app.external_data.infrastructure.postgres_cadastre_cache import (
     PostgresCadastreCache,
 )
 from backend.app.external_data.infrastructure.postgres_plot_cache import PostgresPlotCache
+from backend.app.external_data.infrastructure.postgres_pv_cache import PostgresPvCache
+from backend.app.external_data.infrastructure.postgres_terrain_cache import PostgresTerrainCache
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
@@ -502,6 +513,75 @@ def plot_unit_of_work(
     return open_unit
 
 
+@lru_cache
+def _http_elevation_gateway() -> HttpElevationGateway:
+    """One HTTP client per process, so connections to Open-Meteo are reused."""
+    return HttpElevationGateway()
+
+
+def elevation_gateway() -> ElevationGateway:
+    return _http_elevation_gateway()
+
+
+@lru_cache
+def _http_pv_gateway() -> HttpPvGateway:
+    """One HTTP client per process, so connections to PVGIS are reused."""
+    return HttpPvGateway()
+
+
+def pv_gateway() -> PvGateway:
+    return _http_pv_gateway()
+
+
+TerrainUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetTerrainProfile]]
+
+
+def terrain_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    open_plot: Annotated[PlotUnitOfWork, Depends(plot_unit_of_work)],
+    gateway: Annotated[ElevationGateway, Depends(elevation_gateway)],
+) -> TerrainUnitOfWork:
+    """Composition root for the terrain lookup. As for the plot, no connection is taken here:
+    each cache access is its own short transaction, so the (slow) services run with the pool
+    untouched."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetTerrainProfile]:
+        @contextmanager
+        def open_cache() -> Iterator[PostgresTerrainCache]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield PostgresTerrainCache(conn)
+
+        with open_plot(context) as get_plot:
+            yield GetTerrainProfile(get_plot, gateway, open_cache)
+
+    return open_unit
+
+
+PvUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetPvYield]]
+
+
+def pv_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    open_plot: Annotated[PlotUnitOfWork, Depends(plot_unit_of_work)],
+    gateway: Annotated[PvGateway, Depends(pv_gateway)],
+) -> PvUnitOfWork:
+    """Composition root for the photovoltaic yield: short cache transactions, none open while
+    a service answers."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetPvYield]:
+        @contextmanager
+        def open_cache() -> Iterator[PostgresPvCache]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield PostgresPvCache(conn)
+
+        with open_plot(context) as get_plot:
+            yield GetPvYield(get_plot, gateway, open_cache)
+
+    return open_unit
+
+
 TechnicalDataUnitOfWork = Callable[[RequestContext], AbstractContextManager[TechnicalDataUseCases]]
 
 
@@ -537,10 +617,14 @@ RefreshTechnicalDataUnitOfWork = Callable[
 def refresh_technical_data_unit_of_work(
     settings: Annotated[Settings, Depends(get_settings)],
     open_cadastre: Annotated[CadastreUnitOfWork, Depends(cadastre_unit_of_work)],
+    open_plot: Annotated[PlotUnitOfWork, Depends(plot_unit_of_work)],
+    open_terrain: Annotated[TerrainUnitOfWork, Depends(terrain_unit_of_work)],
+    open_pv: Annotated[PvUnitOfWork, Depends(pv_unit_of_work)],
 ) -> RefreshTechnicalDataUnitOfWork:
     """Composition root for 'query again'. No connection is taken here: the use case opens a
-    short transaction to check authority, calls the Catastro with none open, and opens another
-    to write the data and their audit."""
+    short transaction to check authority, calls the Catastro, INSPIRE, Open-Meteo and PVGIS with
+    none open (each cache access is its own short transaction), and opens another to write the
+    data and their audit."""
 
     @contextmanager
     def open_unit(context: RequestContext) -> Iterator[RefreshTechnicalData]:
@@ -554,7 +638,18 @@ def refresh_technical_data_unit_of_work(
                     PostgresAuditLog(conn),
                 )
 
-        with open_cadastre(context) as get_property:
-            yield RefreshTechnicalData(get_property, open_session)
+        with (
+            open_cadastre(context) as get_property,
+            open_plot(context) as get_plot,
+            open_terrain(context) as get_terrain,
+            open_pv(context) as get_pv,
+        ):
+            yield RefreshTechnicalData(
+                get_property,
+                open_session,
+                get_plot=get_plot,
+                get_terrain=get_terrain,
+                get_pv=get_pv,
+            )
 
     return open_unit
