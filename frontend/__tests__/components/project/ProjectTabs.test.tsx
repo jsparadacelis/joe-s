@@ -11,20 +11,39 @@ function nav() {
 }
 const PHASE = "Fase y promoción";
 const PLAN = "Plan y tiempos";
+const TEAM = "Equipo";
 
 describe("ProjectTabs", () => {
   beforeEach(() => mockPathname.mockReturnValue("/projects/PRY-EJ-001/phase/3"));
 
-  it("is a «Secciones del proyecto» navigation with two links with the exact text", () => {
+  it("is a «Secciones del proyecto» navigation with three links with the exact text", () => {
     render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
     const links = within(nav()).getAllByRole("link");
-    expect(links.map((l) => l.textContent?.trim())).toEqual([PHASE, PLAN]);
+    expect(links.map((l) => l.textContent?.trim())).toEqual([PHASE, PLAN, TEAM]);
   });
 
   it("«Fase y promoción» leads to the current phase and «Plan y tiempos» to its tab", () => {
     render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
     expect(screen.getByRole("link", { name: PHASE })).toHaveAttribute("href", "/projects/PRY-EJ-001/phase/3");
     expect(screen.getByRole("link", { name: PLAN })).toHaveAttribute("href", "/projects/PRY-EJ-001/plan-and-timing");
+  });
+
+  it("«Equipo» (RGB-49) leads to the team tab of the project", () => {
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    expect(screen.getByRole("link", { name: TEAM })).toHaveAttribute("href", "/projects/PRY-EJ-001/team");
+  });
+
+  it("in the team route only «Equipo» has aria-current=page", () => {
+    mockPathname.mockReturnValue("/projects/PRY-EJ-001/team");
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    expect(screen.getByRole("link", { name: TEAM })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: PHASE })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: PLAN })).not.toHaveAttribute("aria-current");
+  });
+
+  it("«Equipo» is not active in the other routes", () => {
+    render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
+    expect(screen.getByRole("link", { name: TEAM })).not.toHaveAttribute("aria-current");
   });
 
   it("uses the received code and current phase", () => {
@@ -61,13 +80,15 @@ describe("ProjectTabs", () => {
     for (const l of within(nav()).getAllByRole("link")) expect(l).not.toHaveAttribute("aria-current");
   });
 
-  it("Tab goes through the two tabs in order", async () => {
+  it("Tab goes through the three tabs in order", async () => {
     const user = userEvent.setup();
     render(<ProjectTabs code="PRY-EJ-001" currentPhase={3} />);
     await user.tab();
     expect(screen.getByRole("link", { name: PHASE })).toHaveFocus();
     await user.tab();
     expect(screen.getByRole("link", { name: PLAN })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("link", { name: TEAM })).toHaveFocus();
   });
 
   it("Enter on a focused tab activates its link", async () => {
@@ -83,7 +104,7 @@ describe("ProjectTabs", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["/projects/PRY-EJ-001/phase/3", "/projects/PRY-EJ-001/plan-and-timing"])(
+  it.each(["/projects/PRY-EJ-001/phase/3", "/projects/PRY-EJ-001/plan-and-timing", "/projects/PRY-EJ-001/team"])(
     "no accessibility violations in %s",
     async (path) => {
       mockPathname.mockReturnValue(path);
