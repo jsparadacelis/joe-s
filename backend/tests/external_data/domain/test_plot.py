@@ -294,3 +294,61 @@ def test_plot_not_found_is_a_cadastre_not_found_with_its_own_code_and_message():
     assert isinstance(error, CadastreNotFound)
     assert error.code == "plot_not_found"
     assert str(error) == "No se encontró la parcela en el Catastro."
+
+
+# --- vertices and distances (for the terrain slope) ----------------------------------------------
+
+
+def _plot_from_metres(points):
+    """A plot drawn in UTM 30N metres (the zone of the test squares), as the squares are."""
+    from backend.app.external_data.domain.utm import inverse_utm
+
+    ring = [inverse_utm(500000 + x, 4474000 + y, 30) for x, y in points]
+    return a_plot(PlotGeometry((PlotPolygon(tuple(ring) + (ring[0],)),)), cadastral_area_m2=None)
+
+
+# A right triangle with legs 90 m and 60 m: its centroid is at (30, 20) m.
+TRIANGLE = [(0, 0), (90, 0), (0, 60)]
+
+
+def test_vertices_are_the_exterior_positions_without_the_closing_repeat():
+    assert a_plot().vertices == OUTER[:-1]
+
+
+def test_vertices_of_several_polygons_follow_each_exterior_and_skip_holes():
+    plot = a_plot(PlotGeometry((PlotPolygon(OUTER, (HOLE,)), PlotPolygon(SECOND))))
+
+    assert plot.vertices == OUTER[:-1] + SECOND[:-1]
+
+
+def test_the_farthest_vertices_come_first_with_their_distance_to_the_centroid_in_metres():
+    plot = _plot_from_metres(TRIANGLE)
+
+    (first, first_m), (second, second_m) = plot.farthest_vertices(2)
+
+    assert first == plot.vertices[1] and first_m == pytest.approx(63.246, abs=0.01)
+    assert second == plot.vertices[2] and second_m == pytest.approx(50.0, abs=0.01)
+
+
+def test_asking_for_more_vertices_than_exist_returns_them_all():
+    assert len(_plot_from_metres(TRIANGLE).farthest_vertices(10)) == 3
+
+
+def test_equally_far_vertices_keep_their_order_in_the_outline():
+    plot = a_plot()  # a square: the four corners are equally far from the centre
+
+    assert [v for v, _ in plot.farthest_vertices(2)] == list(plot.vertices[:2])
+
+
+def test_a_repeated_vertex_is_counted_once():
+    ring = [(0, 0), (90, 0), (90, 0), (0, 60)]
+
+    assert len(_plot_from_metres(ring).farthest_vertices(10)) == 3
+
+
+def test_the_distance_between_two_positions_is_horizontal_metres():
+    plot = _plot_from_metres(TRIANGLE)
+
+    assert plot.horizontal_distance_m(plot.vertices[0], plot.vertices[1]) == pytest.approx(
+        90.0, abs=0.01
+    )

@@ -30,3 +30,10 @@ class PlotNotFound(CadastreNotFound):
 
     code = "plot_not_found"
     message = "No se encontró la parcela en el Catastro."
+
+
+class ExternalServiceUnavailable(CadastreError):
+    """Open-Meteo or PVGIS could not be consulted or their answer could not be trusted."""
+
+    code = "external_service_unavailable"
+    message = "No se pudo consultar el servicio externo. Introduce el dato a mano."

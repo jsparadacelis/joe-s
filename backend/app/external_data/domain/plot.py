@@ -185,6 +185,30 @@ class Plot:
         lon, lat = inverse_utm(ox + cx / area, oy + cy / area, zone)
         return round(lon, 8), round(lat, 8)
 
+    @property
+    def vertices(self) -> tuple[Position, ...]:
+        """The exterior positions of every polygon, without each ring's closing repeat."""
+        return tuple(
+            position for polygon in self.geometry.polygons for position in polygon.exterior[:-1]
+        )
+
+    def horizontal_distance_m(self, a: Position, b: Position) -> float:
+        """Straight-line distance in the UTM plane of the plot, in metres (2 decimals)."""
+        zone = self._zone()
+        return round(math.dist(project_utm(*a, zone), project_utm(*b, zone)), 2)
+
+    def farthest_vertices(self, count: int) -> tuple[tuple[Position, float], ...]:
+        """The `count` vertices farthest from the centroid with their distance in metres, the
+        farthest first. A vertex repeated in the outline counts once; vertices as far as each
+        other (to the centimetre) keep their order in the outline."""
+        centroid = self.centroid
+        unique = dict.fromkeys(self.vertices)
+        ranked = sorted(
+            ((vertex, self.horizontal_distance_m(centroid, vertex)) for vertex in unique),
+            key=lambda item: -item[1],
+        )
+        return tuple(ranked[:count])
+
     # -- comparison with the official area ---------------------------------------------------
 
     @property
