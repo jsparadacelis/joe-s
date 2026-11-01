@@ -15,6 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.app.access.domain.errors import NotPermitted
 from backend.app.api.alerts_routes import router as alerts_routes
+from backend.app.api.brief_routes import router as brief_routes
 from backend.app.api.cadastre_routes import router as cadastre_routes
 from backend.app.api.capacity_routes import router as capacity_routes
 from backend.app.api.me_routes import router as me_routes
@@ -86,6 +87,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(promotion_routes)
     app.include_router(plan_routes)
     app.include_router(opportunity_routes)
+    app.include_router(brief_routes)
     app.include_router(pause_routes)
     app.include_router(scoring_routes)
     app.include_router(member_routes)

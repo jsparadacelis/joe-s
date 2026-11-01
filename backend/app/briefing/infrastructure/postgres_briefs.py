@@ -27,7 +27,8 @@ class PostgresBriefs:
 
     def get_brief(self, project_id: str) -> dict[str, Any]:
         row = self._conn.execute(
-            "SELECT content -> %s FROM exit_deliverables WHERE project_id = %s::uuid AND phase = %s",
+            "SELECT content -> %s FROM exit_deliverables "
+            "WHERE project_id = %s::uuid AND phase = %s",
             (BRIEF_KEY, project_id, BRIEF_PHASE),
         ).fetchone()
         return {} if row is None or row[0] is None else row[0]
