@@ -8,9 +8,11 @@ import { ModeBanner } from "@/components/project/ModeBanner";
 import { PhaseTimeline } from "@/components/project/PhaseTimeline";
 import { ReliefViewer } from "@/components/project/relief/ReliefViewer";
 import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
+import { BriefScreen } from "@/components/project/brief/BriefScreen";
 import { ProjectSheet } from "@/components/project/sheet/ProjectSheet";
 import { Notice } from "@/components/ui/Notice";
 import { ApiError } from "@/lib/api";
+import { getBrief, type Brief } from "@/lib/brief";
 import { fetchProjectSheet, type ProjectSheet as ProjectSheetModel } from "@/lib/sheet";
 import { fetchSavedTechnicalData } from "@/lib/technical-data";
 import { PHASES, phaseMode, parsePhaseId } from "@/lib/phases";
@@ -29,6 +31,19 @@ async function loadSheet(code: string): Promise<SheetState> {
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
     if (error.status === 404 && error.code === "sheet_not_found") return { empty: true };
+    return { error: error.message };
+  }
+}
+
+type BriefState = { brief: Brief } | { empty: true } | { error: string };
+
+/** The brief never takes the page down: no brief yet (404 `brief_not_found`) and API failures become messages. */
+async function loadBrief(code: string): Promise<BriefState> {
+  try {
+    return { brief: await getBrief(code) };
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    if (error.status === 404 && error.code === "brief_not_found") return { empty: true };
     return { error: error.message };
   }
 }
@@ -54,6 +69,9 @@ export default async function Page({ params }: Props) {
 
   // RGB-17a: the sheet belongs to phase 1 and only exists for real projects; no sheet yet is not an error.
   const sheetState = viewedPhase === 1 && !isSampleProject(project.code) ? await loadSheet(project.code) : undefined;
+
+  // RGB-32b: the brief belongs to phase 2 and only exists for real projects; no brief yet is not an error.
+  const briefState = viewedPhase === 2 && !isSampleProject(project.code) ? await loadBrief(project.code) : undefined;
 
   return (
     <>
@@ -84,6 +102,9 @@ export default async function Page({ params }: Props) {
           mode={mode}
         />
       ) : null}
+      {briefState && "brief" in briefState ? <BriefScreen brief={briefState.brief} /> : null}
+      {briefState && "empty" in briefState ? <Notice>Todavía no hay brief para este proyecto.</Notice> : null}
+      {briefState && "error" in briefState ? <Notice tone="bad">No se pudo cargar el brief. {briefState.error}</Notice> : null}
       {viewedPhase === 3 ? <ReliefViewer initialReference={sheetReference} /> : null}
     </>
   );
