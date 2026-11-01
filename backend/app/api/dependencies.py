@@ -105,6 +105,11 @@ from backend.app.technical_data.infrastructure.postgres_technical_projects impor
 )
 from backend.app.timing.application.pause_service import PauseService
 from backend.app.timing.infrastructure.postgres_pauses import PostgresPauses
+from backend.app.to_promote.application.queue import ToPromoteQueue
+from backend.app.to_promote.domain.ports import RoleDirectory
+from backend.app.to_promote.infrastructure.dev_role_directory import DevRoleDirectory
+from backend.app.to_promote.infrastructure.postgres_candidates import PostgresCandidates
+from backend.app.to_promote.infrastructure.postgres_role_directory import PostgresRoleDirectory
 
 
 @lru_cache
@@ -280,6 +285,25 @@ def portfolio_unit_of_work(
     def open_unit(context: RequestContext) -> Iterator[PortfolioQueries]:
         with study_transaction(settings.database_url, context) as conn:
             yield PortfolioQueries(PostgresProjects(conn))
+
+    return open_unit
+
+
+ToPromoteUnitOfWork = Callable[[RequestContext], AbstractContextManager[ToPromoteQueue]]
+
+
+def to_promote_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ToPromoteUnitOfWork:
+    """Composition root of the "to promote" list: one RLS-scoped, read-only transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[ToPromoteQueue]:
+        with study_transaction(settings.database_url, context) as conn:
+            roles: RoleDirectory = (
+                DevRoleDirectory() if settings.auth_mode == "dev" else PostgresRoleDirectory(conn)
+            )
+            yield ToPromoteQueue(PostgresCandidates(conn), roles)
 
     return open_unit
 
