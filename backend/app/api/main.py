@@ -23,6 +23,7 @@ from backend.app.api.plan_routes import router as plan_routes
 from backend.app.api.project_member_routes import router as project_member_routes
 from backend.app.api.promotion_routes import router as promotion_routes
 from backend.app.api.scoring_routes import router as scoring_routes
+from backend.app.api.technical_data_routes import router as technical_data_routes
 from backend.app.shared.config import Settings
 from backend.app.shared.db import close_pools, open_pool
 
@@ -89,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(me_routes)
     app.include_router(project_member_routes)
     app.include_router(cadastre_routes)
+    app.include_router(technical_data_routes)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

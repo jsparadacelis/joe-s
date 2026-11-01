@@ -60,6 +60,22 @@ from backend.app.study.infrastructure.postgres_members import (
     PostgresMembers,
 )
 from backend.app.study.infrastructure.supabase_jwt_verifier import SupabaseJwtVerifier
+from backend.app.technical_data.application.edit_datum import EditDatum
+from backend.app.technical_data.application.get_technical_data import GetTechnicalData
+from backend.app.technical_data.application.refresh_technical_data import (
+    RefreshSession,
+    RefreshTechnicalData,
+)
+from backend.app.technical_data.application.restore_datum import RestoreDatum
+from backend.app.technical_data.application.use_cases import TechnicalDataUseCases
+from backend.app.technical_data.application.verify_all import VerifyAll
+from backend.app.technical_data.application.verify_datum import VerifyDatum
+from backend.app.technical_data.infrastructure.postgres_technical_data import (
+    PostgresTechnicalData,
+)
+from backend.app.technical_data.infrastructure.postgres_technical_projects import (
+    PostgresTechnicalProjects,
+)
 from backend.app.timing.application.pause_service import PauseService
 from backend.app.timing.infrastructure.postgres_pauses import PostgresPauses
 
@@ -446,5 +462,63 @@ def cadastre_unit_of_work(
                 yield PostgresCadastreCache(conn)
 
         yield GetCadastralProperty(gateway, open_cache)
+
+    return open_unit
+
+
+TechnicalDataUnitOfWork = Callable[[RequestContext], AbstractContextManager[TechnicalDataUseCases]]
+
+
+def technical_data_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> TechnicalDataUnitOfWork:
+    """Composition root for reading and changing technical data: rows and audit in one
+    transaction."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[TechnicalDataUseCases]:
+        with study_transaction(settings.database_url, context) as conn:
+            projects = PostgresTechnicalProjects(conn)
+            data = PostgresTechnicalData(conn)
+            roles = project_roles(conn, settings, context)
+            audit_log = PostgresAuditLog(conn)
+            yield TechnicalDataUseCases(
+                get=GetTechnicalData(projects, data),
+                edit=EditDatum(projects, data, roles, audit_log),
+                restore=RestoreDatum(projects, data, roles, audit_log),
+                verify=VerifyDatum(projects, data, roles, audit_log),
+                verify_all=VerifyAll(projects, data, roles, audit_log),
+            )
+
+    return open_unit
+
+
+RefreshTechnicalDataUnitOfWork = Callable[
+    [RequestContext], AbstractContextManager[RefreshTechnicalData]
+]
+
+
+def refresh_technical_data_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    open_cadastre: Annotated[CadastreUnitOfWork, Depends(cadastre_unit_of_work)],
+) -> RefreshTechnicalDataUnitOfWork:
+    """Composition root for 'query again'. No connection is taken here: the use case opens a
+    short transaction to check authority, calls the Catastro with none open, and opens another
+    to write the data and their audit."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[RefreshTechnicalData]:
+        @contextmanager
+        def open_session() -> Iterator[RefreshSession]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield RefreshSession(
+                    PostgresTechnicalProjects(conn),
+                    PostgresTechnicalData(conn),
+                    project_roles(conn, settings, context),
+                    PostgresAuditLog(conn),
+                )
+
+        with open_cadastre(context) as get_property:
+            yield RefreshTechnicalData(get_property, open_session)
 
     return open_unit
