@@ -18,6 +18,7 @@ from backend.app.external_data.domain.errors import CadastreNotFound, CadastreUn
 from backend.app.lifecycle.domain.errors import NoAuthority
 from backend.app.technical_data.application.common import TechnicalDataResult
 from backend.app.technical_data.application.edit_datum import EditDatum
+from backend.app.technical_data.application.get_alerts import GetAlerts
 from backend.app.technical_data.application.get_capacity import GetCapacity
 from backend.app.technical_data.application.get_technical_data import GetTechnicalData
 from backend.app.technical_data.application.refresh_technical_data import RefreshTechnicalData
@@ -47,6 +48,7 @@ def use_cases():
     return TechnicalDataUseCases(
         get=create_autospec(GetTechnicalData, spec_set=True, instance=True),
         capacity=create_autospec(GetCapacity, spec_set=True, instance=True),
+        alerts=create_autospec(GetAlerts, spec_set=True, instance=True),
         edit=create_autospec(EditDatum, spec_set=True, instance=True),
         restore=create_autospec(RestoreDatum, spec_set=True, instance=True),
         verify=create_autospec(VerifyDatum, spec_set=True, instance=True),

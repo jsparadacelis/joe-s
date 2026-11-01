@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+from backend.app.technical_data.domain.alerts import ProjectFacts
 from backend.app.technical_data.domain.datum import TechnicalDatum
 from backend.app.technical_data.domain.technical_data import TechnicalData
 
@@ -46,4 +47,10 @@ class TechnicalDataRepository(Protocol):
 
     def record_query(self, project_id: str, cadastral_reference: str, queried_at: datetime) -> None:
         """Remember the (only) latest query, replacing the previous one."""
+        ...
+
+
+class ProjectFactsReader(Protocol):
+    def facts_of(self, project_id: str) -> ProjectFacts:
+        """What the project sheet says (typology, location); blank when it says nothing."""
         ...
