@@ -219,7 +219,14 @@ def test_the_external_data_domain_is_pure_and_its_adapters_are_wired_by_the_comp
         f"{p.relative_to(APP)} importa {name}"
         for p in APP.rglob("*.py")
         for name in _imports(p)
-        if name.endswith(("http_cadastre_gateway", "postgres_cadastre_cache"))
+        if name.endswith(
+            (
+                "http_cadastre_gateway",
+                "postgres_cadastre_cache",
+                "http_plot_gateway",
+                "postgres_plot_cache",
+            )
+        )
         and p.relative_to(APP).as_posix() != "api/dependencies.py"
     ]
 
