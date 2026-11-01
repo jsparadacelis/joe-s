@@ -75,7 +75,7 @@ const inLiveRegion = (el: HTMLElement) => el.closest('[aria-live], [role="alert"
 
 describe("ReliefViewer · initial state", () => {
   it("shows the field with the initial reference and the «Ver relieve» button", () => {
-    render(<ReliefViewer initialReference={REF} fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference={REF} fetcher={makeFetcher()} />);
     expect(screen.getByRole("heading", { name: "Relieve 3D del terreno" })).toBeInTheDocument();
     expect(screen.getByLabelText("Referencia catastral")).toHaveValue(REF);
     expect(screen.getByRole("button", { name: "Ver relieve" })).toBeEnabled();
@@ -83,21 +83,21 @@ describe("ReliefViewer · initial state", () => {
 
   it("without a reference: guide message and nothing queried", () => {
     const fetcher = makeFetcher();
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     expect(screen.getByText(NO_REFERENCE_MESSAGE)).toBeInTheDocument();
     expect(fetcher).not.toHaveBeenCalled();
     expect(mount).not.toHaveBeenCalled();
   });
 
   it("default values: Parcela + 25 m, 200 m and ×2", () => {
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     expect(screen.getByLabelText("Recorte")).toHaveDisplayValue("Parcela + 25 m");
     expect(screen.getByLabelText("Lado máximo de la vista")).toHaveDisplayValue("200 m");
     expect(screen.getByLabelText("Exageración vertical")).toHaveDisplayValue("×2");
   });
 
   it("options of each selector as in the plan", () => {
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     const texts = (name: string) =>
       within(screen.getByLabelText(name)).getAllByRole("option").map((o) => o.textContent);
     expect(texts("Recorte")).toEqual([
@@ -113,7 +113,7 @@ describe("ReliefViewer · initial state", () => {
 
   it("«Probar con» shortcuts: the sheet's, the large rural one and a residential one", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference={REF} fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference={REF} fetcher={makeFetcher()} />);
     expect(screen.getByText(/Probar con/)).toBeInTheDocument();
     const field = screen.getByLabelText("Referencia catastral");
 
@@ -134,7 +134,7 @@ describe("ReliefViewer · validation and query", () => {
   it("invalid reference: notice in a live region and no query", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await user.type(screen.getByLabelText("Referencia catastral"), "ABC");
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
     const notice = await screen.findByText("La referencia catastral debe tener 20 caracteres.");
@@ -143,22 +143,22 @@ describe("ReliefViewer · validation and query", () => {
     expect(mount).not.toHaveBeenCalled();
   });
 
-  it("valid query: «Cargando el visor 3D…» and then a single scene with host, relief and exaggeration", async () => {
+  it("valid query: «Cargando relieve…» and then a single scene with host, relief and exaggeration", async () => {
     const user = userEvent.setup();
     let resolveFetch!: (r: Relief) => void;
     const fetcher = jest.fn(() => new Promise<Relief>((res) => (resolveFetch = res)));
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
 
-    expect(await screen.findByText("Cargando el visor 3D…")).toBeInTheDocument();
+    expect(await screen.findByText("Cargando relieve…")).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith({ reference: REF, margin: 25, maxSide: 200 });
 
     const relief = reliefOf({ reference: REF, margin: 25, maxSide: 200 });
     resolveFetch(relief);
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.queryByText("Cargando el visor 3D…")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText("Cargando relieve…")).not.toBeInTheDocument());
 
     const [host, rel, exaggeration, colors] = mount.mock.calls[0];
     expect(host).toBeInstanceOf(HTMLElement);
@@ -170,7 +170,7 @@ describe("ReliefViewer · validation and query", () => {
 
   it("the canvas is an accessible, focusable image with keyboard help", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     const canvasHost = screen.getByRole("img", { name: `Relieve 3D del terreno de ${REF}` });
     expect(canvasHost).toHaveAttribute("tabindex", "0");
@@ -180,7 +180,7 @@ describe("ReliefViewer · validation and query", () => {
   it("query error: notice in a live region, no scene and controls not broken", async () => {
     const user = userEvent.setup();
     const fetcher = jest.fn().mockRejectedValue(new Error("Servicio no disponible"));
-    const { container } = render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    const { container } = render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
     await waitFor(() => {
@@ -188,7 +188,7 @@ describe("ReliefViewer · validation and query", () => {
       expect(liveRegions.some((r) => (r.textContent ?? "").trim() !== "")).toBe(true);
     });
     expect(mount).not.toHaveBeenCalled();
-    expect(screen.queryByText("Cargando el visor 3D…")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cargando relieve…")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ver relieve" })).toBeEnabled();
   });
 });
@@ -196,7 +196,7 @@ describe("ReliefViewer · validation and query", () => {
 describe("ReliefViewer · readings and notices", () => {
   it("readings inside the visible plot, consistent with calculateReadings", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     const expectedCalls = calculateReadings(reliefOf({ reference: REF, margin: 25, maxSide: 200 }))!;
 
@@ -216,7 +216,7 @@ describe("ReliefViewer · readings and notices", () => {
 
   it("fixed notices: indicative and the source; no clipping notices when they do not apply", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     expect(screen.getByText(/Orientativo: no sustituye un levantamiento topográfico\./)).toBeInTheDocument();
     expect(screen.getByText(/Test source \(fictitious\)/)).toBeInTheDocument();
@@ -226,7 +226,7 @@ describe("ReliefViewer · readings and notices", () => {
 
   it("clamped: warns that the plot is shown centred on its centroid", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher({ clamped: true })} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher({ clamped: true })} />);
     await viewRelief(user, RURAL);
     expect(screen.getByText(/Parcela mayor que la ventana: se muestra centrada en su centroide\./)).toBeInTheDocument();
     expect(screen.queryByText("El borde se corta en el límite de la vista.")).not.toBeInTheDocument();
@@ -234,7 +234,7 @@ describe("ReliefViewer · readings and notices", () => {
 
   it("plotClipped: warns that the border is cut at the limit of the view", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher({ plotClipped: true })} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher({ plotClipped: true })} />);
     await viewRelief(user, RURAL);
     expect(screen.getByText(/El borde se corta en el límite de la vista\./)).toBeInTheDocument();
     expect(screen.queryByText("Parcela mayor que la ventana: se muestra centrada en su centroide.")).not.toBeInTheDocument();
@@ -242,7 +242,7 @@ describe("ReliefViewer · readings and notices", () => {
 
   it("still shows the indicative notice with both clipping notices", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher({ clamped: true, plotClipped: true })} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher({ clamped: true, plotClipped: true })} />);
     await viewRelief(user, RURAL);
     expect(screen.getByText(/Parcela mayor que la ventana/)).toBeInTheDocument();
     expect(screen.getByText(/El borde se corta en el límite de la vista/)).toBeInTheDocument();
@@ -254,7 +254,7 @@ describe("ReliefViewer · controls with a relief shown", () => {
   it("changing «Recorte» queries again with the new options and releases the previous scene before mounting another", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await viewRelief(user, REF);
     await user.selectOptions(screen.getByLabelText("Recorte"), "Parcela + 50 m");
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(2));
@@ -267,7 +267,7 @@ describe("ReliefViewer · controls with a relief shown", () => {
   it("changing «Lado máximo de la vista» queries again and releases the previous one", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await viewRelief(user, REF);
     await user.selectOptions(screen.getByLabelText("Lado máximo de la vista"), "300 m");
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(2));
@@ -278,7 +278,7 @@ describe("ReliefViewer · controls with a relief shown", () => {
   it("changing «Exageración vertical» only rescales: neither queries nor mounts another scene", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await viewRelief(user, REF);
     await user.selectOptions(screen.getByLabelText("Exageración vertical"), "×3");
     expect(scenes[0].updateExaggeration).toHaveBeenCalledWith(3);
@@ -290,7 +290,7 @@ describe("ReliefViewer · controls with a relief shown", () => {
 
   it("«Restablecer», «Acercar» and «Alejar» act on the scene", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     await user.click(screen.getByRole("button", { name: "Restablecer vista" }));
     await user.click(screen.getByRole("button", { name: "Acercar" }));
@@ -304,7 +304,7 @@ describe("ReliefViewer · controls with a relief shown", () => {
   it("requesting another reference releases the previous scene before mounting the new one", async () => {
     const user = userEvent.setup();
     const fetcher = makeFetcher();
-    render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await viewRelief(user, REF);
     await viewRelief(user, REF2, 2);
     expect(fetcher).toHaveBeenLastCalledWith({ reference: REF2, margin: 25, maxSide: 200 });
@@ -317,7 +317,7 @@ describe("ReliefViewer · controls with a relief shown", () => {
 describe("ReliefViewer · resource release", () => {
   it("unmounting the component calls release exactly once", async () => {
     const user = userEvent.setup();
-    const { unmount } = render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    const { unmount } = render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     expect(scenes[0].release).not.toHaveBeenCalled();
     unmount();
@@ -326,7 +326,7 @@ describe("ReliefViewer · resource release", () => {
 
   it("after several scenes, unmounting releases each one exactly once", async () => {
     const user = userEvent.setup();
-    const { unmount } = render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    const { unmount } = render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await viewRelief(user, REF);
     await user.selectOptions(screen.getByLabelText("Recorte"), "Solo la parcela");
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(2));
@@ -339,10 +339,10 @@ describe("ReliefViewer · resource release", () => {
     const user = userEvent.setup();
     let resolveFetch!: (r: Relief) => void;
     const fetcher = jest.fn(() => new Promise<Relief>((res) => (resolveFetch = res)));
-    const { unmount } = render(<ReliefViewer initialReference="" fetcher={fetcher} />);
+    const { unmount } = render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={fetcher} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
-    await screen.findByText("Cargando el visor 3D…");
+    await screen.findByText("Cargando relieve…");
     unmount();
     resolveFetch(reliefOf({ reference: REF, margin: 25, maxSide: 200 }));
     await new Promise((r) => setTimeout(r, 50));
@@ -360,11 +360,11 @@ describe("ReliefViewer · without WebGL", () => {
 
   it("shows the message and the controls remain available", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
     expect(await screen.findByText(NO_WEBGL_MESSAGE)).toBeInTheDocument();
-    expect(screen.queryByText("Cargando el visor 3D…")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cargando relieve…")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Referencia catastral")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Ver relieve" })).toBeEnabled();
     expect(screen.getByLabelText("Recorte")).toBeEnabled();
@@ -373,7 +373,7 @@ describe("ReliefViewer · without WebGL", () => {
 
   it("can retry with another reference without the page breaking", async () => {
     const user = userEvent.setup();
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
     await screen.findByText(NO_WEBGL_MESSAGE);
@@ -385,7 +385,7 @@ describe("ReliefViewer · without WebGL", () => {
 
 describe("ReliefViewer · accessibility", () => {
   it("each control has its associated label", () => {
-    render(<ReliefViewer initialReference="" fetcher={makeFetcher()} />);
+    render(<ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} />);
     for (const name of ["Referencia catastral", "Recorte", "Lado máximo de la vista", "Exageración vertical"]) {
       expect(screen.getByLabelText(name)).toBeInTheDocument();
     }
@@ -396,13 +396,13 @@ describe("ReliefViewer · accessibility", () => {
   });
 
   it("no axe violations in the initial state", async () => {
-    const { container } = render(<main><ReliefViewer initialReference="" fetcher={makeFetcher()} /></main>);
+    const { container } = render(<main><ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} /></main>);
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("no axe violations with the relief shown", async () => {
     const user = userEvent.setup();
-    const { container } = render(<main><ReliefViewer initialReference="" fetcher={makeFetcher({ clamped: true, plotClipped: true })} /></main>);
+    const { container } = render(<main><ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher({ clamped: true, plotClipped: true })} /></main>);
     await viewRelief(user, REF);
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -413,7 +413,7 @@ describe("ReliefViewer · accessibility", () => {
       throw new Error("WebGL no disponible");
     });
     const user = userEvent.setup();
-    const { container } = render(<main><ReliefViewer initialReference="" fetcher={makeFetcher()} /></main>);
+    const { container } = render(<main><ReliefViewer projectCode="PRY-EJ-001" initialReference="" fetcher={makeFetcher()} /></main>);
     await user.type(screen.getByLabelText("Referencia catastral"), REF);
     await user.click(screen.getByRole("button", { name: "Ver relieve" }));
     await screen.findByText(NO_WEBGL_MESSAGE);
