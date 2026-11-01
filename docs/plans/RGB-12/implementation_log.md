@@ -118,6 +118,6 @@ con ella salen 8 proyectos (2 listos en fase 0, 4 en curso, 2 bloqueados por pau
 
 ## Recuento
 
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html nuevos (dominio 30, casos de uso 16 + 15, Postgres 17, rutas 12 con dobles + 14 con Postgres).
+106 pruebas nuevas (dominio 30, casos de uso 16 + 15, Postgres 17, rutas 12 con dobles + 14 con Postgres).
 Suite completa del backend: 3670 pruebas en verde con `DATABASE_URL` local; `ruff check` y
 `ruff format` limpios.
