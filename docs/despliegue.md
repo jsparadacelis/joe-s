@@ -81,6 +81,69 @@ El secreto `database-url` apunta al pooler en modo sesión, el mismo que se usó
 
 Hoy el front llama a la API en `/settings`, `/portfolio`, `/projects`, `/opportunities/new`, «Plan y tiempos» (pausas) y `/projects/[code]/scoring`; el resto sigue con datos de ejemplo.
 
+## Datos de demostración (RGB-7)
+
+Un estudio de ejemplo para ver la app con contenido: **«Estudio de demostración (ficticio)»**, 9 personas y 8 proyectos ficticios repartidos entre las fases 0 y 6. Todo es inventado: correos `@example.com`, nombres y clientes imaginarios, sin ningún dato de titularidad.
+
+### Cómo ejecutarla en local
+
+```bash
+bash scripts/seed-demo.sh                      # Postgres + migraciones + siembra
+# o, con la base local ya levantada y migrada:
+python -m backend.app.shared.seed_demo
+```
+
+Es idempotente: si el estudio de demostración ya tiene proyectos no escribe nada («ya existía (sin cambios)»). La auditoría es inalterable, así que no hay «reiniciar»: para empezar de cero recrea la base local (`docker compose down -v` y vuelve a ejecutar). Corre en una sola transacción: o queda entera o no queda nada.
+
+### Por qué nunca en producción
+
+La siembra no es una migración y se protege por varias vías (con tests):
+
+1. **Siempre se niega**, incluso con `--force`, si `ENVIRONMENT` no es de desarrollo (`development`, `dev`, `local`, `test`; `production`, `staging` o vacío se rechazan) o si el host contiene `supabase` o `pooler`.
+2. Reutiliza `assert_local_database`: un host que no sea local exige `--force` (solo para un Postgres propio, p. ej. en una red de Docker).
+3. Usa un estudio **propio y fijo** (`00000000-0000-0000-0000-00000000de00`), distinto de `DEV_STUDY_ID` (`...e001`). Si ese id existe con otro nombre, aborta. Corre como el rol `rgb_app` con la RLS del estudio de demostración: no puede ver ni tocar otro estudio ni la tabla de miembros reales.
+4. Los mensajes de error nunca incluyen la URL ni credenciales.
+5. Quien actúa es `seed` (no una persona) en la auditoría, las promociones, el scoring, las pausas y las asignaciones. Ninguna acción de IA interviene.
+
+### Qué crea
+
+| Elemento | Detalle |
+| --- | --- |
+| Personas (`study_members`, estado `active`, `user_id` inventado) | las de la tabla de abajo; no se crea ninguna cuenta de Supabase |
+| Proyectos | 2 en fase 0 (uno por encima y otro por debajo del umbral), y uno en cada fase de la 1 a la 6 |
+| Pausas | una activa (fase 2, en plazo) y una vencida (fase 4) |
+| Semáforo | verde (fases 1 y 6), ámbar (fase 3), rojo (fase 5); las pausas aparecen como «En pausa» |
+| Equipo por proyecto (`project_members`) | director de proyecto, líder técnico, arquitecta y sponsor desde la fase 2; firmante habilitado desde la 4; dirección facultativa y colaborador de obra en la 6 |
+| Referencias catastrales | 20 caracteres con prefijo `FICT` y marca `DEMO` (p. ej. `FICT0001DEMO0001ZZZZ`): pasan la validación pero **no existen** (una real empieza por 7 dígitos). Ninguna consulta al Catastro |
+
+La siembra usa los casos de uso reales (alta de oportunidad, scoring, inicio, ficha, brief, promociones, pausas, asignaciones) para que el estado sea coherente. Donde aún no hay caso de uso (entregables de las fases 3 a 5 y los campos de seguimiento) escribe directamente y lo deja en la auditoría como `seed`.
+
+### Cómo entrar a la demo
+
+Sin cuentas reales: arranca la API con `AUTH_MODE=dev` y el contexto de la persona que quieras en `.env`:
+
+```
+AUTH_MODE=dev
+DEV_STUDY_ID=00000000-0000-0000-0000-00000000de00
+DEV_USER_ID=<user_id>
+DEV_ROLE=<rol>
+DEV_QUALIFICATIONS=<cualificaciones, separadas por comas>
+```
+
+| Persona | Correo | `DEV_USER_ID` | `DEV_ROLE` | `DEV_QUALIFICATIONS` |
+| --- | --- | --- | --- | --- |
+| Socia (también sponsor) | `socio@example.com` | `demo-partner` | `partner` | `sponsor` |
+| Director | `director@example.com` | `demo-director` | `director` | |
+| Directora de proyecto | `director.proyecto@example.com` | `demo-project-director` | `project_director` | |
+| Líder técnico | `lider.tecnico@example.com` | `demo-technical-lead` | `technical_lead` | |
+| Arquitecta | `arquitecta@example.com` | `demo-architect` | `architect` | |
+| Colaborador de obra | `colaborador.obra@example.com` | `demo-site-collaborator` | `site_collaborator` | |
+| Administración | `administracion@example.com` | `demo-administration` | `administration` | |
+| Arquitecto firmante habilitado | `firmante@example.com` | `demo-licensed-signatory` | `architect` | `licensed_signatory` |
+| Arquitecta con dirección facultativa | `direccion.facultativa@example.com` | `demo-site-management` | `architect` | `site_management` |
+
+En modo `dev` la autoridad por fase sale del rol y las cualificaciones de `.env` (no de las asignaciones por proyecto, que se ven en la API y en cuanto se active `AUTH_MODE=supabase`). Para promover en las fases 2 y 3 usa `project_director`; en la 4 y la 5, `architect` con `licensed_signatory`; en la 6, `architect` con `site_management`.
+
 ## Puesta al día: migraciones 006–008 y backend (hecha el 2026-10-25)
 
 Estaba pendiente: producción tenía migradas la 001–005 y el backend anterior, y `main` añade `006_opportunities`, `007_pauses` y `008_scoring`. Queda hecha así:

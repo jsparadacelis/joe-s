@@ -56,10 +56,12 @@ frontend/   Next.js (app, components, lib, __tests__)
 backend/    FastAPI (app, migrations, tests, Dockerfile, requirements)
 docs/       arquitectura, despliegue, estado y planes por tarea
 skills/     guías para Claude Code
-scripts/    dev.sh: Postgres + migraciones + API (8000) + front (3000)
+scripts/    dev.sh: Postgres + migraciones + API (8000) + front (3000); seed-demo.sh: datos de demostración ficticios
 ```
 
 Para levantar todo en local: `bash scripts/dev.sh` (copia `.env.example` y `frontend/.env.example` si faltan, aplica las migraciones y siembra el estudio ficticio de desarrollo).
+
+Para ver la app con contenido: `bash scripts/seed-demo.sh` (o `python -m backend.app.shared.seed_demo`) siembra un estudio de demostración ficticio con 9 personas y 8 proyectos entre las fases 0 y 6; solo en local. Cómo entrar y por qué nunca en producción: [docs/despliegue.md](docs/despliegue.md#datos-de-demostración-rgb-7).
 
 ## Estado
 
