@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--Parcela Catastral de la D.G. del Catastro.-->
+<!--La precisión es la que corresponde nominalmente a la escala de captura de la cartografía-->
+<FeatureCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:cp="http://inspire.ec.europa.eu/schemas/cp/4.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xsi:schemaLocation="http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd http://inspire.ec.europa.eu/schemas/cp/4.0 http://inspire.ec.europa.eu/schemas/cp/4.0/CadastralParcels.xsd" xmlns="http://www.opengis.net/wfs/2.0" timeStamp="2026-11-01T03:17:04" numberMatched="1" numberReturned="1">
+  <member>
+    <cp:CadastralParcel gml:id="ES.SDGC.CP.4714805BC6841S">
+      <cp:areaValue uom="m2">2908</cp:areaValue>
+      <cp:beginLifespanVersion>2012-07-26T00:00:00</cp:beginLifespanVersion>
+      <cp:endLifespanVersion xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"></cp:endLifespanVersion>
+      <cp:geometry>
+        <gml:MultiSurface gml:id="MultiSurface_ES.SDGC.CP.4714805BC6841S" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+          <gml:surfaceMember>
+            <gml:Surface gml:id="Surface_ES.SDGC.CP.4714805BC6841S.1" srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+              <gml:patches>
+                <gml:PolygonPatch>
+                <gml:exterior>
+                    <gml:LinearRing>
+                      <gml:posList srsDimension="2" count="28">38.64042 0.038965 38.640565 0.039209 38.640564 0.039211 38.640545 0.039239 38.640527 0.039269 38.640509 0.0393 38.640493 0.039331 38.640477 0.039363 38.640463 0.039397 38.64045 0.03943 38.64034 0.039697 38.640326 0.03975 38.640315 0.039805 38.640311 0.039831 38.640122 0.039766 38.640066 0.039747 38.639844 0.039617 38.639866 0.039581 38.639897 0.039533 38.639929 0.039487 38.639962 0.039442 38.639996 0.039398 38.640031 0.039356 38.640066 0.039315 38.640103 0.039275 38.64011 0.039269 38.640357 0.039031 38.64042 0.038965</gml:posList>
+                    </gml:LinearRing>
+                </gml:exterior>
+                </gml:PolygonPatch>
+              </gml:patches>
+            </gml:Surface>
+          </gml:surfaceMember>
+        </gml:MultiSurface>
+      </cp:geometry>
+      <cp:inspireId>
+        <Identifier xmlns="http://inspire.ec.europa.eu/schemas/base/3.3">
+          <localId>4714805BC6841S</localId>
+          <namespace>ES.SDGC.CP</namespace>
+        </Identifier>
+      </cp:inspireId>
+      <cp:label>05</cp:label>
+      <cp:nationalCadastralReference>4714805BC6841S</cp:nationalCadastralReference>
+      <cp:referencePoint>
+        <gml:Point gml:id="ReferencePoint_ES.SDGC.CP.4714805BC6841S" srsName="http://www.opengis.net/def/crs/EPSG/0/4326"> 
+          <gml:pos>38.640234 0.039432</gml:pos>
+        </gml:Point>
+      </cp:referencePoint>
+    </cp:CadastralParcel>
+  </member>
+</FeatureCollection>

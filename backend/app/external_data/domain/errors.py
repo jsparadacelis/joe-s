@@ -23,3 +23,10 @@ class CadastreUnavailable(CadastreError):
 
     code = "cadastre_unavailable"
     message = "No se pudo consultar el Catastro. Introduce los datos a mano."
+
+
+class PlotNotFound(CadastreNotFound):
+    """The plot service answered, and it has no plot for that reference."""
+
+    code = "plot_not_found"
+    message = "No se encontró la parcela en el Catastro."
