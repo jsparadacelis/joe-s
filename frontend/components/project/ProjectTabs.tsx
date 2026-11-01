@@ -15,6 +15,7 @@ export function ProjectTabs({ code, currentPhase }: ProjectTabsProps) {
   const tabs = [
     { text: "Fase y promoción", href: `${base}/phase/${currentPhase}`, active: path.startsWith(`${base}/phase/`) },
     { text: "Plan y tiempos", href: `${base}/plan-and-timing`, active: path === `${base}/plan-and-timing` },
+    { text: "Equipo", href: `${base}/team`, active: path === `${base}/team` },
   ];
   return (
     <nav aria-label="Secciones del proyecto">
