@@ -19,7 +19,7 @@ Rama `rgb-24/cadastre-client`. TDD estricto: cada pieza de producción se escrib
 - **Caché por estudio** (`study_id, reference`) y no global: respeta la RLS y el aislamiento entre estudios sin tablas excepcionales; el coste es una consulta repetida por estudio. Guarda el JSON del modelo de dominio, nunca el XML.
 - **Upsert, sin DELETE**: es un dato derivado y recuperable, no un registro de auditoría; una entrada caducada se sobrescribe. `REVOKE DELETE, TRUNCATE` para `rgb_app`; sí tiene UPDATE (necesario para el upsert).
 - **Caducidad**: `fetched_at >= reloj - 30 días` (el límite exacto aún vale). El adaptador toma un reloj inyectable para tests deterministas.
-- La llamada HTTP se hace dentro de la transacción del estudio (conexión ocupada hasta ~20 s en el peor caso); aceptable por el volumen y porque la caché va en la misma transacción. Una mejora posible: separar la transacción de lectura de la de escritura.
+- **Transacciones cortas, sin conexión durante la llamada al Catastro** (corrección posterior): `GetCadastralProperty` recibe `open_cache`, una fábrica de unidades de trabajo cortas. Lee la caché y cierra la transacción; si no hay entrada fresca, llama al Catastro sin ninguna conexión abierta; y abre otra transacción solo para guardar. Con un pool pequeño (4), unas pocas consultas lentas (hasta ~20 s) habrían bloqueado toda la API. `cadastre_unit_of_work` ya no toma conexión: cada `open_cache()` abre su `study_transaction`. Tests: un doble que registra apertura/cierre comprueba `open, close, fetch, open, close` y que un error del servicio no abre la de escritura; y una prueba de ruta con pool de tamaño 1 en la que otra petición (respondida desde la caché) termina mientras el gateway espera (falla con el diseño anterior). Coste: dos transacciones en un fallo de caché; dos consultas concurrentes de la misma referencia pueden consultar el Catastro ambas (el upsert lo tolera).
 - Un solo `httpx.Client` por proceso (`lru_cache`) para reutilizar conexiones.
 
 ## Fixtures
@@ -31,5 +31,5 @@ Rama `rgb-24/cadastre-client`. TDD estricto: cada pieza de producción se escrib
 
 ## Resultados
 - `ruff check backend` y `ruff format backend`: limpios.
-- Tests nuevos: 114 en `backend/tests/external_data` y las rutas del Catastro (11 de ellos con Postgres real, se omiten sin `DATABASE_URL`), más 1 de arquitectura.
-- `pytest backend` completo con Postgres real: **2183 passed** (6 min 58 s).
+- Tests nuevos: 117 en `backend/tests/external_data` y las rutas del Catastro (12 de ellos con Postgres real, se omiten sin `DATABASE_URL`), más 1 de arquitectura.
+- `pytest backend` completo con Postgres real: **2187 passed** (5 min).

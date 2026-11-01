@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from datetime import datetime, timedelta, timezone
 
 from backend.app.external_data.domain.cadastral_property import CadastralProperty
@@ -16,15 +17,22 @@ def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+CacheSession = Callable[[], AbstractContextManager[CadastreCache]]
+
+
 class GetCadastralProperty:
+    """`open_cache` opens a short unit of work (a transaction) over the cache each time it is
+    called. The Catastro is queried with none open, so a slow service never holds a database
+    connection."""
+
     def __init__(
         self,
         gateway: CadastreGateway,
-        cache: CadastreCache,
+        open_cache: CacheSession,
         clock: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._gateway = gateway
-        self._cache = cache
+        self._open_cache = open_cache
         self._clock = clock
 
     def execute(self, raw_reference: str) -> CadastralProperty:
@@ -34,9 +42,11 @@ class GetCadastralProperty:
         the person enters it by hand.
         """
         reference = validate_cadastral_reference(raw_reference)
-        cached = self._cache.get(reference, CACHE_MAX_AGE)
+        with self._open_cache() as cache:
+            cached = cache.get(reference, CACHE_MAX_AGE)
         if cached is not None:
             return cached
-        found = self._gateway.fetch(reference)
-        self._cache.put(found, self._clock())
+        found = self._gateway.fetch(reference)  # no connection is held during the HTTP call
+        with self._open_cache() as cache:
+            cache.put(found, self._clock())
         return found

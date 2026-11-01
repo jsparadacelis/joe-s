@@ -434,12 +434,17 @@ def cadastre_unit_of_work(
     settings: Annotated[Settings, Depends(get_settings)],
     gateway: Annotated[CadastreGateway, Depends(cadastre_gateway)],
 ) -> CadastreUnitOfWork:
-    """Composition root for the cadastre lookup: the study's cache lives in the request
-    transaction, the Catastro is queried through the gateway."""
+    """Composition root for the cadastre lookup. No connection is taken here: the use case
+    opens one short transaction to read the study's cache and, only on a miss, another to store
+    the answer, so the (slow) Catastro call runs with the pool untouched."""
 
     @contextmanager
     def open_unit(context: RequestContext) -> Iterator[GetCadastralProperty]:
-        with study_transaction(settings.database_url, context) as conn:
-            yield GetCadastralProperty(gateway, PostgresCadastreCache(conn))
+        @contextmanager
+        def open_cache() -> Iterator[PostgresCadastreCache]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield PostgresCadastreCache(conn)
+
+        yield GetCadastralProperty(gateway, open_cache)
 
     return open_unit

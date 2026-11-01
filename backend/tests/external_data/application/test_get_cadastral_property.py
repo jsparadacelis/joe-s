@@ -1,5 +1,6 @@
 """GetCadastralProperty with simulated ports: validation, 30-day cache, no stale data."""
 
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from unittest.mock import create_autospec
 
@@ -29,9 +30,32 @@ def cache():
     return stub
 
 
+class Sessions:
+    """Opens the simulated cache like a short transaction and records open/close events."""
+
+    def __init__(self, cache):
+        self.cache = cache
+        self.events: list[str] = []
+        self.open_count = 0
+
+    @contextmanager
+    def __call__(self):
+        self.open_count += 1
+        self.events.append("open")
+        try:
+            yield self.cache
+        finally:
+            self.events.append("close")
+
+
 @pytest.fixture
-def use_case(gateway, cache):
-    return GetCadastralProperty(gateway, cache, clock=lambda: NOW)
+def sessions(cache):
+    return Sessions(cache)
+
+
+@pytest.fixture
+def use_case(gateway, sessions):
+    return GetCadastralProperty(gateway, sessions, clock=lambda: NOW)
 
 
 def test_the_cache_window_is_thirty_days():
@@ -98,10 +122,43 @@ def test_when_the_service_fails_no_expired_cache_is_used(use_case, gateway, cach
     assert cache.get.call_args.args[1] == timedelta(days=30)
 
 
-def test_the_default_clock_is_timezone_aware_utc(gateway, cache):
+def test_the_default_clock_is_timezone_aware_utc(gateway, cache, sessions):
     gateway.fetch.return_value = a_property()
 
-    GetCadastralProperty(gateway, cache).execute(REFERENCE)
+    GetCadastralProperty(gateway, sessions).execute(REFERENCE)
 
     fetched_at = cache.put.call_args.args[1]
     assert fetched_at.utcoffset() == timedelta(0)
+
+
+def test_no_cache_session_is_open_while_the_service_is_queried(use_case, gateway, sessions):
+    """A slow Catastro must not hold a database connection: read, close, fetch, then write."""
+    seen_during_fetch = []
+
+    def fetch(reference):
+        seen_during_fetch.append(list(sessions.events))
+        return a_property()
+
+    gateway.fetch.side_effect = fetch
+
+    use_case.execute(REFERENCE)
+
+    assert seen_during_fetch == [["open", "close"]]
+    assert sessions.events == ["open", "close", "open", "close"]
+
+
+def test_a_cache_hit_opens_a_single_short_session(use_case, cache, sessions):
+    cache.get.return_value = a_property()
+
+    use_case.execute(REFERENCE)
+
+    assert sessions.events == ["open", "close"]
+
+
+def test_a_failing_service_opens_no_write_session(use_case, gateway, sessions):
+    gateway.fetch.side_effect = CadastreUnavailable()
+
+    with pytest.raises(CadastreUnavailable):
+        use_case.execute(REFERENCE)
+
+    assert sessions.open_count == 1

@@ -1,5 +1,6 @@
 """The per-study cadastre cache on real Postgres: isolation, expiry, no owner data."""
 
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -111,12 +112,12 @@ def test_a_response_with_holder_fields_leaves_no_trace_in_the_database(url):
         )
     )
 
-    def look_up(cache):
-        return GetCadastralProperty(HttpCadastreGateway(transport=transport), cache).execute(
-            REFERENCE
-        )
+    @contextmanager
+    def open_cache():
+        with study_transaction(url, a_context(STUDY_A)) as conn:
+            yield PostgresCadastreCache(conn)
 
-    in_study(url, STUDY_A, look_up)
+    GetCadastralProperty(HttpCadastreGateway(transport=transport), open_cache).execute(REFERENCE)
 
     rows = admin_rows(url, "SELECT cadastral_cache::text FROM cadastral_cache")
     assert len(rows) == 1

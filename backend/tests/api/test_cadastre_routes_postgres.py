@@ -1,16 +1,19 @@
 """The cadastre route against real Postgres with a simulated gateway: study cache, 404, 503."""
 
+import threading
 from unittest.mock import create_autospec
 
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from psycopg.types.json import Jsonb
 
 from backend.app.api.dependencies import cadastre_gateway, get_settings
 from backend.app.api.main import create_app
 from backend.app.external_data.domain.errors import CadastreNotFound, CadastreUnavailable
 from backend.app.external_data.domain.ports import CadastreGateway
 from backend.app.shared.config import Settings
+from backend.app.shared.db import close_pools, open_pool
 from backend.app.shared.migrate import MIGRATIONS_DIR, apply_migrations
 from backend.tests.external_data.domain.test_cadastral_property import REFERENCE, a_property
 
@@ -96,3 +99,51 @@ def test_an_invalid_reference_is_422_and_the_service_is_not_called(client_for, g
     assert response.status_code == 422
     assert response.json()["detail"]["code"] == code
     gateway.fetch.assert_not_called()
+
+
+def test_a_slow_catastro_does_not_hold_a_pool_connection(url, gateway):
+    """Pool of one connection: while the gateway waits, another request still completes."""
+    entered = threading.Event()
+    release = threading.Event()
+
+    def slow_fetch(reference):
+        entered.set()
+        assert release.wait(timeout=20)
+        return a_property()
+
+    gateway.fetch.side_effect = slow_fetch
+    other = "1234567VH1234S0001AA"
+    with psycopg.connect(url, autocommit=True) as admin:  # a cached entry: needs the database
+        admin.execute(
+            "INSERT INTO cadastral_cache (study_id, reference, payload) VALUES (%s, %s, %s)",
+            (STUDY_A, other, Jsonb(a_property(reference=other).to_dict())),
+        )
+    open_pool(url, min_size=1, max_size=1)
+    try:
+        settings = Settings(_env_file=None, database_url=url, dev_study_id=STUDY_A)
+        app = create_app(settings)
+        app.dependency_overrides[get_settings] = lambda: settings
+        app.dependency_overrides[cadastre_gateway] = lambda: gateway
+        client = TestClient(app)
+        results = []
+        worker = threading.Thread(
+            target=lambda: results.append(client.get(f"/api/cadastre/{REFERENCE}"))
+        )
+        worker.start()
+        assert entered.wait(timeout=10)
+
+        probe = threading.Thread(
+            target=lambda: results.append(client.get(f"/api/cadastre/{other}"))
+        )
+        probe.start()
+        probe.join(timeout=5)
+        finished_while_waiting = not probe.is_alive()
+        release.set()
+        worker.join(timeout=20)
+        probe.join(timeout=5)
+    finally:
+        release.set()
+        close_pools()
+
+    assert finished_while_waiting
+    assert sorted(r.status_code for r in results) == [200, 200]
