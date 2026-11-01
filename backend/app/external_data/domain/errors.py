@@ -37,3 +37,11 @@ class ExternalServiceUnavailable(CadastreError):
 
     code = "external_service_unavailable"
     message = "No se pudo consultar el servicio externo. Introduce el dato a mano."
+
+
+class ReliefUnavailable(CadastreError):
+    """The elevation model could not be consulted or its answer could not be trusted: the
+    plot can still be worked on, only the 3D view is missing."""
+
+    code = "relief_unavailable"
+    message = "No se pudo obtener el relieve. Puedes seguir sin el visor 3D."

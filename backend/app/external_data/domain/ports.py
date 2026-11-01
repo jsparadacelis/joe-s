@@ -9,6 +9,12 @@ from typing import Protocol
 from backend.app.external_data.domain.cadastral_property import CadastralProperty
 from backend.app.external_data.domain.plot import Plot, Position
 from backend.app.external_data.domain.pv import PvLocation, PvYield
+from backend.app.external_data.domain.relief import (
+    ElevationGrid,
+    Relief,
+    ReliefOptions,
+    ReliefWindow,
+)
 from backend.app.external_data.domain.terrain import TerrainProfile
 
 
@@ -85,4 +91,24 @@ class PvCache(Protocol):
 
     def put(self, pv_yield: PvYield, fetched_at: datetime) -> None:
         """Store (or replace) the yield for its location."""
+        ...
+
+
+class ReliefGateway(Protocol):
+    def fetch(self, window: ReliefWindow) -> ElevationGrid:
+        """The heights of the window as a grid of `window.grid_size` cells, north first.
+
+        Raises `ReliefUnavailable`.
+        """
+        ...
+
+
+class ReliefCache(Protocol):
+    def get(self, plot_reference: str, options: ReliefOptions, max_age: timedelta) -> Relief | None:
+        """The stored relief of the plot for those options if it is no older than `max_age`;
+        an older one counts as absent."""
+        ...
+
+    def put(self, relief: Relief, options: ReliefOptions, fetched_at: datetime) -> None:
+        """Store (or replace) the relief for its plot reference and options."""
         ...

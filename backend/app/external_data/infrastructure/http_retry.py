@@ -13,9 +13,13 @@ TIMEOUT_SECONDS = 10.0
 ATTEMPTS = 2  # the first try and a single retry
 
 
-def build_client(base_url: str, transport: httpx.BaseTransport | None) -> httpx.Client:
+def build_client(
+    base_url: str,
+    transport: httpx.BaseTransport | None,
+    timeout_seconds: float = TIMEOUT_SECONDS,
+) -> httpx.Client:
     return httpx.Client(
-        base_url=base_url, timeout=httpx.Timeout(TIMEOUT_SECONDS), transport=transport
+        base_url=base_url, timeout=httpx.Timeout(timeout_seconds), transport=transport
     )
 
 

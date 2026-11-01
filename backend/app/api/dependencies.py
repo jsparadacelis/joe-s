@@ -22,22 +22,26 @@ from backend.app.briefing.infrastructure.postgres_briefs import PostgresBriefs
 from backend.app.external_data.application.get_cadastral_property import GetCadastralProperty
 from backend.app.external_data.application.get_plot_geometry import GetPlotGeometry
 from backend.app.external_data.application.get_pv_yield import GetPvYield
+from backend.app.external_data.application.get_relief import GetRelief
 from backend.app.external_data.application.get_terrain_profile import GetTerrainProfile
 from backend.app.external_data.domain.ports import (
     CadastreGateway,
     ElevationGateway,
     PlotGateway,
     PvGateway,
+    ReliefGateway,
 )
 from backend.app.external_data.infrastructure.http_cadastre_gateway import HttpCadastreGateway
 from backend.app.external_data.infrastructure.http_elevation_gateway import HttpElevationGateway
 from backend.app.external_data.infrastructure.http_plot_gateway import HttpPlotGateway
 from backend.app.external_data.infrastructure.http_pv_gateway import HttpPvGateway
+from backend.app.external_data.infrastructure.http_relief_gateway import HttpReliefGateway
 from backend.app.external_data.infrastructure.postgres_cadastre_cache import (
     PostgresCadastreCache,
 )
 from backend.app.external_data.infrastructure.postgres_plot_cache import PostgresPlotCache
 from backend.app.external_data.infrastructure.postgres_pv_cache import PostgresPvCache
+from backend.app.external_data.infrastructure.postgres_relief_cache import PostgresReliefCache
 from backend.app.external_data.infrastructure.postgres_terrain_cache import PostgresTerrainCache
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
@@ -627,6 +631,41 @@ def terrain_unit_of_work(
 
         with open_plot(context) as get_plot:
             yield GetTerrainProfile(get_plot, gateway, open_cache)
+
+    return open_unit
+
+
+@lru_cache
+def _http_relief_gateway() -> HttpReliefGateway:
+    """One HTTP client per process, so connections to the IDEE are reused."""
+    return HttpReliefGateway()
+
+
+def relief_gateway() -> ReliefGateway:
+    return _http_relief_gateway()
+
+
+ReliefUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetRelief]]
+
+
+def relief_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    open_plot: Annotated[PlotUnitOfWork, Depends(plot_unit_of_work)],
+    gateway: Annotated[ReliefGateway, Depends(relief_gateway)],
+) -> ReliefUnitOfWork:
+    """Composition root for the relief lookup. As for the terrain, no connection is taken here:
+    each cache access is its own short transaction, so the (slow) services run with the pool
+    untouched."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetRelief]:
+        @contextmanager
+        def open_cache() -> Iterator[PostgresReliefCache]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield PostgresReliefCache(conn)
+
+        with open_plot(context) as get_plot:
+            yield GetRelief(get_plot, gateway, open_cache)
 
     return open_unit
 
