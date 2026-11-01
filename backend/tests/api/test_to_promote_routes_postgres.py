@@ -214,3 +214,42 @@ class TestWithTheDemoStudy:
         dev_study = Settings(_env_file=None).dev_study_id
 
         assert client_for(demo, dev_study).get(URL).json() == {"ready_count": 0, "projects": []}
+
+
+def test_phase_one_and_two_projects_are_judged_with_their_sheet_and_brief(url):
+    import json
+
+    from backend.tests.to_promote.support import COMPLETE_BRIEF, COMPLETE_MANUAL_SHEET
+
+    with psycopg.connect(url, autocommit=True) as admin:
+        add_project(admin, STUDY_A, "P-SHEET", 1)
+        add_project(admin, STUDY_A, "P-BRIEF", 2)
+        add_project(admin, STUDY_A, "P-BRIEF-OPEN", 2)
+        admin.execute(
+            "INSERT INTO project_plans (study_id, project_id, project_type, scale, weeks, "
+            "confirmed_by) SELECT study_id, id, 'single_family_house', 'medium', "
+            "ARRAY[2,3,4,5,6,7,8]::smallint[], 'user-1' FROM projects WHERE code = 'P-SHEET'"
+        )
+        for code, phase, content in (
+            ("P-SHEET", 1, COMPLETE_MANUAL_SHEET),
+            ("P-BRIEF", 2, {"brief": COMPLETE_BRIEF}),
+        ):
+            admin.execute(
+                "INSERT INTO exit_deliverables (study_id, project_id, phase, content) "
+                "SELECT study_id, id, %s, %s FROM projects WHERE code = %s",
+                (phase, json.dumps(content), code),
+            )
+        admin.execute(
+            "INSERT INTO technical_data (study_id, project_id, field_id, value, source) "
+            "SELECT study_id, id, 'year', '1990', 'manual' FROM projects WHERE code = 'P-BRIEF'"
+        )
+
+    projects = {p["code"]: p for p in client_for(url).get(URL).json()["projects"]}
+
+    assert projects["P-SHEET"]["state"] == "ready"
+    assert projects["P-BRIEF"]["state"] == "ready"
+    assert projects["P-BRIEF-OPEN"]["state"] == "in_progress"
+    assert (
+        projects["P-BRIEF-OPEN"]["reason"]
+        == "Falta: Necesidades, Programa, Condicionantes y 4 más."
+    )
