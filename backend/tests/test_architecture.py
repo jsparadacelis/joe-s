@@ -203,3 +203,25 @@ def test_use_cases_do_not_decide_permissions_by_role():
     ]
 
     assert violations == []
+
+
+def test_the_external_data_domain_is_pure_and_its_adapters_are_wired_by_the_composition_root():
+    """RGB-24: the cadastre model and ports import no HTTP, XML or database library; the
+    adapters are imported by `api/dependencies` alone."""
+    banned = ("httpx", "defusedxml", "xml", "psycopg", "fastapi", "pydantic")
+    domain_violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in (APP / "external_data" / "domain").rglob("*.py")
+        for name in _imports(p)
+        if name.split(".")[0] in banned
+    ]
+    wiring_violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith(("http_cadastre_gateway", "postgres_cadastre_cache"))
+        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+    ]
+
+    assert domain_violations == []
+    assert wiring_violations == []

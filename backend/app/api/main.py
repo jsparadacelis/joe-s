@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.app.access.domain.errors import NotPermitted
+from backend.app.api.cadastre_routes import router as cadastre_routes
 from backend.app.api.me_routes import router as me_routes
 from backend.app.api.member_routes import router as member_routes
 from backend.app.api.opportunity_routes import router as opportunity_routes
@@ -87,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(member_routes)
     app.include_router(me_routes)
     app.include_router(project_member_routes)
+    app.include_router(cadastre_routes)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:
