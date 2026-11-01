@@ -1,0 +1,4718 @@
+{
+  "meta": {
+    "source": "ncse",
+    "table": "NCSE-02, Anejo 1 (aceleración sísmica básica ab y coeficiente de contribución K de los términos municipales con ab ≥ 0,04 g)",
+    "document": "Real Decreto 997/2002, de 27 de septiembre, por el que se aprueba la norma de construcción sismorresistente NCSE-02 (BOE núm. 244, 11-10-2002)",
+    "url": "https://www.boe.es/boe/dias/2002/10/11/pdfs/A35898-35967.pdf",
+    "version": "BOE 11-10-2002, texto original (BOE-A-2002-19687)",
+    "transcribed_on": "2026-11-01",
+    "pages": "Anejo 1: BOE p. 35949 y ss.; Barcelona p. 35955-35957, Valencia/València p. 35961-35963",
+    "sha256": "3dcecef13901aa9967401584b30196155ecb59d6c4527fafd10f6af5ecea2f85",
+    "notes": "Los nombres son los de 2002; el código INE de 5 dígitos (relación de municipios del INE a 1-1-2026, https://www.ine.es/daco/daco42/codmun/diccionario26.xlsx) se asignó por nombre normalizado y, donde el nombre cambió, por las tablas de modificaciones del INE (campo ine_match). El Anejo 1 solo lista ab >= 0,04 g: un municipio existente que no figura es «< 0,04 g» (NCSE-02, 2.1). K solo se da cuando figura en la lista. Cada entrada se cuadró contra el recuento de «ab» y de «K» leídos en el PDF (290 en Barcelona, 221 en Valencia)."
+  },
+  "provinces": {
+    "08": {
+      "name": "Barcelona",
+      "municipality_codes": [
+        "08001",
+        "08002",
+        "08003",
+        "08004",
+        "08005",
+        "08006",
+        "08007",
+        "08008",
+        "08009",
+        "08010",
+        "08011",
+        "08012",
+        "08013",
+        "08014",
+        "08015",
+        "08016",
+        "08017",
+        "08018",
+        "08019",
+        "08020",
+        "08021",
+        "08022",
+        "08023",
+        "08024",
+        "08025",
+        "08026",
+        "08027",
+        "08028",
+        "08029",
+        "08030",
+        "08031",
+        "08032",
+        "08033",
+        "08034",
+        "08035",
+        "08036",
+        "08037",
+        "08038",
+        "08039",
+        "08040",
+        "08041",
+        "08042",
+        "08043",
+        "08044",
+        "08045",
+        "08046",
+        "08047",
+        "08048",
+        "08049",
+        "08050",
+        "08051",
+        "08052",
+        "08053",
+        "08054",
+        "08055",
+        "08056",
+        "08057",
+        "08058",
+        "08059",
+        "08060",
+        "08061",
+        "08062",
+        "08063",
+        "08064",
+        "08065",
+        "08066",
+        "08067",
+        "08068",
+        "08069",
+        "08070",
+        "08071",
+        "08072",
+        "08073",
+        "08074",
+        "08075",
+        "08076",
+        "08077",
+        "08078",
+        "08079",
+        "08080",
+        "08081",
+        "08082",
+        "08083",
+        "08084",
+        "08085",
+        "08086",
+        "08087",
+        "08088",
+        "08089",
+        "08090",
+        "08091",
+        "08092",
+        "08093",
+        "08094",
+        "08095",
+        "08096",
+        "08097",
+        "08098",
+        "08099",
+        "08100",
+        "08101",
+        "08102",
+        "08103",
+        "08104",
+        "08105",
+        "08106",
+        "08107",
+        "08108",
+        "08109",
+        "08110",
+        "08111",
+        "08112",
+        "08113",
+        "08114",
+        "08115",
+        "08116",
+        "08117",
+        "08118",
+        "08119",
+        "08120",
+        "08121",
+        "08122",
+        "08123",
+        "08124",
+        "08125",
+        "08126",
+        "08127",
+        "08128",
+        "08129",
+        "08130",
+        "08131",
+        "08132",
+        "08133",
+        "08134",
+        "08135",
+        "08136",
+        "08137",
+        "08138",
+        "08139",
+        "08140",
+        "08141",
+        "08142",
+        "08143",
+        "08144",
+        "08145",
+        "08146",
+        "08147",
+        "08148",
+        "08149",
+        "08150",
+        "08151",
+        "08152",
+        "08153",
+        "08154",
+        "08155",
+        "08156",
+        "08157",
+        "08158",
+        "08159",
+        "08160",
+        "08161",
+        "08162",
+        "08163",
+        "08164",
+        "08165",
+        "08166",
+        "08167",
+        "08168",
+        "08169",
+        "08170",
+        "08171",
+        "08172",
+        "08174",
+        "08175",
+        "08176",
+        "08177",
+        "08178",
+        "08179",
+        "08180",
+        "08181",
+        "08182",
+        "08183",
+        "08184",
+        "08185",
+        "08187",
+        "08188",
+        "08189",
+        "08190",
+        "08191",
+        "08192",
+        "08193",
+        "08194",
+        "08195",
+        "08196",
+        "08197",
+        "08198",
+        "08199",
+        "08200",
+        "08201",
+        "08202",
+        "08203",
+        "08204",
+        "08205",
+        "08206",
+        "08207",
+        "08208",
+        "08209",
+        "08210",
+        "08211",
+        "08212",
+        "08213",
+        "08214",
+        "08215",
+        "08216",
+        "08217",
+        "08218",
+        "08219",
+        "08220",
+        "08221",
+        "08222",
+        "08223",
+        "08224",
+        "08225",
+        "08226",
+        "08227",
+        "08228",
+        "08229",
+        "08230",
+        "08231",
+        "08232",
+        "08233",
+        "08234",
+        "08235",
+        "08236",
+        "08237",
+        "08238",
+        "08239",
+        "08240",
+        "08241",
+        "08242",
+        "08243",
+        "08244",
+        "08245",
+        "08246",
+        "08247",
+        "08248",
+        "08249",
+        "08250",
+        "08251",
+        "08252",
+        "08253",
+        "08254",
+        "08255",
+        "08256",
+        "08257",
+        "08258",
+        "08259",
+        "08260",
+        "08261",
+        "08262",
+        "08263",
+        "08264",
+        "08265",
+        "08266",
+        "08267",
+        "08268",
+        "08269",
+        "08270",
+        "08271",
+        "08272",
+        "08273",
+        "08274",
+        "08275",
+        "08276",
+        "08277",
+        "08278",
+        "08279",
+        "08280",
+        "08281",
+        "08282",
+        "08283",
+        "08284",
+        "08285",
+        "08286",
+        "08287",
+        "08288",
+        "08289",
+        "08290",
+        "08291",
+        "08292",
+        "08293",
+        "08294",
+        "08295",
+        "08296",
+        "08297",
+        "08298",
+        "08299",
+        "08300",
+        "08301",
+        "08302",
+        "08303",
+        "08304",
+        "08305",
+        "08306",
+        "08307",
+        "08308",
+        "08901",
+        "08902",
+        "08903",
+        "08904",
+        "08905"
+      ],
+      "below_threshold_status": "verify"
+    },
+    "46": {
+      "name": "Valencia/València",
+      "municipality_codes": [
+        "46001",
+        "46002",
+        "46003",
+        "46004",
+        "46005",
+        "46006",
+        "46007",
+        "46008",
+        "46009",
+        "46010",
+        "46011",
+        "46012",
+        "46013",
+        "46014",
+        "46015",
+        "46016",
+        "46017",
+        "46018",
+        "46019",
+        "46020",
+        "46021",
+        "46022",
+        "46023",
+        "46024",
+        "46025",
+        "46026",
+        "46027",
+        "46028",
+        "46029",
+        "46030",
+        "46031",
+        "46032",
+        "46033",
+        "46034",
+        "46035",
+        "46036",
+        "46037",
+        "46038",
+        "46039",
+        "46040",
+        "46041",
+        "46042",
+        "46043",
+        "46044",
+        "46045",
+        "46046",
+        "46047",
+        "46048",
+        "46049",
+        "46050",
+        "46051",
+        "46052",
+        "46053",
+        "46054",
+        "46055",
+        "46056",
+        "46057",
+        "46058",
+        "46059",
+        "46060",
+        "46061",
+        "46062",
+        "46063",
+        "46064",
+        "46065",
+        "46066",
+        "46067",
+        "46068",
+        "46069",
+        "46070",
+        "46071",
+        "46072",
+        "46073",
+        "46074",
+        "46075",
+        "46076",
+        "46077",
+        "46078",
+        "46079",
+        "46080",
+        "46081",
+        "46082",
+        "46083",
+        "46084",
+        "46085",
+        "46086",
+        "46087",
+        "46088",
+        "46089",
+        "46090",
+        "46091",
+        "46092",
+        "46093",
+        "46094",
+        "46095",
+        "46096",
+        "46097",
+        "46098",
+        "46099",
+        "46100",
+        "46101",
+        "46102",
+        "46103",
+        "46104",
+        "46105",
+        "46106",
+        "46107",
+        "46108",
+        "46109",
+        "46110",
+        "46111",
+        "46112",
+        "46113",
+        "46114",
+        "46115",
+        "46116",
+        "46117",
+        "46118",
+        "46119",
+        "46120",
+        "46121",
+        "46122",
+        "46123",
+        "46124",
+        "46125",
+        "46126",
+        "46127",
+        "46128",
+        "46129",
+        "46130",
+        "46131",
+        "46132",
+        "46133",
+        "46134",
+        "46135",
+        "46136",
+        "46137",
+        "46138",
+        "46139",
+        "46140",
+        "46141",
+        "46142",
+        "46143",
+        "46144",
+        "46145",
+        "46146",
+        "46147",
+        "46148",
+        "46149",
+        "46150",
+        "46151",
+        "46152",
+        "46153",
+        "46154",
+        "46155",
+        "46156",
+        "46157",
+        "46158",
+        "46159",
+        "46160",
+        "46161",
+        "46162",
+        "46163",
+        "46164",
+        "46165",
+        "46166",
+        "46167",
+        "46168",
+        "46169",
+        "46170",
+        "46171",
+        "46172",
+        "46173",
+        "46174",
+        "46175",
+        "46176",
+        "46177",
+        "46178",
+        "46179",
+        "46180",
+        "46181",
+        "46182",
+        "46183",
+        "46184",
+        "46185",
+        "46186",
+        "46187",
+        "46188",
+        "46189",
+        "46190",
+        "46191",
+        "46192",
+        "46193",
+        "46194",
+        "46195",
+        "46196",
+        "46197",
+        "46198",
+        "46199",
+        "46200",
+        "46201",
+        "46202",
+        "46203",
+        "46204",
+        "46205",
+        "46206",
+        "46207",
+        "46208",
+        "46209",
+        "46210",
+        "46211",
+        "46212",
+        "46213",
+        "46214",
+        "46215",
+        "46216",
+        "46217",
+        "46218",
+        "46219",
+        "46220",
+        "46221",
+        "46222",
+        "46223",
+        "46224",
+        "46225",
+        "46226",
+        "46227",
+        "46228",
+        "46229",
+        "46230",
+        "46231",
+        "46232",
+        "46233",
+        "46234",
+        "46235",
+        "46236",
+        "46237",
+        "46238",
+        "46239",
+        "46240",
+        "46241",
+        "46242",
+        "46243",
+        "46244",
+        "46245",
+        "46246",
+        "46247",
+        "46248",
+        "46249",
+        "46250",
+        "46251",
+        "46252",
+        "46253",
+        "46254",
+        "46255",
+        "46256",
+        "46257",
+        "46258",
+        "46259",
+        "46260",
+        "46261",
+        "46262",
+        "46263",
+        "46902",
+        "46903",
+        "46904"
+      ],
+      "below_threshold_status": "ok"
+    }
+  },
+  "municipalities": {
+    "08001": {
+      "name": "Abrera",
+      "name_in_source": "ABRERA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08003": {
+      "name": "Alella",
+      "name_in_source": "ALELLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08004": {
+      "name": "Alpens",
+      "name_in_source": "ALPENS",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08005": {
+      "name": "Ametlla del Vallès, L'",
+      "name_in_source": "AMETLLA DEL VALLÈS, L'",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08006": {
+      "name": "Arenys de Mar",
+      "name_in_source": "ARENYS DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08007": {
+      "name": "Arenys de Munt",
+      "name_in_source": "ARENYS DE MUNT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08009": {
+      "name": "Argentona",
+      "name_in_source": "ARGENTONA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08010": {
+      "name": "Artés",
+      "name_in_source": "ARTÉS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08011": {
+      "name": "Avià",
+      "name_in_source": "AVIÀ",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08012": {
+      "name": "Avinyó",
+      "name_in_source": "AVINYÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08013": {
+      "name": "Avinyonet del Penedès",
+      "name_in_source": "AVINYONET DEL PENEDÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08014": {
+      "name": "Aiguafreda",
+      "name_in_source": "AIGUAFREDA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08015": {
+      "name": "Badalona",
+      "name_in_source": "BADALONA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08016": {
+      "name": "Bagà",
+      "name_in_source": "BAGÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08017": {
+      "name": "Balenyà",
+      "name_in_source": "BALENYÀ",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08018": {
+      "name": "Balsareny",
+      "name_in_source": "BALSARENY",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08019": {
+      "name": "Barcelona",
+      "name_in_source": "BARCELONA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08020": {
+      "name": "Begues",
+      "name_in_source": "BEGUES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08021": {
+      "name": "Bellprat",
+      "name_in_source": "BELLPRAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08022": {
+      "name": "Berga",
+      "name_in_source": "BERGA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08023": {
+      "name": "Bigues i Riells del Fai",
+      "name_in_source": "BIGUES I RIELLS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "08024": {
+      "name": "Borredà",
+      "name_in_source": "BORREDÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08025": {
+      "name": "Bruc, El",
+      "name_in_source": "BRUC, EL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08026": {
+      "name": "Brull, El",
+      "name_in_source": "BRULL, EL",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08027": {
+      "name": "Cabanyes, Les",
+      "name_in_source": "CABANYES, LES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08028": {
+      "name": "Cabrera d'Anoia",
+      "name_in_source": "CABRERA D'IGUALADA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "08029": {
+      "name": "Cabrera de Mar",
+      "name_in_source": "CABRERA DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08030": {
+      "name": "Cabrils",
+      "name_in_source": "CABRILS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08032": {
+      "name": "Caldes d'Estrac",
+      "name_in_source": "CALDES D'ESTRAC",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08033": {
+      "name": "Caldes de Montbui",
+      "name_in_source": "CALDES DE MONTBUI",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08034": {
+      "name": "Calders",
+      "name_in_source": "CALDERS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08035": {
+      "name": "Calella",
+      "name_in_source": "CALELLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08037": {
+      "name": "Calldetenes",
+      "name_in_source": "CALLDETENES",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08039": {
+      "name": "Campins",
+      "name_in_source": "CAMPINS",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08040": {
+      "name": "Canet de Mar",
+      "name_in_source": "CANET DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08041": {
+      "name": "Canovelles",
+      "name_in_source": "CANOVELLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08042": {
+      "name": "Cànoves i Samalús",
+      "name_in_source": "CÀNOVES I SAMALÚS",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08043": {
+      "name": "Canyelles",
+      "name_in_source": "CANYELLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08044": {
+      "name": "Capellades",
+      "name_in_source": "CAPELLADES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08045": {
+      "name": "Capolat",
+      "name_in_source": "CAPOLAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08046": {
+      "name": "Cardedeu",
+      "name_in_source": "CARDEDEU",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08048": {
+      "name": "Carme",
+      "name_in_source": "CARME",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08049": {
+      "name": "Casserres",
+      "name_in_source": "CASSERRES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08050": {
+      "name": "Castellar del Riu",
+      "name_in_source": "CASTELLAR DEL RIU",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08051": {
+      "name": "Castellar del Vallès",
+      "name_in_source": "CASTELLAR DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08052": {
+      "name": "Castellar de n'Hug",
+      "name_in_source": "CASTELLAR DE N'HUG",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08053": {
+      "name": "Castellbell i el Vilar",
+      "name_in_source": "CASTELLBELL I EL VILAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08054": {
+      "name": "Castellbisbal",
+      "name_in_source": "CASTELLBISBAL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08055": {
+      "name": "Castellcir",
+      "name_in_source": "CASTELLCIR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08056": {
+      "name": "Castelldefels",
+      "name_in_source": "CASTELLDEFELS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08057": {
+      "name": "Castell de l'Areny",
+      "name_in_source": "CASTELL DE L'ARENY",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08058": {
+      "name": "Castellet i la Gornal",
+      "name_in_source": "CASTELLET I LA GORNAL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08059": {
+      "name": "Castellfollit del Boix",
+      "name_in_source": "CASTELLFOLLIT DEL BOIX",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08061": {
+      "name": "Castellgalí",
+      "name_in_source": "CASTELLGALÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08063": {
+      "name": "Castellolí",
+      "name_in_source": "CASTELLOLÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08064": {
+      "name": "Castellterçol",
+      "name_in_source": "CASTELLTERÇOL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08065": {
+      "name": "Castellví de la Marca",
+      "name_in_source": "CASTELLVÍ DE LA MARCA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08066": {
+      "name": "Castellví de Rosanes",
+      "name_in_source": "CASTELLVÍ DE ROSANES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08067": {
+      "name": "Centelles",
+      "name_in_source": "CENTELLES",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08068": {
+      "name": "Cervelló",
+      "name_in_source": "CERVELLÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08069": {
+      "name": "Collbató",
+      "name_in_source": "COLLBATÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08070": {
+      "name": "Collsuspina",
+      "name_in_source": "COLLSUSPINA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08072": {
+      "name": "Corbera de Llobregat",
+      "name_in_source": "CORBERA DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08073": {
+      "name": "Cornellà de Llobregat",
+      "name_in_source": "CORNELLÀ DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08074": {
+      "name": "Cubelles",
+      "name_in_source": "CUBELLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08075": {
+      "name": "Dosrius",
+      "name_in_source": "DOSRIUS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08076": {
+      "name": "Esparreguera",
+      "name_in_source": "ESPARREGUERA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08077": {
+      "name": "Esplugues de Llobregat",
+      "name_in_source": "ESPLUGUES DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08078": {
+      "name": "Espunyola, L'",
+      "name_in_source": "ESPUNYOLA, L'",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08079": {
+      "name": "Estany, L'",
+      "name_in_source": "ESTANY, L'",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08080": {
+      "name": "Fígols",
+      "name_in_source": "FÍGOLS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08081": {
+      "name": "Fogars de Montclús",
+      "name_in_source": "FOGARS DE MONTCLÚS",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08082": {
+      "name": "Fogars de la Selva",
+      "name_in_source": "FOGARS DE LA SELVA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08083": {
+      "name": "Folgueroles",
+      "name_in_source": "FOLGUEROLES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08085": {
+      "name": "Font-rubí",
+      "name_in_source": "FONT RUBÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08086": {
+      "name": "Franqueses del Vallès, Les",
+      "name_in_source": "FRANQUESES DEL VALLÈS, LES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08087": {
+      "name": "Gallifa",
+      "name_in_source": "GALLIFA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08088": {
+      "name": "Garriga, La",
+      "name_in_source": "GARRIGA, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08089": {
+      "name": "Gavà",
+      "name_in_source": "GAVÀ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08090": {
+      "name": "Gaià",
+      "name_in_source": "GAIÀ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08091": {
+      "name": "Gelida",
+      "name_in_source": "GELIDA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08092": {
+      "name": "Gironella",
+      "name_in_source": "GIRONELLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08093": {
+      "name": "Gisclareny",
+      "name_in_source": "GISCLARENY",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08094": {
+      "name": "Granada, La",
+      "name_in_source": "GRANADA, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08095": {
+      "name": "Granera",
+      "name_in_source": "GRANERA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08096": {
+      "name": "Granollers",
+      "name_in_source": "GRANOLLERS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08097": {
+      "name": "Gualba",
+      "name_in_source": "GUALBA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08098": {
+      "name": "Sant Salvador de Guardiola",
+      "name_in_source": "SANT SALVADOR DE GUARDIOLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08099": {
+      "name": "Guardiola de Berguedà",
+      "name_in_source": "GUARDIOLA DE BERGUEDÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08100": {
+      "name": "Gurb",
+      "name_in_source": "GURB",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08101": {
+      "name": "Hospitalet de Llobregat, L'",
+      "name_in_source": "HOSPITALET DE LLOBREGAT, L'",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08102": {
+      "name": "Igualada",
+      "name_in_source": "IGUALADA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08103": {
+      "name": "Jorba",
+      "name_in_source": "JORBA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08104": {
+      "name": "Llacuna, La",
+      "name_in_source": "LLACUNA, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08105": {
+      "name": "Llagosta, La",
+      "name_in_source": "LLAGOSTA, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08106": {
+      "name": "Llinars del Vallès",
+      "name_in_source": "LLINARS DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08107": {
+      "name": "Lliçà d'Amunt",
+      "name_in_source": "LLIÇÀ D'AMUNT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08108": {
+      "name": "Lliçà de Vall",
+      "name_in_source": "LLIÇÀ DE VALL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08109": {
+      "name": "Lluçà",
+      "name_in_source": "LLUÇÀ",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08110": {
+      "name": "Malgrat de Mar",
+      "name_in_source": "MALGRAT DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08111": {
+      "name": "Malla",
+      "name_in_source": "MALLA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08112": {
+      "name": "Manlleu",
+      "name_in_source": "MANLLEU",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08113": {
+      "name": "Manresa",
+      "name_in_source": "MANRESA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08114": {
+      "name": "Martorell",
+      "name_in_source": "MARTORELL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08115": {
+      "name": "Martorelles",
+      "name_in_source": "MARTORELLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08116": {
+      "name": "Masies de Roda, Les",
+      "name_in_source": "MASIES DE RODA, LES",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08117": {
+      "name": "Masies de Voltregà, Les",
+      "name_in_source": "MASIES DE VOLTREGÀ, LES",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08118": {
+      "name": "Masnou, El",
+      "name_in_source": "MASNOU, EL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08119": {
+      "name": "Masquefa",
+      "name_in_source": "MASQUEFA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08120": {
+      "name": "Matadepera",
+      "name_in_source": "MATADEPERA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08121": {
+      "name": "Mataró",
+      "name_in_source": "MATARÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08122": {
+      "name": "Mediona",
+      "name_in_source": "MEDIONA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08123": {
+      "name": "Molins de Rei",
+      "name_in_source": "MOLINS DE REI",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08124": {
+      "name": "Mollet del Vallès",
+      "name_in_source": "MOLLET DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08125": {
+      "name": "Montcada i Reixac",
+      "name_in_source": "MONTCADA I REIXAC",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08126": {
+      "name": "Montgat",
+      "name_in_source": "MONTGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08127": {
+      "name": "Monistrol de Montserrat",
+      "name_in_source": "MONISTROL DE MONTSERRAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08128": {
+      "name": "Monistrol de Calders",
+      "name_in_source": "MONISTROL DE CALDERS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08129": {
+      "name": "Muntanyola",
+      "name_in_source": "MUNTANYOLA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08130": {
+      "name": "Montclar",
+      "name_in_source": "MONTCLAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08131": {
+      "name": "Montesquiu",
+      "name_in_source": "MONTESQUIU",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08134": {
+      "name": "Figaró-Montmany",
+      "name_in_source": "FIGARÓ MONTMANY",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08135": {
+      "name": "Montmeló",
+      "name_in_source": "MONTMELÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08136": {
+      "name": "Montornès del Vallès",
+      "name_in_source": "MONTORNÈS DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08137": {
+      "name": "Montseny",
+      "name_in_source": "MONTSENY",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08138": {
+      "name": "Moià",
+      "name_in_source": "MOIÀ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08139": {
+      "name": "Mura",
+      "name_in_source": "MURA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08140": {
+      "name": "Navarcles",
+      "name_in_source": "NAVARCLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08142": {
+      "name": "Nou de Berguedà, La",
+      "name_in_source": "NOU DE BERGUEDÀ, LA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08143": {
+      "name": "Òdena",
+      "name_in_source": "ÒDENA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08144": {
+      "name": "Olvan",
+      "name_in_source": "OLVAN",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08145": {
+      "name": "Olèrdola",
+      "name_in_source": "OLÈRDOLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08146": {
+      "name": "Olesa de Bonesvalls",
+      "name_in_source": "OLESA DE BONESVALLS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08147": {
+      "name": "Olesa de Montserrat",
+      "name_in_source": "OLESA DE MONTSERRAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08148": {
+      "name": "Olivella",
+      "name_in_source": "OLIVELLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08149": {
+      "name": "Olost",
+      "name_in_source": "OLOST",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08150": {
+      "name": "Orís",
+      "name_in_source": "ORÍS",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08151": {
+      "name": "Oristà",
+      "name_in_source": "ORISTÀ",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08152": {
+      "name": "Orpí",
+      "name_in_source": "ORPÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08153": {
+      "name": "Òrrius",
+      "name_in_source": "ÒRRIUS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08154": {
+      "name": "Pacs del Penedès",
+      "name_in_source": "PACS DEL PENEDÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08155": {
+      "name": "Palafolls",
+      "name_in_source": "PALAFOLLS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08156": {
+      "name": "Palau-solità i Plegamans",
+      "name_in_source": "PALAU SOLITÀ I PLEGAMANS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08157": {
+      "name": "Pallejà",
+      "name_in_source": "PALLEJÀ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08158": {
+      "name": "Papiol, El",
+      "name_in_source": "PAPIOL, EL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08159": {
+      "name": "Parets del Vallès",
+      "name_in_source": "PARETS DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08160": {
+      "name": "Perafita",
+      "name_in_source": "PERAFITA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08161": {
+      "name": "Piera",
+      "name_in_source": "PIERA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08162": {
+      "name": "Hostalets de Pierola, Els",
+      "name_in_source": "HOSTALETS DE PIEROLA, ELS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08163": {
+      "name": "Pineda de Mar",
+      "name_in_source": "PINEDA DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08164": {
+      "name": "Pla del Penedès, El",
+      "name_in_source": "PLA DEL PENEDÈS, EL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08165": {
+      "name": "Pobla de Claramunt, La",
+      "name_in_source": "POBLA DE CLARAMUNT, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08166": {
+      "name": "Pobla de Lillet, La",
+      "name_in_source": "POBLA DE LILLET, LA",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08167": {
+      "name": "Polinyà",
+      "name_in_source": "POLINYÀ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08168": {
+      "name": "Pontons",
+      "name_in_source": "PONTONS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08169": {
+      "name": "Prat de Llobregat, El",
+      "name_in_source": "PRAT DE LLOBREGAT, EL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08171": {
+      "name": "Prats de Lluçanès",
+      "name_in_source": "PRATS DE LLUÇANÈS",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08172": {
+      "name": "Premià de Mar",
+      "name_in_source": "PREMIÀ DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08174": {
+      "name": "Puigdàlber",
+      "name_in_source": "PUIGDÀLBER",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08175": {
+      "name": "Puig-reig",
+      "name_in_source": "PUIG REIG",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08177": {
+      "name": "Quar, La",
+      "name_in_source": "QUAR, LA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08179": {
+      "name": "Rellinars",
+      "name_in_source": "RELLINARS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08180": {
+      "name": "Ripollet",
+      "name_in_source": "RIPOLLET",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08181": {
+      "name": "Roca del Vallès, La",
+      "name_in_source": "ROCA DEL VALLÈS, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08182": {
+      "name": "Pont de Vilomara i Rocafort, El",
+      "name_in_source": "PONT DE VILOMARA I ROCAFORT, EL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08183": {
+      "name": "Roda de Ter",
+      "name_in_source": "RODA DE TER",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08184": {
+      "name": "Rubí",
+      "name_in_source": "RUBÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08185": {
+      "name": "Rubió",
+      "name_in_source": "RUBIÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08187": {
+      "name": "Sabadell",
+      "name_in_source": "SABADELL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08188": {
+      "name": "Sagàs",
+      "name_in_source": "SAGÀS",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08190": {
+      "name": "Saldes",
+      "name_in_source": "SALDES",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08191": {
+      "name": "Sallent",
+      "name_in_source": "SALLENT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08192": {
+      "name": "Santpedor",
+      "name_in_source": "SANTPEDOR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08193": {
+      "name": "Sant Iscle de Vallalta",
+      "name_in_source": "SANT ISCLE DE VALLALTA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08194": {
+      "name": "Sant Adrià de Besòs",
+      "name_in_source": "SANT ADRIÀ DE BESÒS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08195": {
+      "name": "Sant Agustí de Lluçanès",
+      "name_in_source": "SANT AGUSTÍ DE LLUÇANÈS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08196": {
+      "name": "Sant Andreu de la Barca",
+      "name_in_source": "SANT ANDREU DE LA BARCA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08197": {
+      "name": "Sant Andreu de Llavaneres",
+      "name_in_source": "SANT ANDREU DE LLAVANERES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08198": {
+      "name": "Sant Antoni de Vilamajor",
+      "name_in_source": "SANT ANTONI DE VILAMAJOR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08199": {
+      "name": "Sant Bartomeu del Grau",
+      "name_in_source": "SANT BARTOMEU DEL GRAU",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08200": {
+      "name": "Sant Boi de Llobregat",
+      "name_in_source": "SANT BOI DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08201": {
+      "name": "Sant Boi de Lluçanès",
+      "name_in_source": "SANT BOI DE LLUÇANÈS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08202": {
+      "name": "Sant Celoni",
+      "name_in_source": "SANT CELONI",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08203": {
+      "name": "Sant Cebrià de Vallalta",
+      "name_in_source": "SANT CEBRIÀ DE VALLALTA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08204": {
+      "name": "Sant Climent de Llobregat",
+      "name_in_source": "SANT CLIMENT DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08205": {
+      "name": "Sant Cugat del Vallès",
+      "name_in_source": "SANT CUGAT DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08206": {
+      "name": "Sant Cugat Sesgarrigues",
+      "name_in_source": "SANT CUGAT SESGARRIGUES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08207": {
+      "name": "Sant Esteve de Palautordera",
+      "name_in_source": "SANT ESTEVE DE PALAUTORDERA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08208": {
+      "name": "Sant Esteve Sesrovires",
+      "name_in_source": "SANT ESTEVE SESROVIRES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08209": {
+      "name": "Sant Fost de Campsentelles",
+      "name_in_source": "SANT FOST DE CAMPSENTELLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08210": {
+      "name": "Sant Feliu de Codines",
+      "name_in_source": "SANT FELIU DE CODINES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08211": {
+      "name": "Sant Feliu de Llobregat",
+      "name_in_source": "SANT FELIU DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08212": {
+      "name": "Sant Feliu Sasserra",
+      "name_in_source": "SANT FELIU SASSERRA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08213": {
+      "name": "Sant Fruitós de Bages",
+      "name_in_source": "SANT FRUITÓS DE BAGES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08214": {
+      "name": "Vilassar de Dalt",
+      "name_in_source": "VILASSAR DE DALT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08215": {
+      "name": "Sant Hipòlit de Voltregà",
+      "name_in_source": "SANT HIPÒLIT DE VOLTREGÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08216": {
+      "name": "Sant Jaume de Frontanyà",
+      "name_in_source": "SANT JAUME DE FRONTANYÀ",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08217": {
+      "name": "Sant Joan Despí",
+      "name_in_source": "SANT JOAN DESPÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08218": {
+      "name": "Sant Joan de Vilatorrada",
+      "name_in_source": "SANT JOAN DE VILATORRADA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08219": {
+      "name": "Vilassar de Mar",
+      "name_in_source": "VILASSAR DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08220": {
+      "name": "Sant Julià de Vilatorta",
+      "name_in_source": "SANT JULIÀ DE VILATORTA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08221": {
+      "name": "Sant Just Desvern",
+      "name_in_source": "SANT JUST DESVERN",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08222": {
+      "name": "Sant Llorenç d'Hortons",
+      "name_in_source": "SANT LLORENÇ D'HORTONS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08223": {
+      "name": "Sant Llorenç Savall",
+      "name_in_source": "SANT LLORENÇ SAVALL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08224": {
+      "name": "Sant Martí de Centelles",
+      "name_in_source": "SANT MARTÍ DE CENTELLES",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08225": {
+      "name": "Sant Martí d'Albars",
+      "name_in_source": "SANT MARTÍ D'ALBARS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08226": {
+      "name": "Sant Martí de Tous",
+      "name_in_source": "SANT MARTÍ DE TOUS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08227": {
+      "name": "Sant Martí Sarroca",
+      "name_in_source": "SANT MARTÍ SARROCA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08230": {
+      "name": "Premià de Dalt",
+      "name_in_source": "PREMIÀ DE DALT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08231": {
+      "name": "Sant Pere de Ribes",
+      "name_in_source": "SANT PERE DE RIBES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08232": {
+      "name": "Sant Pere de Riudebitlles",
+      "name_in_source": "SANT PERE DE RIUDEBITLLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08233": {
+      "name": "Sant Pere de Torelló",
+      "name_in_source": "SANT PERE DE TORELLÓ",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08234": {
+      "name": "Sant Pere de Vilamajor",
+      "name_in_source": "SANT PERE DE VILAMAJOR",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08235": {
+      "name": "Sant Pol de Mar",
+      "name_in_source": "SANT POL DE MAR",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08236": {
+      "name": "Sant Quintí de Mediona",
+      "name_in_source": "SANT QUINTÍ DE MEDIONA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08237": {
+      "name": "Sant Quirze de Besora",
+      "name_in_source": "SANT QUIRZE DE BESORA",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08238": {
+      "name": "Sant Quirze del Vallès",
+      "name_in_source": "SANT QUIRZE DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08239": {
+      "name": "Sant Quirze Safaja",
+      "name_in_source": "SANT QUIRZE SAFAJA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08240": {
+      "name": "Sant Sadurní d'Anoia",
+      "name_in_source": "SANT SADURNÍ D'ANOIA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08241": {
+      "name": "Sant Sadurní d'Osormort",
+      "name_in_source": "SANT SADURNÍ D'OSORMORT",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08242": {
+      "name": "Marganell",
+      "name_in_source": "MARGANELL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08243": {
+      "name": "Santa Cecília de Voltregà",
+      "name_in_source": "SANTA CECÍLIA DE VOLTREGÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08244": {
+      "name": "Santa Coloma de Cervelló",
+      "name_in_source": "SANTA COLOMA DE CERVELLÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08245": {
+      "name": "Santa Coloma de Gramenet",
+      "name_in_source": "SANTA COLOMA DE GRAMENET",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08246": {
+      "name": "Santa Eugènia de Berga",
+      "name_in_source": "SANTA EUGÈNIA DE BERGA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08247": {
+      "name": "Santa Eulàlia de Riuprimer",
+      "name_in_source": "SANTA EULÀLIA DE RIUPRIMER",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08248": {
+      "name": "Santa Eulàlia de Ronçana",
+      "name_in_source": "SANTA EULÀLIA DE RONÇANA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08249": {
+      "name": "Santa Fe del Penedès",
+      "name_in_source": "SANTA FE DEL PENEDÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08250": {
+      "name": "Santa Margarida de Montbui",
+      "name_in_source": "SANTA MARGARIDA DE MONTBUI",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08251": {
+      "name": "Santa Margarida i els Monjos",
+      "name_in_source": "SANTA MARGARIDA I ELS MONJOS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08252": {
+      "name": "Barberà del Vallès",
+      "name_in_source": "BARBERÀ DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08253": {
+      "name": "Santa Maria de Besora",
+      "name_in_source": "SANTA MARIA DE BESORA",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08254": {
+      "name": "Esquirol, L'",
+      "name_in_source": "SANTA MARIA DE CORCÓ",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "08255": {
+      "name": "Santa Maria de Merlès",
+      "name_in_source": "SANTA MARIA DE MERLÈS",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08256": {
+      "name": "Santa Maria de Martorelles",
+      "name_in_source": "SANTA MARIA DE MARTORELLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08257": {
+      "name": "Santa Maria de Miralles",
+      "name_in_source": "SANTA MARIA DE MIRALLES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08258": {
+      "name": "Santa Maria d'Oló",
+      "name_in_source": "SANTA MARIA D'OLÓ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08259": {
+      "name": "Santa Maria de Palautordera",
+      "name_in_source": "SANTA MARIA DE PALAUTORDERA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08260": {
+      "name": "Santa Perpètua de Mogoda",
+      "name_in_source": "SANTA PERPÈTUA DE MOGODA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08261": {
+      "name": "Santa Susanna",
+      "name_in_source": "SANTA SUSANNA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08262": {
+      "name": "Sant Vicenç de Castellet",
+      "name_in_source": "SANT VICENÇ DE CASTELLET",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08263": {
+      "name": "Sant Vicenç dels Horts",
+      "name_in_source": "SANT VICENÇ DELS HORTS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08264": {
+      "name": "Sant Vicenç de Montalt",
+      "name_in_source": "SANT VICENÇ DE MONTALT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08265": {
+      "name": "Sant Vicenç de Torelló",
+      "name_in_source": "SANT VICENÇ DE TORELLÓ",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08266": {
+      "name": "Cerdanyola del Vallès",
+      "name_in_source": "CERDANYOLA DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08267": {
+      "name": "Sentmenat",
+      "name_in_source": "SENTMENAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08268": {
+      "name": "Cercs",
+      "name_in_source": "CERCS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08269": {
+      "name": "Seva",
+      "name_in_source": "SEVA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08270": {
+      "name": "Sitges",
+      "name_in_source": "SITGES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08271": {
+      "name": "Sobremunt",
+      "name_in_source": "SOBREMUNT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08272": {
+      "name": "Sora",
+      "name_in_source": "SORA",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08273": {
+      "name": "Subirats",
+      "name_in_source": "SUBIRATS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08275": {
+      "name": "Tavèrnoles",
+      "name_in_source": "TAVÈRNOLES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08276": {
+      "name": "Tagamanent",
+      "name_in_source": "TAGAMANENT",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08277": {
+      "name": "Talamanca",
+      "name_in_source": "TALAMANCA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08278": {
+      "name": "Taradell",
+      "name_in_source": "TARADELL",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08279": {
+      "name": "Terrassa",
+      "name_in_source": "TERRASSA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08280": {
+      "name": "Tavertet",
+      "name_in_source": "TAVERTET",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08281": {
+      "name": "Teià",
+      "name_in_source": "TEIÀ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08282": {
+      "name": "Tiana",
+      "name_in_source": "TIANA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08283": {
+      "name": "Tona",
+      "name_in_source": "TONA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08284": {
+      "name": "Tordera",
+      "name_in_source": "TORDERA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08285": {
+      "name": "Torelló",
+      "name_in_source": "TORELLÓ",
+      "ab": "0,08 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08286": {
+      "name": "Torre de Claramunt, La",
+      "name_in_source": "TORRE DE CLARAMUNT, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08287": {
+      "name": "Torrelavit",
+      "name_in_source": "TORRELAVIT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08288": {
+      "name": "Torrelles de Foix",
+      "name_in_source": "TORRELLES DE FOIX",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08289": {
+      "name": "Torrelles de Llobregat",
+      "name_in_source": "TORRELLES DE LLOBREGAT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08290": {
+      "name": "Ullastrell",
+      "name_in_source": "ULLASTRELL",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08291": {
+      "name": "Vacarisses",
+      "name_in_source": "VACARISSES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08292": {
+      "name": "Vallbona d'Anoia",
+      "name_in_source": "VALLBONA D'ANOIA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08293": {
+      "name": "Vallcebre",
+      "name_in_source": "VALLCEBRE",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08294": {
+      "name": "Vallgorguina",
+      "name_in_source": "VALLGORGUINA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08295": {
+      "name": "Vallirana",
+      "name_in_source": "VALLIRANA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08296": {
+      "name": "Vallromanes",
+      "name_in_source": "VALLROMANES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08298": {
+      "name": "Vic",
+      "name_in_source": "VIC",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08299": {
+      "name": "Vilada",
+      "name_in_source": "VILADA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08300": {
+      "name": "Viladecavalls",
+      "name_in_source": "VILADECAVALLS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08301": {
+      "name": "Viladecans",
+      "name_in_source": "VILADECANS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08302": {
+      "name": "Vilanova del Camí",
+      "name_in_source": "VILANOVA DEL CAMÍ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08303": {
+      "name": "Vilanova de Sau",
+      "name_in_source": "VILANOVA DE SAU",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08304": {
+      "name": "Vilobí del Penedès",
+      "name_in_source": "VILOBÍ DEL PENEDÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08305": {
+      "name": "Vilafranca del Penedès",
+      "name_in_source": "VILAFRANCA DEL PENEDÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08306": {
+      "name": "Vilalba Sasserra",
+      "name_in_source": "VILALBA SASSERRA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08307": {
+      "name": "Vilanova i la Geltrú",
+      "name_in_source": "VILANOVA I LA GELTRÚ",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08901": {
+      "name": "Rupit i Pruit",
+      "name_in_source": "RUPIT I PRUIT",
+      "ab": "0,09 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "08902": {
+      "name": "Vilanova del Vallès",
+      "name_in_source": "VILANOVA DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08903": {
+      "name": "Sant Julià de Cerdanyola",
+      "name_in_source": "SANT JULIÀ DE CERDANYOLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35957"
+    },
+    "08904": {
+      "name": "Badia del Vallès",
+      "name_in_source": "BADIA DEL VALLÈS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35955"
+    },
+    "08905": {
+      "name": "Palma de Cervelló, La",
+      "name_in_source": "PALMA DE CERVELLÓ, LA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35956"
+    },
+    "46002": {
+      "name": "Ador",
+      "name_in_source": "ADOR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46003": {
+      "name": "Atzeneta d'Albaida",
+      "name_in_source": "ATZENETA D'ALBAIDA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46004": {
+      "name": "Agullent",
+      "name_in_source": "AGULLENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46005": {
+      "name": "Alaquàs",
+      "name_in_source": "ALAQUÀS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46006": {
+      "name": "Albaida",
+      "name_in_source": "ALBAIDA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46007": {
+      "name": "Albal",
+      "name_in_source": "ALBAL",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46008": {
+      "name": "Albalat de la Ribera",
+      "name_in_source": "ALBALAT DE LA RIBERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46009": {
+      "name": "Albalat dels Sorells",
+      "name_in_source": "ALBALAT DELS SORELLS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46010": {
+      "name": "Albalat dels Tarongers",
+      "name_in_source": "ALBALAT DELS TARONGERS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46011": {
+      "name": "Alberic",
+      "name_in_source": "ALBERIC",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46012": {
+      "name": "Alborache",
+      "name_in_source": "ALBORACHE",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46013": {
+      "name": "Alboraia/Alboraya",
+      "name_in_source": "ALBORAYA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46014": {
+      "name": "Albuixech",
+      "name_in_source": "ALBUIXECH",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46015": {
+      "name": "Alcàsser",
+      "name_in_source": "ALCÀSSER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46016": {
+      "name": "Alcàntera de Xúquer",
+      "name_in_source": "ALCÀNTERA DE XÚQUER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46017": {
+      "name": "Alzira",
+      "name_in_source": "ALZIRA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46019": {
+      "name": "Alcúdia, l'",
+      "name_in_source": "ALCÚDIA, L'",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46020": {
+      "name": "Alcúdia de Crespins, l'",
+      "name_in_source": "ALCÚDIA DE CRESPINS, L'",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46021": {
+      "name": "Aldaia",
+      "name_in_source": "ALDAIA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46022": {
+      "name": "Alfafar",
+      "name_in_source": "ALFAFAR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46023": {
+      "name": "Alfauir",
+      "name_in_source": "ALFAUIR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46025": {
+      "name": "Alfara del Patriarca",
+      "name_in_source": "ALFARA DEL PATRIARCA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46026": {
+      "name": "Alfarb",
+      "name_in_source": "ALFARP",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46027": {
+      "name": "Alfarrasí",
+      "name_in_source": "ALFARRASÍ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46029": {
+      "name": "Algemesí",
+      "name_in_source": "ALGEMESÍ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46030": {
+      "name": "Algímia d'Alfara",
+      "name_in_source": "ALGIMIA DE ALFARA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46031": {
+      "name": "Alginet",
+      "name_in_source": "ALGINET",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46032": {
+      "name": "Almàssera",
+      "name_in_source": "ALMÀSSERA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46033": {
+      "name": "Almiserà",
+      "name_in_source": "ALMISERÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46034": {
+      "name": "Almoines",
+      "name_in_source": "ALMOINES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46035": {
+      "name": "Almussafes",
+      "name_in_source": "ALMUSSAFES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46037": {
+      "name": "Alqueria de la Comtessa, l'",
+      "name_in_source": "ALQUERÍA DE LA CONDESA/ ALQUERÍA DE LA COMTESSA, L'",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46039": {
+      "name": "Anna",
+      "name_in_source": "ANNA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46040": {
+      "name": "Antella",
+      "name_in_source": "ANTELLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46042": {
+      "name": "Aielo de Malferit",
+      "name_in_source": "AIELO DE MALFERIT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46043": {
+      "name": "Aielo de Rugat",
+      "name_in_source": "AIELO DE RUGAT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46044": {
+      "name": "Ayora",
+      "name_in_source": "AYORA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46045": {
+      "name": "Barxeta",
+      "name_in_source": "BARXETA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46046": {
+      "name": "Barx",
+      "name_in_source": "BARX",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46047": {
+      "name": "Bèlgida",
+      "name_in_source": "BÈLGIDA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46048": {
+      "name": "Bellreguard",
+      "name_in_source": "BELLREGUARD",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46049": {
+      "name": "Bellús",
+      "name_in_source": "BELLÚS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46051": {
+      "name": "Benaguasil",
+      "name_in_source": "BENAGUASIL",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46053": {
+      "name": "Beneixida",
+      "name_in_source": "BENEIXIDA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35961"
+    },
+    "46054": {
+      "name": "Benetússer",
+      "name_in_source": "BENETÚSSER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46055": {
+      "name": "Beniarjó",
+      "name_in_source": "BENIARJÓ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46056": {
+      "name": "Beniatjar",
+      "name_in_source": "BENIATJAR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46057": {
+      "name": "Benicolet",
+      "name_in_source": "BENICOLET",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46059": {
+      "name": "Benifairó de la Valldigna",
+      "name_in_source": "BENIFAIRÓ DE LA VALLDIGNA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46060": {
+      "name": "Benifaió",
+      "name_in_source": "BENIFAIÓ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46061": {
+      "name": "Beniflá",
+      "name_in_source": "BENIFLÁ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46062": {
+      "name": "Benigànim",
+      "name_in_source": "BENIGÁNIM",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46063": {
+      "name": "Benimodo",
+      "name_in_source": "BENIMODO",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46064": {
+      "name": "Benimuslem",
+      "name_in_source": "BENIMUSLEM",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46065": {
+      "name": "Beniparrell",
+      "name_in_source": "BENIPARRELL",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46066": {
+      "name": "Benirredrà",
+      "name_in_source": "BENIRREDRÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46067": {
+      "name": "Benissanó",
+      "name_in_source": "BENISANÓ",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46068": {
+      "name": "Benissoda",
+      "name_in_source": "BENISODA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46069": {
+      "name": "Benissuera",
+      "name_in_source": "BENISUERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46070": {
+      "name": "Bétera",
+      "name_in_source": "BÉTERA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46071": {
+      "name": "Bicorp",
+      "name_in_source": "BICORP",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46072": {
+      "name": "Bocairent",
+      "name_in_source": "BOCAIRENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46073": {
+      "name": "Bolbaite",
+      "name_in_source": "BOLBAITE",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46074": {
+      "name": "Bonrepòs i Mirambell",
+      "name_in_source": "BONREPÒS I MIRAMBELL",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46075": {
+      "name": "Bufali",
+      "name_in_source": "BUFALI",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46077": {
+      "name": "Buñol",
+      "name_in_source": "BUÑOL",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46078": {
+      "name": "Burjassot",
+      "name_in_source": "BURJASSOT",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46081": {
+      "name": "Canals",
+      "name_in_source": "CANALS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46082": {
+      "name": "Canet d'En Berenguer",
+      "name_in_source": "CANET D'EN BERENGUER",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46083": {
+      "name": "Carcaixent",
+      "name_in_source": "CARCAIXENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46084": {
+      "name": "Càrcer",
+      "name_in_source": "CÀRCER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46085": {
+      "name": "Carlet",
+      "name_in_source": "CARLET",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46086": {
+      "name": "Carrícola",
+      "name_in_source": "CARRÍCOLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46090": {
+      "name": "Castelló de Rugat",
+      "name_in_source": "CASTELLÓ DE RUGAT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46091": {
+      "name": "Castellonet de la Conquesta",
+      "name_in_source": "CASTELLONET DE LA CONQUESTA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46093": {
+      "name": "Catadau",
+      "name_in_source": "CATADAU",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46094": {
+      "name": "Catarroja",
+      "name_in_source": "CATARROJA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46096": {
+      "name": "Cerdà",
+      "name_in_source": "CERDÀ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46097": {
+      "name": "Cofrentes",
+      "name_in_source": "COFRENTES",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46098": {
+      "name": "Corbera",
+      "name_in_source": "CORBERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46099": {
+      "name": "Cortes de Pallás",
+      "name_in_source": "CORTES DE PALLÁS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46100": {
+      "name": "Cotes",
+      "name_in_source": "COTES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46102": {
+      "name": "Quart de Poblet",
+      "name_in_source": "QUART DE POBLET",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46104": {
+      "name": "Quatretonda",
+      "name_in_source": "QUATRETONDA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46105": {
+      "name": "Cullera",
+      "name_in_source": "CULLERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46107": {
+      "name": "Chella",
+      "name_in_source": "CHELLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46109": {
+      "name": "Cheste",
+      "name_in_source": "CHESTE",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46110": {
+      "name": "Xirivella",
+      "name_in_source": "XIRIVELLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46111": {
+      "name": "Chiva",
+      "name_in_source": "CHIVA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46113": {
+      "name": "Daimús",
+      "name_in_source": "DAIMÚS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46115": {
+      "name": "Dos Aguas",
+      "name_in_source": "DOS AGUAS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46116": {
+      "name": "Eliana, l'",
+      "name_in_source": "ELIANA, L'",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46117": {
+      "name": "Emperador",
+      "name_in_source": "EMPERADOR",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46118": {
+      "name": "Enguera",
+      "name_in_source": "ENGUERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46119": {
+      "name": "Énova, l'",
+      "name_in_source": "ÈNOVA, L'",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46120": {
+      "name": "Estivella",
+      "name_in_source": "ESTIVELLA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46121": {
+      "name": "Estubeny",
+      "name_in_source": "ESTUBENY",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46123": {
+      "name": "Favara",
+      "name_in_source": "FAVARA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46124": {
+      "name": "Fontanars dels Alforins",
+      "name_in_source": "FONTANARS DELS ALFORINS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46125": {
+      "name": "Fortaleny",
+      "name_in_source": "FORTALENY",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46126": {
+      "name": "Foios",
+      "name_in_source": "FOIOS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46127": {
+      "name": "Font d'en Carròs, la",
+      "name_in_source": "FONT D'EN CARRÒS, LA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46128": {
+      "name": "Font de la Figuera, la",
+      "name_in_source": "FONT DE LA FIGUERA, LA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46130": {
+      "name": "Gavarda",
+      "name_in_source": "GAVARDA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46131": {
+      "name": "Gandia",
+      "name_in_source": "GANDIA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46132": {
+      "name": "Genovés, el",
+      "name_in_source": "GENOVÉS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46134": {
+      "name": "Gilet",
+      "name_in_source": "GILET",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46135": {
+      "name": "Godella",
+      "name_in_source": "GODELLA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46136": {
+      "name": "Godelleta",
+      "name_in_source": "GODELLETA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46137": {
+      "name": "Granja de la Costera, la",
+      "name_in_source": "GRANJA DE LA COSTERA, LA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46138": {
+      "name": "Guadasséquies",
+      "name_in_source": "GUADASEQUIES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46139": {
+      "name": "Guadassuar",
+      "name_in_source": "GUADASSUAR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46140": {
+      "name": "Guardamar de la Safor",
+      "name_in_source": "GUARDAMAR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46142": {
+      "name": "Jalance",
+      "name_in_source": "JALANCE",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46143": {
+      "name": "Xeraco",
+      "name_in_source": "XERACO",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46144": {
+      "name": "Jarafuel",
+      "name_in_source": "JARAFUEL",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46145": {
+      "name": "Xàtiva",
+      "name_in_source": "XÀTIVA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46146": {
+      "name": "Xeresa",
+      "name_in_source": "XERESA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46147": {
+      "name": "Llíria",
+      "name_in_source": "LLÍRIA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46148": {
+      "name": "Loriguilla",
+      "name_in_source": "LORIGUILLA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46150": {
+      "name": "Llutxent",
+      "name_in_source": "LLUTXENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46151": {
+      "name": "Llocnou d'En Fenollet",
+      "name_in_source": "LLOCNOU D'EN FENOLLET",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46152": {
+      "name": "Llocnou de la Corona",
+      "name_in_source": "LUGAR NUEVO DE LA CORONA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46153": {
+      "name": "Llocnou de Sant Jeroni",
+      "name_in_source": "LLOCNOU DE SANT JERONI",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46154": {
+      "name": "Llanera de Ranes",
+      "name_in_source": "LLANERA DE RANES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46155": {
+      "name": "Llaurí",
+      "name_in_source": "LLAURÍ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46156": {
+      "name": "Llombai",
+      "name_in_source": "LLOMBAI",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46157": {
+      "name": "Llosa de Ranes, la",
+      "name_in_source": "LLOSA DE RANES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46158": {
+      "name": "Macastre",
+      "name_in_source": "MACASTRE",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46159": {
+      "name": "Manises",
+      "name_in_source": "MANISES",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46160": {
+      "name": "Manuel",
+      "name_in_source": "MANUEL",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46162": {
+      "name": "Massalavés",
+      "name_in_source": "MASALAVÉS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46163": {
+      "name": "Massalfassar",
+      "name_in_source": "MASSALFASSAR",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46164": {
+      "name": "Massamagrell",
+      "name_in_source": "MASSAMAGRELL",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46165": {
+      "name": "Massanassa",
+      "name_in_source": "MASSANASSA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46166": {
+      "name": "Meliana",
+      "name_in_source": "MELIANA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46167": {
+      "name": "Millares",
+      "name_in_source": "MILLARES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46168": {
+      "name": "Miramar",
+      "name_in_source": "MIRAMAR",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46169": {
+      "name": "Mislata",
+      "name_in_source": "MISLATA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46170": {
+      "name": "Moixent/Mogente",
+      "name_in_source": "MOGENTE/MOIXENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46171": {
+      "name": "Montcada/Moncada",
+      "name_in_source": "MONCADA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46172": {
+      "name": "Montserrat",
+      "name_in_source": "MONSERRAT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46173": {
+      "name": "Montaverner",
+      "name_in_source": "MONTAVERNER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46174": {
+      "name": "Montesa",
+      "name_in_source": "MONTESA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46175": {
+      "name": "Montitxelvo/Montichelvo",
+      "name_in_source": "MONTICHELVO",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46176": {
+      "name": "Montroi/Montroy",
+      "name_in_source": "MONTROY",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46177": {
+      "name": "Museros",
+      "name_in_source": "MUSEROS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46178": {
+      "name": "Nàquera/Náquera",
+      "name_in_source": "NÁQUERA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46179": {
+      "name": "Navarrés",
+      "name_in_source": "NAVARRÉS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46180": {
+      "name": "Novetlè",
+      "name_in_source": "NOVELÉ/NOVETLÈ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46181": {
+      "name": "Oliva",
+      "name_in_source": "OLIVA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46182": {
+      "name": "Olocau",
+      "name_in_source": "OLOCAU",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46183": {
+      "name": "Olleria, l'",
+      "name_in_source": "OLLERIA, L'",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46184": {
+      "name": "Ontinyent",
+      "name_in_source": "ONTINYENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46185": {
+      "name": "Otos",
+      "name_in_source": "OTOS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46186": {
+      "name": "Paiporta",
+      "name_in_source": "PAIPORTA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46187": {
+      "name": "Palma de Gandía",
+      "name_in_source": "PALMA DE GANDÍA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46188": {
+      "name": "Palmera",
+      "name_in_source": "PALMERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46189": {
+      "name": "Palomar, el",
+      "name_in_source": "PALOMAR, EL",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46190": {
+      "name": "Paterna",
+      "name_in_source": "PATERNA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46191": {
+      "name": "Pedralba",
+      "name_in_source": "PEDRALBA",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46192": {
+      "name": "Petrés",
+      "name_in_source": "PETRÉS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46193": {
+      "name": "Picanya",
+      "name_in_source": "PICANYA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46194": {
+      "name": "Picassent",
+      "name_in_source": "PICASSENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46195": {
+      "name": "Piles",
+      "name_in_source": "PILES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46196": {
+      "name": "Pinet",
+      "name_in_source": "PINET",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46197": {
+      "name": "Polinyà de Xúquer",
+      "name_in_source": "POLINYÀ DE XÚQUER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46198": {
+      "name": "Potries",
+      "name_in_source": "POTRÍES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46199": {
+      "name": "Pobla de Farnals, la",
+      "name_in_source": "POBLA DE FARNALS, LA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46200": {
+      "name": "Pobla del Duc, la",
+      "name_in_source": "POBLA DEL DUC, LA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46202": {
+      "name": "Pobla de Vallbona, la",
+      "name_in_source": "POBLA DE VALLBONA, LA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46203": {
+      "name": "Pobla Llarga, la",
+      "name_in_source": "POBLA LLARGA, LA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46204": {
+      "name": "Puig de Santa Maria, el",
+      "name_in_source": "PUIG",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46205": {
+      "name": "Puçol",
+      "name_in_source": "PUÇOL",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46206": {
+      "name": "Quesa",
+      "name_in_source": "QUESA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46207": {
+      "name": "Rafelbunyol",
+      "name_in_source": "RAFELBUÑOL/RAFELBUNYOL",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46208": {
+      "name": "Rafelcofer",
+      "name_in_source": "RAFELCOFER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46209": {
+      "name": "Rafelguaraf",
+      "name_in_source": "RAFELGUARAF",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46210": {
+      "name": "Ráfol de Salem",
+      "name_in_source": "RÁFOL DE SALEM",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46211": {
+      "name": "Real de Gandia, el",
+      "name_in_source": "REAL DE GANDÍA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46212": {
+      "name": "Real",
+      "name_in_source": "REAL DE MONTROI",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46214": {
+      "name": "Riba-roja de Túria",
+      "name_in_source": "RIBA ROJA DE TÚRIA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46215": {
+      "name": "Riola",
+      "name_in_source": "RIOLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46216": {
+      "name": "Rocafort",
+      "name_in_source": "ROCAFORT",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46217": {
+      "name": "Rotglà i Corberà",
+      "name_in_source": "ROTGLÁ Y CORBERÁ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46218": {
+      "name": "Ròtova",
+      "name_in_source": "RÓTOVA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46219": {
+      "name": "Rugat",
+      "name_in_source": "RUGAT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46220": {
+      "name": "Sagunt/Sagunto",
+      "name_in_source": "SAGUNTO/SAGUNT",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46221": {
+      "name": "Salem",
+      "name_in_source": "SALEM",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46222": {
+      "name": "Sant Joanet",
+      "name_in_source": "SAN JUAN DE ÉNOVA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46223": {
+      "name": "Sedaví",
+      "name_in_source": "SEDAVÍ",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46224": {
+      "name": "Segart",
+      "name_in_source": "SEGART",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46225": {
+      "name": "Sellent",
+      "name_in_source": "SELLENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46226": {
+      "name": "Sempere",
+      "name_in_source": "SEMPERE",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46227": {
+      "name": "Senyera",
+      "name_in_source": "SENYERA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46228": {
+      "name": "Serra",
+      "name_in_source": "SERRA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46229": {
+      "name": "Siete Aguas",
+      "name_in_source": "SIETE AGUAS",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    },
+    "46230": {
+      "name": "Silla",
+      "name_in_source": "SILLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46231": {
+      "name": "Simat de la Valldigna",
+      "name_in_source": "SIMAT DE LA VALLDIGNA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46233": {
+      "name": "Sollana",
+      "name_in_source": "SOLLANA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46235": {
+      "name": "Sueca",
+      "name_in_source": "SUECA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46236": {
+      "name": "Sumacàrcer",
+      "name_in_source": "SUMACÀRCER",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46237": {
+      "name": "Tavernes Blanques",
+      "name_in_source": "TAVERNES BLANQUES",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46238": {
+      "name": "Tavernes de la Valldigna",
+      "name_in_source": "TAVERNES DE LA VALLDIGNA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46239": {
+      "name": "Teresa de Cofrentes",
+      "name_in_source": "TERESA DE COFRENTES",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46240": {
+      "name": "Terrateig",
+      "name_in_source": "TERRATEIG",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46243": {
+      "name": "Torrella",
+      "name_in_source": "TORRELLA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46244": {
+      "name": "Torrent",
+      "name_in_source": "TORRENT",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46245": {
+      "name": "Torres Torres",
+      "name_in_source": "TORRES TORRES",
+      "ab": "0,04 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46246": {
+      "name": "Tous",
+      "name_in_source": "TOUS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46248": {
+      "name": "Turís",
+      "name_in_source": "TURÍS",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46250": {
+      "name": "València",
+      "name_in_source": "VALENCIA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46251": {
+      "name": "Vallada",
+      "name_in_source": "VALLADA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46253": {
+      "name": "Vallés",
+      "name_in_source": "VALLÉS",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46255": {
+      "name": "Vilallonga/Villalonga",
+      "name_in_source": "VILLALONGA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46256": {
+      "name": "Vilamarxant",
+      "name_in_source": "VILAMARXANT",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46257": {
+      "name": "Castelló",
+      "name_in_source": "VILLANUEVA DE CASTELLÓN",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963",
+      "ine_match": "cambio de denominación registrado por el INE (tablas codmunmod)"
+    },
+    "46260": {
+      "name": "Vinalesa",
+      "name_in_source": "VINALESA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46261": {
+      "name": "Yátova",
+      "name_in_source": "YÁTOVA",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46263": {
+      "name": "Zarra",
+      "name_in_source": "ZARRA",
+      "ab": "0,07 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35963"
+    },
+    "46903": {
+      "name": "San Antonio de Benagéber",
+      "name_in_source": "SAN ANTONIO DE BENAGÉBER",
+      "ab": "0,06 g",
+      "k": "1,0",
+      "status": "ok",
+      "page": "BOE p. 35962"
+    }
+  },
+  "unresolved": [
+    {
+      "province": "08",
+      "name_in_source": "SANT JOAN DE MEDIONA",
+      "ab": "0,05 g",
+      "k": "1,0",
+      "page": "BOE p. 35957",
+      "status": "verify",
+      "note": "No hay municipio del INE con este nombre ni cambio de denominación registrado por el INE que lo lleve a un código actual; sin código INE no se puede consultar. Revisar a mano."
+    }
+  ]
+}

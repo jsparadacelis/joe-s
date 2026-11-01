@@ -43,7 +43,8 @@ def test_each_table_declares_its_source_document_version_and_transcription_date(
 @pytest.mark.parametrize("name", FILES)
 def test_every_entry_has_a_status_and_verify_entries_explain_why(name):
     document = _load(name)
-    entries = list(document["provinces"].values())
+    # Seismic provinces only group municipalities (their own flag is `below_threshold_status`).
+    entries = [] if name == "seismic" else list(document["provinces"].values())
     entries += document.get("municipalities", {}).values()
     entries += document.get("unresolved", [])
 
