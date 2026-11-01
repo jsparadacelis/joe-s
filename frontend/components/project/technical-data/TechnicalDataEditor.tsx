@@ -60,6 +60,11 @@ function withoutKey(errors: Record<string, string>, id: string): Record<string, 
   return next;
 }
 
+/** A button disabled during its request drops the focus: once the request ends and it is enabled again, focus it. */
+function giveFocusBack(ref: { current: HTMLButtonElement | null }) {
+  requestAnimationFrame(() => ref.current?.focus());
+}
+
 const replaceDatum = (data: TechnicalDatum[], datum: TechnicalDatum) => data.map((d) => (d.id === datum.id ? datum : d));
 
 export function TechnicalDataEditor({ projectCode, cadastralReference, initial, mode, api }: TechnicalDataEditorProps) {
@@ -82,6 +87,8 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
   // 403/409: the server will not accept changes, so the screen stops offering them.
   const [locked, setLocked] = useState(false);
   const noticeRef = useRef<HTMLDivElement>(null);
+  const queryButtonRef = useRef<HTMLButtonElement>(null);
+  const markAllRef = useRef<HTMLButtonElement>(null);
 
   const editable = mode === "edit" && !locked;
   const busy = saving.size > 0 || querying || verifyingAll;
@@ -164,6 +171,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
   async function markAll() {
     if (!editable || busy) return;
     setNotice(null);
+    const hadFocus = document.activeElement === markAllRef.current;
     setVerifyingAll(true);
     try {
       const sheet = await client.verifyAll(projectCode);
@@ -172,6 +180,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
       failGeneral(error, SAVE_FAILURE, false);
     } finally {
       setVerifyingAll(false);
+      if (hadFocus) giveFocusBack(markAllRef);
     }
   }
 
@@ -184,6 +193,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
     }
     setNotice(null);
     setUnmapped([]);
+    const hadFocus = document.activeElement === queryButtonRef.current;
     setQuerying(true);
     try {
       const result = await client.refresh(projectCode, checked.value);
@@ -194,6 +204,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
       failGeneral(error, FAILURE_NOTICE, true);
     } finally {
       setQuerying(false);
+      if (hadFocus) giveFocusBack(queryButtonRef);
     }
   }
 
@@ -259,7 +270,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
             className="w-full rounded-base border border-hair bg-surface px-3 py-2 text-m tracking-wide text-ink tabular-nums uppercase disabled:bg-surface-2 disabled:text-muted"
           />
         </div>
-        <Button variant="primary" disabled={!editable || busy} onClick={requestData}>
+        <Button variant="primary" ref={queryButtonRef} disabled={!editable || busy} onClick={requestData}>
           {querying ? "Consultando…" : data ? "Volver a consultar" : "Obtener datos técnicos"}
         </Button>
       </div>
@@ -297,6 +308,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
             disabled={!editable || busy}
             verifying={verifyingAll}
             onMarkAll={markAll}
+            buttonRef={markAllRef}
           />
           <div className="grid grid-cols-2 items-start gap-4">
             {byGroup.map(({ group, definitions }) => (

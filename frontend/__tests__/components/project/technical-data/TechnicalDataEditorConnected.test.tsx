@@ -656,3 +656,64 @@ describe("accessibility", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe("focus management (Judge: focus must not fall to document.body)", () => {
+  const EDITED = sheet({ address: { value: "CL OTHER", original: "CL TEST 1", edited: true } });
+
+  it("verifying with the keyboard leaves the focus on the datum's control", async () => {
+    const { user } = mount();
+    checkbox("Municipio").focus();
+    await user.keyboard(" ");
+    await waitFor(() => expect(checkbox("Municipio")).toBeChecked());
+    await waitFor(() => expect(control("Municipio")).toHaveFocus());
+  });
+
+  it("restoring with the keyboard leaves the focus on the datum's control", async () => {
+    const api = fakeTechnicalDataApi({ initial: EDITED });
+    const { user } = mount({ api, initial: EDITED });
+    within(rowOf("Dirección")).getByRole("button", { name: /Restaurar/ }).focus();
+    await user.keyboard("{Enter}");
+    await waitFor(() => expect(control("Dirección")).toHaveValue("CL TEST 1"));
+    await waitFor(() => expect(control("Dirección")).toHaveFocus());
+  });
+
+  it("«Marcar todo como verificado» keeps the focus on its button", async () => {
+    const { user } = mount();
+    const button = screen.getByRole("button", { name: "Marcar todo como verificado" });
+    await user.click(button);
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Verificando…" })).not.toBeInTheDocument());
+    expect(document.activeElement).not.toBe(document.body);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Marcar todo como verificado" })).toHaveFocus());
+  });
+
+  it("«Volver a consultar» gets the focus back when the query ends", async () => {
+    const api = fakeTechnicalDataApi({ initial: FILLED });
+    api.refresh.mockResolvedValue({ ...FILLED, unmapped: [] });
+    const { user } = mount({ api });
+    await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Volver a consultar" })).toHaveFocus());
+  });
+
+  it("«Obtener datos técnicos» gets the focus back (the button turns into «Volver a consultar»)", async () => {
+    const api = fakeTechnicalDataApi();
+    api.refresh.mockResolvedValue({ ...FILLED, unmapped: [] });
+    const { user } = mount({ api, initial: null });
+    await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
+    await screen.findByRole("heading", { name: "Parcela" });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Volver a consultar" })).toHaveFocus());
+  });
+});
+
+describe("read-only drops the unsaved draft", () => {
+  it("after a 403 the field shows the stored value, not what was typed", async () => {
+    const api = fakeTechnicalDataApi({ initial: FILLED });
+    api.edit.mockRejectedValue(apiError(403, "no_authority", "Sin autoridad."));
+    const { user } = mount({ api });
+    await user.clear(control("Municipio"));
+    await user.type(control("Municipio"), "TYPED");
+    await user.tab();
+    await screen.findByText("Sin autoridad.");
+    expect(control("Municipio")).toBeDisabled();
+    expect(control("Municipio")).toHaveValue("MUNI TEST");
+  });
+});

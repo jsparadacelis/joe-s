@@ -34,10 +34,19 @@ function DatumRowBase({ definition, datum, disabled, saving, error, onValueChang
 
   // What the person typed and the server has not accepted yet; null: the field shows the stored value.
   const [draft, setDraft] = useState<string | null>(null);
+  // A screen that turned read-only (403/409) shows what is stored, not a draft that was never saved.
+  const shown = disabled ? datum.value : (draft ?? datum.value);
   const controlRef = useRef<HTMLInputElement & HTMLSelectElement>(null);
+  const rowRef = useRef<HTMLLIElement>(null);
   const refocus = useRef(false);
 
-  // The control is disabled while saving, which drops the focus: give it back if it was there.
+  /** Remembers whether the focus is in this row (control, checkbox or «Restaurar»), which will be disabled or removed. */
+  const rememberFocus = () => {
+    refocus.current = rowRef.current?.contains(document.activeElement) ?? false;
+  };
+
+  // The row is disabled while saving (and the checkbox or «Restaurar» may go away), which drops the focus: give it back
+  // to the datum's control if it was in the row.
   useEffect(() => {
     if (!saving && refocus.current) {
       refocus.current = false;
@@ -47,7 +56,7 @@ function DatumRowBase({ definition, datum, disabled, saving, error, onValueChang
 
   async function save(value: string) {
     if (saving) return;
-    refocus.current = document.activeElement === controlRef.current;
+    rememberFocus();
     const accepted = await onValueChange(id, value);
     if (accepted) setDraft(null);
   }
@@ -62,7 +71,7 @@ function DatumRowBase({ definition, datum, disabled, saving, error, onValueChang
   const invalid = error ? true : undefined;
 
   return (
-    <li className="grid grid-cols-[150px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 border-b border-hair py-2.5">
+    <li ref={rowRef} className="grid grid-cols-[150px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 border-b border-hair py-2.5">
       <div className="flex flex-col gap-0.5 text-s">
         <label htmlFor={controlId}>{label}</label>
         <span id={originId} className="text-xs text-muted">
@@ -101,7 +110,7 @@ function DatumRowBase({ definition, datum, disabled, saving, error, onValueChang
             aria-describedby={describedBy}
             aria-invalid={invalid}
             className={`${CONTROL} ${border}`}
-            value={draft ?? datum.value}
+            value={shown}
             disabled={locked}
             onChange={(e) => {
               onEditStart(id);
@@ -127,7 +136,10 @@ function DatumRowBase({ definition, datum, disabled, saving, error, onValueChang
             // The API cannot un-verify: a verified datum stays so until it is edited.
             disabled={locked || datum.verified}
             onChange={(e) => {
-              if (e.target.checked) onVerify(id);
+              if (e.target.checked) {
+                rememberFocus();
+                onVerify(id);
+              }
             }}
           />
           Verificado<span className="sr-only"> {label}</span>
@@ -145,7 +157,10 @@ function DatumRowBase({ definition, datum, disabled, saving, error, onValueChang
           <span>
             Valor de {origin}: <b className="font-medium text-ink-2">{datum.original || "vacío"}</b>
           </span>
-          <Button size="sm" disabled={locked} onClick={() => onRestore(id)}>
+          <Button size="sm" disabled={locked} onClick={() => {
+              rememberFocus();
+              onRestore(id);
+            }}>
             Restaurar<span className="sr-only"> {label}</span>
           </Button>
         </div>
