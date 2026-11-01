@@ -15,7 +15,7 @@ import { axe } from "jest-axe";
 import { ReliefViewer } from "@/components/project/relief/ReliefViewer";
 import { ApiError, request } from "@/lib/api";
 import { mountScene } from "@/lib/relief-scene";
-import { API_PLOT_REFERENCE, API_REFERENCE, apiReliefJson, planeGrid } from "../../../helpers/relief-api-response";
+import { API_PLOT_REFERENCE, API_REFERENCE, API_WINDOW_M, apiReliefJson, planeGrid } from "../../../helpers/relief-api-response";
 
 jest.mock("@/lib/api", () => ({
   ...jest.requireActual("@/lib/api"),
@@ -77,7 +77,7 @@ describe("ReliefViewer · real project calls the API", () => {
     await user.click(viewButton());
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(1));
     const relief = mount.mock.calls[0][1];
-    expect(relief.viewWindow).toEqual([0, 0, 100, 200]);
+    expect(relief.viewWindow).toEqual([0, 0, API_WINDOW_M.width, API_WINDOW_M.height]);
     expect(relief.heights).toEqual([10, 11, 12, 20, 21, 22]);
     expect(relief.reference).toBe(API_REFERENCE);
     expect(relief.source).toBe("MDT 5 m, IGN");
@@ -391,7 +391,7 @@ describe("ReliefViewer · notices from the service data", () => {
   it("readings use the server's plot area and the translated window", async () => {
     await show({ plot_area_m2: 2905.99 });
     expect(screen.getByText("Superficie del polígono").nextElementSibling?.textContent).toMatch(/^2\.?906 m²$/);
-    expect(screen.getByText("Vista").nextElementSibling?.textContent).toBe("100 × 200 m");
+    expect(screen.getByText("Vista").nextElementSibling?.textContent).toBe(`${Math.round(API_WINDOW_M.width)} × ${Math.round(API_WINDOW_M.height)} m`);
   });
 
   it("no axe violations with all the service notices", async () => {

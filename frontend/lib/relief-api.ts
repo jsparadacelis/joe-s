@@ -1,7 +1,8 @@
 /**
  * Relief API client (RGB-52): `GET /api/cadastre/{reference}/relief` (RGB-33).
  * Translates the server response into the viewer's `Relief`. The grid covers exactly the degree box of `window`,
- * so lon/lat are projected linearly onto it (origin at the south-west corner) to make the perimeter match the mesh.
+ * so its size in metres is derived from that box (mean latitude) and lon/lat are projected linearly onto it (origin
+ * at the south-west corner). The server's `width_m`/`height_m` are nominal UTM sizes and would mis-scale the mesh.
  * Fictitious `PRY-EJ-*` projects keep the synthetic terrain and never call the API.
  */
 import { ApiError, request as defaultRequest, type ApiRequest } from "@/lib/api";
@@ -84,10 +85,19 @@ function fillNoData(values: ReadonlyArray<number | null>, columns: number, rows:
   }
 }
 
+/** Metric size of a degree box at its mean latitude (WGS84 series for the length of a degree). */
+function boxMetres(minLon: number, minLat: number, maxLon: number, maxLat: number): { width: number; height: number } {
+  const phi = ((minLat + maxLat) / 2) * (Math.PI / 180);
+  const metresPerDegLat = 111132.92 - 559.82 * Math.cos(2 * phi) + 1.175 * Math.cos(4 * phi);
+  const metresPerDegLon = 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi);
+  return { width: (maxLon - minLon) * metresPerDegLon, height: (maxLat - minLat) * metresPerDegLat };
+}
+
 /** Pure translation of the server response; throws `ApiError(502, "invalid_relief_response")` if malformed. */
 export function reliefFromResponse(raw: unknown, options: ReliefOptions): Relief {
   if (!isRecord(raw) || !isRecord(raw.window) || !isRecord(raw.grid)) throw invalidResponse();
   const { min_lon, min_lat, max_lon, max_lat, width_m, height_m } = raw.window;
+  // `width_m` and `height_m` are only validated: the size comes from the degree box.
   if (
     !isFiniteNumber(min_lon) ||
     !isFiniteNumber(min_lat) ||
@@ -123,10 +133,11 @@ export function reliefFromResponse(raw: unknown, options: ReliefOptions): Relief
 
   if (!isFiniteNumber(raw.plot_area_m2)) throw invalidResponse();
 
+  const { width, height } = boxMetres(min_lon, min_lat, max_lon, max_lat);
   const ring = readOutline(raw.outline);
   const project = ([lon, lat]: Position): Point => [
-    ((lon - min_lon) / (max_lon - min_lon)) * width_m,
-    ((lat - min_lat) / (max_lat - min_lat)) * height_m,
+    ((lon - min_lon) / (max_lon - min_lon)) * width,
+    ((lat - min_lat) / (max_lat - min_lat)) * height,
   ];
   let perimeter: Point[] = ring ? ring.map(project) : [];
   if (perimeter.length > 1) {
@@ -137,7 +148,7 @@ export function reliefFromResponse(raw: unknown, options: ReliefOptions): Relief
   return {
     // The server answers with the 14-character parcel reference; the viewer needs the 20 requested to ask again.
     reference: options.reference,
-    viewWindow: [0, 0, width_m, height_m],
+    viewWindow: [0, 0, width, height],
     columns: ncols,
     rows: nrows,
     heights: noDataCells === 0 ? (cells as number[]) : fillNoData(cells, ncols, nrows),

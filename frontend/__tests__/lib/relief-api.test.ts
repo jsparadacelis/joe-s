@@ -16,10 +16,11 @@
 import { ApiError, type ApiRequest } from "@/lib/api";
 import { fetchRelief, type ReliefOptions } from "@/lib/relief";
 import { fetchReliefFromApi, RELIEF_SOURCE, reliefFetcherFor, reliefFromResponse } from "@/lib/relief-api";
-import { API_REFERENCE, apiReliefJson, planeGrid } from "../helpers/relief-api-response";
+import { API_REFERENCE, API_WINDOW_M, apiReliefJson, boxMetres, planeGrid, REAL_BOX } from "../helpers/relief-api-response";
 
 const OPTIONS: ReliefOptions = { reference: API_REFERENCE, margin: 25, maxSide: 200 };
 const TOL = 1e-6;
+const { width: W, height: H } = API_WINDOW_M;
 
 const fakeRequest = (value: unknown) => jest.fn(async () => value) as unknown as jest.MockedFunction<ApiRequest>;
 
@@ -41,7 +42,7 @@ describe("RELIEF_SOURCE", () => {
 
 describe("reliefFromResponse · window and grid", () => {
   it("the window is in local metres with the origin at the south-west corner", () => {
-    expect(reliefFromResponse(apiReliefJson(), OPTIONS).viewWindow).toEqual([0, 0, 100, 200]);
+    expect(reliefFromResponse(apiReliefJson(), OPTIONS).viewWindow).toEqual([0, 0, W, H]);
   });
 
   it("columns and rows come from the grid, and heights keep the reading order (row 0 = north)", () => {
@@ -84,10 +85,10 @@ describe("reliefFromResponse · perimeter in local metres", () => {
     const { perimeter } = reliefFromResponse(apiReliefJson(), OPTIONS);
     expect(perimeter).toHaveLength(4);
     const expected = [
-      [25, 50],
-      [75, 50],
-      [75, 150],
-      [25, 150],
+      [0.25 * W, 0.25 * H],
+      [0.75 * W, 0.25 * H],
+      [0.75 * W, 0.75 * H],
+      [0.25 * W, 0.75 * H],
     ];
     perimeter.forEach(([x, y], i) => {
       expect(x).toBeCloseTo(expected[i][0], 6);
@@ -95,7 +96,7 @@ describe("reliefFromResponse · perimeter in local metres", () => {
     });
   });
 
-  it("the window corners map to (0, 0) and (width_m, height_m)", () => {
+  it("the window corners map to (0, 0) and (W, H), the metric size of the degree box", () => {
     const outline = {
       type: "Polygon",
       coordinates: [[[0, 38], [0.001, 38], [0.001, 38.001], [0, 38]]],
@@ -103,29 +104,100 @@ describe("reliefFromResponse · perimeter in local metres", () => {
     const { perimeter } = reliefFromResponse(apiReliefJson({ outline }), OPTIONS);
     expect(perimeter[0][0]).toBeCloseTo(0, 6);
     expect(perimeter[0][1]).toBeCloseTo(0, 6);
-    expect(perimeter[1][0]).toBeCloseTo(100, 6);
+    expect(perimeter[1][0]).toBeCloseTo(W, 6);
     expect(perimeter[1][1]).toBeCloseTo(0, 6);
-    expect(perimeter[2][0]).toBeCloseTo(100, 6);
-    expect(perimeter[2][1]).toBeCloseTo(200, 6);
+    expect(perimeter[2][0]).toBeCloseTo(W, 6);
+    expect(perimeter[2][1]).toBeCloseTo(H, 6);
   });
 
-  it("known values of the RGB-33 test plot (window of 125 × 131.18 m)", () => {
-    const window = { min_lon: 0.03866314, min_lat: 38.63959584, max_lon: 0.04014612, max_lat: 38.64081273, width_m: 125, height_m: 131.18 };
+  it("known values of the RGB-33 test plot: the size comes from the degree box (~129 × 135.2 m), not from width_m/height_m", () => {
+    const window = { ...REAL_BOX, width_m: 125, height_m: 131.18 };
     const outline = {
       type: "Polygon",
       coordinates: [[[0.038965, 38.64042], [0.039031, 38.640357], [0.038965, 38.64042]]],
     };
     const r = reliefFromResponse(apiReliefJson({ window, outline }), OPTIONS);
-    expect(r.viewWindow).toEqual([0, 0, 125, 131.18]);
-    expect(r.perimeter[0][0]).toBeCloseTo(25.443701, 4);
-    expect(r.perimeter[0][1]).toBeCloseTo(88.843945, 4);
+    expect(r.viewWindow[0]).toBe(0);
+    expect(r.viewWindow[1]).toBe(0);
+    expect(r.viewWindow[2]).toBeCloseTo(129.0, 0);
+    expect(r.viewWindow[3]).toBeCloseTo(135.2, 0);
+    expect(Math.abs(r.viewWindow[2] - 129.0)).toBeLessThan(0.5);
+    expect(Math.abs(r.viewWindow[3] - 135.2)).toBeLessThan(0.5);
+    const { width, height } = boxMetres(REAL_BOX);
+    expect(r.viewWindow[2]).toBeCloseTo(width, 6);
+    expect(r.viewWindow[3]).toBeCloseTo(height, 6);
+    expect(r.perimeter[0][0]).toBeCloseTo(((0.038965 - REAL_BOX.min_lon) / (REAL_BOX.max_lon - REAL_BOX.min_lon)) * width, 4);
+    expect(r.perimeter[0][1]).toBeCloseTo(((38.64042 - REAL_BOX.min_lat) / (REAL_BOX.max_lat - REAL_BOX.min_lat)) * height, 4);
     // Everything stays inside the window.
     for (const [x, y] of r.perimeter) {
       expect(x).toBeGreaterThanOrEqual(-TOL);
-      expect(x).toBeLessThanOrEqual(125 + TOL);
+      expect(x).toBeLessThanOrEqual(width + TOL);
       expect(y).toBeGreaterThanOrEqual(-TOL);
-      expect(y).toBeLessThanOrEqual(131.18 + TOL);
+      expect(y).toBeLessThanOrEqual(height + TOL);
     }
+  });
+
+  it("the corners of the real box map to (0, 0) and (W, H)", () => {
+    const outline = {
+      type: "Polygon",
+      coordinates: [[[REAL_BOX.min_lon, REAL_BOX.min_lat], [REAL_BOX.max_lon, REAL_BOX.max_lat], [REAL_BOX.max_lon, REAL_BOX.min_lat]]],
+    };
+    const r = reliefFromResponse(apiReliefJson({ window: { ...REAL_BOX, width_m: 125, height_m: 131.18 }, outline }), OPTIONS);
+    expect(r.perimeter[0][0]).toBeCloseTo(0, 6);
+    expect(r.perimeter[0][1]).toBeCloseTo(0, 6);
+    expect(r.perimeter[1][0]).toBeCloseTo(r.viewWindow[2], 6);
+    expect(r.perimeter[1][1]).toBeCloseTo(r.viewWindow[3], 6);
+  });
+
+  it("width_m and height_m no longer scale anything (only validated): 10 × 10 gives the same window and perimeter", () => {
+    const base = reliefFromResponse(apiReliefJson({ window: { ...REAL_BOX, width_m: 125, height_m: 131.18 } }), OPTIONS);
+    const tiny = reliefFromResponse(apiReliefJson({ window: { ...REAL_BOX, width_m: 10, height_m: 10 } }), OPTIONS);
+    expect(tiny.viewWindow).toEqual(base.viewWindow);
+    expect(tiny.perimeter).toEqual(base.perimeter);
+  });
+
+  it("the projected outline keeps the server's plot area within ±1 %", () => {
+    // A 80 m × 90 m rectangle (in degrees, at this latitude) inside the real box.
+    const { width, height } = boxMetres(REAL_BOX);
+    const dLon = (80 / width) * (REAL_BOX.max_lon - REAL_BOX.min_lon);
+    const dLat = (90 / height) * (REAL_BOX.max_lat - REAL_BOX.min_lat);
+    const lon0 = REAL_BOX.min_lon + 0.0003;
+    const lat0 = REAL_BOX.min_lat + 0.0002;
+    const outline = {
+      type: "Polygon",
+      coordinates: [[[lon0, lat0], [lon0 + dLon, lat0], [lon0 + dLon, lat0 + dLat], [lon0, lat0 + dLat], [lon0, lat0]]],
+    };
+    const plotArea = 80 * 90;
+    const r = reliefFromResponse(
+      apiReliefJson({ window: { ...REAL_BOX, width_m: 125, height_m: 131.18 }, outline, plot_area_m2: plotArea }),
+      OPTIONS,
+    );
+    let sum = 0;
+    for (let i = 0; i < r.perimeter.length; i++) {
+      const [x0, y0] = r.perimeter[i];
+      const [x1, y1] = r.perimeter[(i + 1) % r.perimeter.length];
+      sum += x0 * y1 - x1 * y0;
+    }
+    expect(Math.abs(sum) / 2 / plotArea).toBeGreaterThan(0.99);
+    expect(Math.abs(sum) / 2 / plotArea).toBeLessThan(1.01);
+  });
+
+  it("a known sloping plane over the real box keeps its theoretical slope (east 10 %, north 5 %)", () => {
+    const { width, height } = boxMetres(REAL_BOX);
+    const ncols = 6;
+    const nrows = 5;
+    const values: number[] = [];
+    for (let row = 0; row < nrows; row++) {
+      for (let col = 0; col < ncols; col++) {
+        values.push(0.1 * (col / (ncols - 1)) * width + 0.05 * (1 - row / (nrows - 1)) * height);
+      }
+    }
+    const grid = { ncols, nrows, cell_size_m: 5, values, min_m: 0, max_m: 100 };
+    const r = reliefFromResponse(apiReliefJson({ window: { ...REAL_BOX, width_m: 125, height_m: 131.18 }, grid }), OPTIONS);
+    const cellX = r.viewWindow[2] / (ncols - 1);
+    const cellY = r.viewWindow[3] / (nrows - 1);
+    expect((r.heights[1] - r.heights[0]) / cellX).toBeCloseTo(0.1, 6);
+    expect((r.heights[0] - r.heights[ncols]) / cellY).toBeCloseTo(0.05, 6);
   });
 
   it("north is up: a higher latitude gives a higher y, an eastern longitude a higher x", () => {
@@ -144,8 +216,8 @@ describe("reliefFromResponse · perimeter in local metres", () => {
     };
     const { perimeter } = reliefFromResponse(apiReliefJson({ outline }), OPTIONS);
     expect(perimeter).toHaveLength(4);
-    expect(perimeter[0][0]).toBeCloseTo(10, 6);
-    expect(perimeter[2][0]).toBeCloseTo(90, 6);
+    expect(perimeter[0][0]).toBeCloseTo(0.1 * W, 6);
+    expect(perimeter[2][0]).toBeCloseTo(0.9 * W, 6);
   });
 
   it("MultiPolygon: the exterior ring of the part with the largest area", () => {
@@ -154,10 +226,10 @@ describe("reliefFromResponse · perimeter in local metres", () => {
     for (const parts of [[small, large], [large, small]]) {
       const { perimeter } = reliefFromResponse(apiReliefJson({ outline: { type: "MultiPolygon", coordinates: parts } }), OPTIONS);
       expect(perimeter).toHaveLength(4);
-      expect(perimeter[0][0]).toBeCloseTo(50, 6);
-      expect(perimeter[0][1]).toBeCloseTo(100, 6);
-      expect(perimeter[2][0]).toBeCloseTo(90, 6);
-      expect(perimeter[2][1]).toBeCloseTo(180, 6);
+      expect(perimeter[0][0]).toBeCloseTo(0.5 * W, 6);
+      expect(perimeter[0][1]).toBeCloseTo(0.5 * H, 6);
+      expect(perimeter[2][0]).toBeCloseTo(0.9 * W, 6);
+      expect(perimeter[2][1]).toBeCloseTo(0.9 * H, 6);
     }
   });
 

@@ -3,8 +3,25 @@ export const API_REFERENCE = "1234567DG3413S0001AB";
 /** The server answers with the 14-character parcel reference, never the 20 requested. */
 export const API_PLOT_REFERENCE = "1234567DG3413S";
 
+export type DegreeBox = { min_lon: number; min_lat: number; max_lon: number; max_lat: number };
+
+/** Metric size of a degree box at its mean latitude (WGS84 series), the same scale the grid really has. */
+export function boxMetres(box: DegreeBox): { width: number; height: number } {
+  const phi = ((box.min_lat + box.max_lat) / 2) * (Math.PI / 180);
+  const perDegLat = 111132.92 - 559.82 * Math.cos(2 * phi) + 1.175 * Math.cos(4 * phi);
+  const perDegLon = 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi);
+  return { width: (box.max_lon - box.min_lon) * perDegLon, height: (box.max_lat - box.min_lat) * perDegLat };
+}
+
+/** Window of the RGB-33 test plot; the server's nominal UTM size (125 × 131.18 m) is NOT the grid's size. */
+export const REAL_BOX: DegreeBox = { min_lon: 0.03866314, min_lat: 38.63959584, max_lon: 0.04014612, max_lat: 38.64081273 };
+
+/** Local size (m) of the default window below, derived from its degrees. */
+export const API_WINDOW_M = boxMetres({ min_lon: 0, min_lat: 38, max_lon: 0.001, max_lat: 38.001 });
+
 /**
- * Window of 0.001° × 0.001° (SW corner 0°, 38°) that the server describes as 100 m × 200 m.
+ * Window of 0.001° × 0.001° (SW corner 0°, 38°) that the server describes (nominal, UTM) as 100 m × 200 m;
+ * the viewer ignores those and uses `API_WINDOW_M`.
  * Grid of 3 columns × 2 rows, row 0 = north.
  */
 export function apiReliefJson(overrides: Record<string, unknown> = {}): Record<string, unknown> {
