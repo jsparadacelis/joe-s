@@ -403,3 +403,62 @@ def test_no_connection_is_held_while_the_external_services_answer(url, gateway, 
 
     assert finished_while_waiting
     assert sorted(r.status_code for r in results) == [200, 200]
+
+
+CAPACITY_URL = f"/api/projects/{CODE}/capacity"
+
+
+def test_capacity_lists_what_is_missing_then_recalculates_after_each_change(client_for):
+    client = client_for()
+    blank = client.get(CAPACITY_URL).json()
+    assert blank["capacity"] is None
+    assert blank["missing"] == ["cadastralPlotArea", "buildability", "maxOccupancy", "floors"]
+
+    for field_id, value in (
+        ("cadastralPlotArea", "96"),
+        ("buildability", "1,5"),
+        ("maxOccupancy", "70"),
+        ("floors", "PB+2"),
+    ):
+        assert client.put(f"{URL}/{field_id}", json={"value": value}).status_code == 200
+    first = client.get(CAPACITY_URL).json()
+    assert first["missing"] == []
+    assert first["capacity"]["maximum"] == 144.0
+    assert first["capacity"]["limited_by"] == "buildability"
+
+    client.put(f"{URL}/buildability", json={"value": "3"})
+    second = client.get(CAPACITY_URL).json()["capacity"]
+    assert second["maximum"] == pytest.approx(201.6)
+    assert second["limited_by"] == "occupancy-floors"
+
+
+def test_capacity_follows_the_chosen_calculation_surface(client_for):
+    client = client_for()
+    for field_id, value in (
+        ("cadastralPlotArea", "100"),
+        ("polygonPlotArea", "80"),
+        ("buildability", "2"),
+        ("maxOccupancy", "50"),
+        ("floors", "PB"),
+        ("calcArea", "Polígono"),
+    ):
+        client.put(f"{URL}/{field_id}", json={"value": value})
+
+    assert client.get(CAPACITY_URL).json()["capacity"]["surface"] == 80.0
+
+
+def test_capacity_is_readable_by_any_role_and_unknown_projects_are_404(client_for):
+    assert client_for(role="architect").get(CAPACITY_URL).status_code == 200
+    response = client_for().get("/api/projects/PRY-T-999/capacity")
+    assert response.status_code == 404
+    assert response.json()["detail"]["code"] == "project_not_found"
+
+
+def test_capacity_of_a_project_of_another_study_is_not_found(client_for):
+    assert client_for(study_id=STUDY_B).get(CAPACITY_URL).status_code == 404
+
+
+def test_reading_the_capacity_audits_nothing(client_for, url):
+    client_for().get(CAPACITY_URL)
+
+    assert audit(url) == [] and audit(url, "rejected") == []
