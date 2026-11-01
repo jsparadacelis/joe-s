@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "source": "cte",
+    "table": "CTE DB-HE, Anejo B, tabla a-Anejo B (zonas climáticas)",
+    "document": "Documento Básico HE Ahorro de energía, texto consolidado (14 junio 2022; RD 450/2022, corrección de errores BOE 02-02-2023)",
+    "url": "https://www.codigotecnico.org/pdf/Documentos/HE/DBHE.pdf",
+    "version": "14 Junio 2022 (consolidado, sin valor jurídico según el propio documento)",
+    "transcribed_on": "2026-11-01",
+    "pages": "PDF p. 46 (página impresa 46), Anejo B apartado 1",
+    "sha256": "7f890bd495552e979f83f72c5f5c7b642e745911a8e343a7b5b73023ce0e1f05",
+    "notes": "La tabla da la zona por provincia y banda de altitud en metros enteros; max_altitude_m es el límite superior inclusivo de cada banda y null la última (sin tope). Los límites de las bandas se leyeron de la geometría de las celdas del PDF (celdas combinadas) y se comprobaron sobre la imagen de la página. La cabecera impresa de la tercera columna dice «111-200 m» (errata evidente por 151-200). Al ser enteros, el dominio redondea la altitud al metro más cercano: decisión nuestra, no de la norma. Solo Barcelona (08) y Valencia (46)."
+  },
+  "provinces": {
+    "08": {
+      "name": "Barcelona",
+      "status": "ok",
+      "bands": [
+        {
+          "max_altitude_m": 250,
+          "zone": "C2"
+        },
+        {
+          "max_altitude_m": 450,
+          "zone": "D2"
+        },
+        {
+          "max_altitude_m": 750,
+          "zone": "D1"
+        },
+        {
+          "max_altitude_m": null,
+          "zone": "E1"
+        }
+      ]
+    },
+    "46": {
+      "name": "Valencia/València",
+      "status": "ok",
+      "bands": [
+        {
+          "max_altitude_m": 50,
+          "zone": "B3"
+        },
+        {
+          "max_altitude_m": 500,
+          "zone": "C3"
+        },
+        {
+          "max_altitude_m": 950,
+          "zone": "D2"
+        },
+        {
+          "max_altitude_m": null,
+          "zone": "E1"
+        }
+      ]
+    }
+  }
+}

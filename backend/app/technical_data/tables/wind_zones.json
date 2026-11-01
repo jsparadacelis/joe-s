@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "source": "cte",
+    "table": "CTE DB-SE-AE, Anejo D.1, figura D.1 (mapa de la velocidad básica del viento)",
+    "document": "Documento Básico SE-AE Acciones en la edificación (portada «Abril 2009»)",
+    "url": "https://www.codigotecnico.org/pdf/Documentos/SE/DBSE-AE.pdf",
+    "version": "Abril 2009 (versión vigente publicada en codigotecnico.org el 2026-11-01)",
+    "transcribed_on": "2026-11-01",
+    "pages": "PDF p. 27 (SE-AE 23), figura D.1",
+    "sha256": "26116e5088955f0c6963a6187270cad282e1e7bf5a53a90f695c8fa50b4e4487",
+    "notes": "El DB-SE-AE no tiene tabla por provincia o municipio para la zona de viento: solo el mapa de la figura D.1 (zonas A, B, C; vb 26, 27 y 29 m/s). Valores por provincia leídos del mapa; todos verify."
+  },
+  "provinces": {
+    "08": {
+      "name": "Barcelona",
+      "value": "C",
+      "status": "verify",
+      "note": "Leído de un mapa a escala nacional (imagen de baja resolución), no de una tabla: la provincia entera cae en esta zona a simple vista, pero los límites de zona dentro de una provincia no se pueden precisar. Requiere comprobación humana."
+    },
+    "46": {
+      "name": "Valencia/València",
+      "value": "A",
+      "status": "verify",
+      "note": "Leído de un mapa a escala nacional (imagen de baja resolución), no de una tabla: la provincia entera cae en esta zona a simple vista, pero los límites de zona dentro de una provincia no se pueden precisar. Requiere comprobación humana. La zona B empieza al sur, en Alicante/Murcia, y la C al norte de Castellón; el sur de la provincia de Valencia queda cerca del límite con la B."
+    }
+  }
+}

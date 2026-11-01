@@ -258,3 +258,17 @@ def test_the_technical_data_domain_is_pure_and_its_adapters_are_wired_by_the_com
 
     assert domain_violations == []
     assert wiring_violations == []
+
+
+def test_normative_tables_are_not_wired_into_use_cases_or_the_api_yet():
+    """RGB-27: the CTE and NCSE-02 transcription needs human review before it feeds any datum;
+    wiring it into `RefreshTechnicalData` or the routes is a later task."""
+    domain_module = APP / "technical_data/domain/normative_tables.py"
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith("normative_tables") and p != domain_module
+    ]
+
+    assert violations == []
