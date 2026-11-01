@@ -99,7 +99,8 @@ describe("<BriefScreen> frozen (phase > 2)", () => {
     expect(screen.getByText("Vivienda unifamiliar para una familia de cuatro personas")).toBeInTheDocument();
     const snapshot = screen.getByRole("region", { name: "Datos técnicos congelados" });
     expect(within(snapshot).getByText("Año de construcción")).toBeInTheDocument();
-    expect(within(snapshot).getByText(/sin verificar/i)).toBeInTheDocument();
+    // The note above the table names the unverified data; the cell in its row says «Sin verificar» too, so look the note up by its count.
+    expect(within(snapshot).getByText(/1 dato técnico sin verificar/i)).toBeInTheDocument();
   });
 
   it("nothing in the frozen screen is editable", () => {

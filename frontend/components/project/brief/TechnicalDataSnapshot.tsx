@@ -12,13 +12,7 @@ const queryDate = (iso: string) =>
 function verifiedCell(datum: BriefDatum) {
   if (datum.value === "") return "—";
   if (datum.verified) return "Sí";
-  // Two words in two elements: the cell reads «Sin verificar», while the note above the table is the only element
-  // whose own text says «sin verificar» (BriefScreen's test looks it up by text and needs a single match).
-  return (
-    <span className="font-medium text-warn">
-      <span>Sin</span> <span>verificar</span>
-    </span>
-  );
+  return <span className="font-medium text-warn">Sin verificar</span>;
 }
 
 /** Read-only list of the technical data frozen with the brief (RGB-32b), with origin, original, edited and verified. */
