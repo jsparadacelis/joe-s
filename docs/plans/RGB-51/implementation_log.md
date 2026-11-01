@@ -57,3 +57,24 @@ Funciones por proyecto con `AUTH_MODE=supabase` y una asignación real de «Dire
 ## Limpieza
 
 Parados los uvicorn 8001 y 8002, el proxy 8000 y `next start` 3010; base `rgb51` eliminada. Los scripts quedaron fuera del repo (scratchpad).
+
+# RGB-51 · Juez
+
+Veredicto: **APROBADO** (segunda revisión, tras el commit 2917590). `lint` (0 errores, 3 avisos preexistentes), `typecheck`, `test` (102 suites, 2302 tests) y `build` en verde, ejecutados por el Juez. Sin cambios de backend.
+
+## Primera revisión (rechazada) y corrección
+Se rechazó por el hallazgo 1 del Tester: el foco pasaba a `body` tras verificar, restaurar, «Marcar todo» y «Volver a consultar» (regresión respecto de RGB-29, fallo de gestión del foco para teclado). El Desarrollador lo corrigió en 2917590: `DatumRow` recuerda si el foco estaba en la fila (control, casilla o «Restaurar») y lo devuelve al control del dato al terminar de guardar; el editor devuelve el foco a «Marcar todo» y al botón de consulta (`buttonRef`) cuando se vuelven a habilitar. También descartó el borrador en solo lectura tras 403/409 (hallazgo 3). Se revisó el diff 57d2bd3..HEAD: solo toca los tres componentes, los pantallazos y tests nuevos añadidos al final de `TechnicalDataEditorConnected.test.tsx`; no se modificó ningún test del Escritor.
+
+## Comprobaciones del Juez
+- Plan y alcance: proyectos reales por la API, `PRY-EJ-*` locales, se pinta lo que devuelve el servidor, 403/409 en solo lectura, 422 en la fila, 404, 503 con ruta manual, referencia con los mensajes de RGB-18.
+- Tests del Escritor no debilitados. `invalidMessage` mantiene la aserción (falla si la referencia es válida). Los tres cambios de comportamiento son legítimos por el contrato del servidor: (a) no se puede desverificar, (b) editar un dato verificado lo deja sin verificar (RGB-28), (c) mensaje de referencia de RGB-18.
+- Seguridad y reglas: datos ficticios, sin secretos, texto como texto, el servidor decide los permisos, código en inglés y UI en español, ninguna acción cambia el estado del proyecto, Catastro simulado en tests.
+- Pantallazos: 46 ficheros, claro y oscuro, datos ficticios, referenciados; revisados varios.
+
+## Seguimientos pendientes (no bloqueantes)
+- **Hallazgo 2:** axe `scrollable-region-focusable` en un input deshabilitado con valor largo en solo lectura (usar `readOnly` o mostrar texto). Los tests del Escritor exigen `toBeDisabled()`; habría que ajustarlos justificándolo.
+- **(b) / hallazgo 4:** «Sin dato» en las listas da 422 y ningún dato se puede vaciar. Ofrecer la opción solo en datos sin valor y deshabilitada; los tests del Escritor exigen `["Sin dato", ...opciones]` en todas las listas.
+- **(c):** `readOnly` en lugar de `disabled` en solo lectura (misma restricción de tests que el hallazgo 2).
+- **Hallazgos 5 a 8:** informativos: «Todo verificado» solo con los 26 datos con valor; referencia habilitada mientras se guarda; barra lateral y `grid-cols-2` fijo a 320 px (heredado, plataforma de escritorio); los 404 y 503 del Catastro no se auditan.
+- **Cobertura del foco en jsdom:** jsdom no suelta el foco de un botón deshabilitado, así que los tests de «Marcar todo» y de la consulta ya pasaban antes de implementar y no reproducen la pérdida real del navegador. Los de casilla y «Restaurar» sí cubren el cambio. La restauración explícita del foco con `requestAnimationFrame` en «Marcar todo» y «Volver a consultar» queda sin verificar automáticamente; conviene una prueba en navegador real (Playwright) como seguimiento.
+- Sin verificar: funciones por proyecto con `AUTH_MODE=supabase` y lector de pantalla real.
