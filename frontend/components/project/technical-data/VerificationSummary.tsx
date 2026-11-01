@@ -5,10 +5,12 @@ export type VerificationSummaryProps = {
   pending: number;
   edited: number;
   disabled: boolean;
+  /** «Marcar todo» request pending. */
+  verifying?: boolean;
   onMarkAll: () => void;
 };
 
-export function VerificationSummary({ pending, edited, disabled, onMarkAll }: VerificationSummaryProps) {
+export function VerificationSummary({ pending, edited, disabled, verifying = false, onMarkAll }: VerificationSummaryProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div aria-live="polite" className="flex flex-wrap items-center gap-2">
@@ -18,7 +20,7 @@ export function VerificationSummary({ pending, edited, disabled, onMarkAll }: Ve
         {edited ? <StatusChip tone="warn">{`${edited} editados`}</StatusChip> : null}
       </div>
       <Button size="sm" disabled={disabled} onClick={onMarkAll}>
-        Marcar todo como verificado
+        {verifying ? "Verificando…" : "Marcar todo como verificado"}
       </Button>
     </div>
   );
