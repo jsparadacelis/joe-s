@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -18,21 +19,27 @@ def build_client(base_url: str, transport: httpx.BaseTransport | None) -> httpx.
     )
 
 
-def get_body(client: httpx.Client, path: str, params: dict[str, Any]) -> bytes:
-    """The body of a 200 answer; one retry on network errors, timeouts and 5xx."""
+def get_body(
+    client: httpx.Client,
+    path: str,
+    params: dict[str, Any],
+    unavailable: Callable[[], Exception] = CadastreUnavailable,
+) -> bytes:
+    """The body of a 200 answer; one retry on network errors, timeouts and 5xx. Whatever else
+    happens raises `unavailable()` (the Catastro's error unless the caller says otherwise)."""
     for attempt in range(ATTEMPTS):
         last = attempt == ATTEMPTS - 1
         try:
             response = client.get(path, params=params)
         except httpx.HTTPError as error:
             if last:
-                raise CadastreUnavailable() from error
+                raise unavailable() from error
             continue
         if response.status_code >= 500:
             if last:
-                raise CadastreUnavailable()
+                raise unavailable()
             continue
         if response.status_code != 200:
-            raise CadastreUnavailable()
+            raise unavailable()
         return response.content
-    raise CadastreUnavailable()  # pragma: no cover
+    raise unavailable()  # pragma: no cover
