@@ -43,6 +43,8 @@ class TechnicalDataResult:
     last_query: QueryRecord | None = None
     # Fields the Catastro gave no usable value for (a refresh only).
     unmapped: tuple[str, ...] = ()
+    # Origins that could not be consulted (a refresh only): their data stayed as they were.
+    unavailable: tuple[str, ...] = ()
     error: Exception | None = None
 
 

@@ -617,10 +617,14 @@ RefreshTechnicalDataUnitOfWork = Callable[
 def refresh_technical_data_unit_of_work(
     settings: Annotated[Settings, Depends(get_settings)],
     open_cadastre: Annotated[CadastreUnitOfWork, Depends(cadastre_unit_of_work)],
+    open_plot: Annotated[PlotUnitOfWork, Depends(plot_unit_of_work)],
+    open_terrain: Annotated[TerrainUnitOfWork, Depends(terrain_unit_of_work)],
+    open_pv: Annotated[PvUnitOfWork, Depends(pv_unit_of_work)],
 ) -> RefreshTechnicalDataUnitOfWork:
     """Composition root for 'query again'. No connection is taken here: the use case opens a
-    short transaction to check authority, calls the Catastro with none open, and opens another
-    to write the data and their audit."""
+    short transaction to check authority, calls the Catastro, INSPIRE, Open-Meteo and PVGIS with
+    none open (each cache access is its own short transaction), and opens another to write the
+    data and their audit."""
 
     @contextmanager
     def open_unit(context: RequestContext) -> Iterator[RefreshTechnicalData]:
@@ -634,7 +638,18 @@ def refresh_technical_data_unit_of_work(
                     PostgresAuditLog(conn),
                 )
 
-        with open_cadastre(context) as get_property:
-            yield RefreshTechnicalData(get_property, open_session)
+        with (
+            open_cadastre(context) as get_property,
+            open_plot(context) as get_plot,
+            open_terrain(context) as get_terrain,
+            open_pv(context) as get_pv,
+        ):
+            yield RefreshTechnicalData(
+                get_property,
+                open_session,
+                get_plot=get_plot,
+                get_terrain=get_terrain,
+                get_pv=get_pv,
+            )
 
     return open_unit

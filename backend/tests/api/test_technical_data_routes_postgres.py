@@ -7,14 +7,27 @@ import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.api.dependencies import cadastre_gateway, get_settings
+from backend.app.api.dependencies import (
+    cadastre_gateway,
+    elevation_gateway,
+    get_settings,
+    plot_gateway,
+    pv_gateway,
+)
 from backend.app.api.main import create_app
-from backend.app.external_data.domain.errors import CadastreUnavailable
-from backend.app.external_data.domain.ports import CadastreGateway
+from backend.app.external_data.domain.errors import CadastreUnavailable, ExternalServiceUnavailable
+from backend.app.external_data.domain.ports import (
+    CadastreGateway,
+    ElevationGateway,
+    PlotGateway,
+    PvGateway,
+)
+from backend.app.external_data.domain.pv import PvYield
 from backend.app.shared.config import Settings
 from backend.app.shared.migrate import MIGRATIONS_DIR, apply_migrations
 from backend.app.technical_data.domain.catalog import CATALOG
 from backend.tests.external_data.domain.test_cadastral_property import REFERENCE, a_property
+from backend.tests.external_data.domain.test_plot import TRIANGLE, _plot_from_metres
 
 pytestmark = pytest.mark.integration
 
@@ -50,12 +63,29 @@ def gateway():
 
 
 @pytest.fixture
-def client_for(url, gateway):
+def external(gateway):
+    """The plot, elevation and PV services, simulated: nothing here reaches the real ones."""
+    plots = create_autospec(PlotGateway, spec_set=True, instance=True)
+    plots.fetch.return_value = _plot_from_metres(TRIANGLE)  # 2,700 m²
+    elevations = create_autospec(ElevationGateway, spec_set=True, instance=True)
+    elevations.fetch.return_value = [100.0, 103.0, 95.0]  # 5 m over 50 m: 10 %
+    pv = create_autospec(PvGateway, spec_set=True, instance=True)
+    pv.fetch.side_effect = lambda location: PvYield(location, 1617.61, 35.0, -3.0)
+    return plots, elevations, pv
+
+
+@pytest.fixture
+def client_for(url, gateway, external):
+    plots, elevations, pv = external
+
     def make(study_id=STUDY_A, role="project_director"):
         settings = Settings(_env_file=None, database_url=url, dev_study_id=study_id, dev_role=role)
         app = create_app(settings)
         app.dependency_overrides[get_settings] = lambda: settings
         app.dependency_overrides[cadastre_gateway] = lambda: gateway
+        app.dependency_overrides[plot_gateway] = lambda: plots
+        app.dependency_overrides[elevation_gateway] = lambda: elevations
+        app.dependency_overrides[pv_gateway] = lambda: pv
         return TestClient(app)
 
     return make
@@ -250,3 +280,126 @@ def test_an_invalid_reference_is_422_and_the_catastro_is_not_called(
     assert response.status_code == status
     assert response.json()["detail"]["code"] == code
     gateway.fetch.assert_not_called()
+
+
+# --- RGB-26: the other origins, end to end -------------------------------------------------------
+
+
+def test_a_refresh_fills_the_data_of_every_origin_and_audits_them(client_for, url):
+    response = client_for().post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE})
+
+    body = response.json()
+    assert response.status_code == 200 and body["unavailable"] == [] and body["unmapped"] == []
+    expected = {
+        "polygonPlotArea": ("2700", "inspire"),
+        "altitude": ("100", "open_meteo"),
+        "slope": ("10", "calculated"),
+        "slopeType": ("Moderada (10–20 %)", "calculated"),
+        "pvProduction": ("1618", "pvgis"),
+    }
+    for field_id, (value, source) in expected.items():
+        assert (datum(body, field_id)["value"], datum(body, field_id)["source"]) == (value, source)
+    ((_, _, _, _, new_value),) = audit(url)
+    assert set(expected) <= set(new_value["changed"]) and new_value["unavailable"] == []
+
+
+def test_a_source_down_saves_the_rest_and_reports_it(client_for, external, url):
+    _, elevations, _ = external
+    elevations.fetch.side_effect = ExternalServiceUnavailable()
+    client = client_for()
+
+    response = client.post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE})
+
+    body = response.json()
+    assert response.status_code == 200 and body["unavailable"] == ["open_meteo"]
+    assert datum(body, "builtArea")["value"] == "308"
+    assert datum(body, "pvProduction")["value"] == "1618"
+    assert all(datum(body, f)["value"] == "" for f in ("altitude", "slope", "slopeType"))
+    stored = client.get(URL).json()
+    assert datum(stored, "polygonPlotArea")["value"] == "2700"
+    assert audit(url)[0][4]["unavailable"] == ["open_meteo"]
+
+
+def test_a_later_refresh_fills_what_was_unavailable_and_keeps_edits_and_verification(
+    client_for, external
+):
+    _, elevations, _ = external
+    elevations.fetch.side_effect = ExternalServiceUnavailable()
+    client = client_for()
+    client.post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE})
+    client.put(f"{URL}/pvProduction", json={"value": "1700"})
+    client.post(f"{URL}/pvProduction/verify")
+    elevations.fetch.side_effect = None
+    elevations.fetch.return_value = [100.0, 103.0, 95.0]
+
+    body = client.post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE}).json()
+
+    assert body["unavailable"] == []
+    assert datum(body, "altitude")["value"] == "100"
+    assert datum(body, "pvProduction")["value"] == "1700"
+    assert datum(body, "pvProduction")["verified"] is True
+
+
+def test_the_plot_down_reports_the_three_origins_and_saves_the_catastro(client_for, external):
+    from backend.app.external_data.domain.errors import PlotNotFound
+
+    plots, elevations, pv = external
+    plots.fetch.side_effect = PlotNotFound()
+
+    body = client_for().post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE}).json()
+
+    assert body["unavailable"] == ["inspire", "open_meteo", "pvgis"]
+    assert datum(body, "builtArea")["value"] == "308"
+    elevations.fetch.assert_not_called()
+    pv.fetch.assert_not_called()
+
+
+def test_no_connection_is_held_while_the_external_services_answer(url, gateway, external):
+    """Pool of one: while Open-Meteo waits, another request of the same study completes."""
+    import threading
+
+    _, elevations, _ = external
+    entered, release = threading.Event(), threading.Event()
+
+    def slow(positions):
+        entered.set()
+        assert release.wait(timeout=20)
+        return [100.0, 103.0, 95.0]
+
+    elevations.fetch.side_effect = slow
+    from backend.app.shared.db import close_pools, open_pool
+
+    open_pool(url, min_size=1, max_size=1)
+    try:
+        settings = Settings(
+            _env_file=None, database_url=url, dev_study_id=STUDY_A, dev_role="project_director"
+        )
+        app = create_app(settings)
+        app.dependency_overrides[get_settings] = lambda: settings
+        app.dependency_overrides[cadastre_gateway] = lambda: gateway
+        app.dependency_overrides[plot_gateway] = lambda: external[0]
+        app.dependency_overrides[elevation_gateway] = lambda: elevations
+        app.dependency_overrides[pv_gateway] = lambda: external[2]
+        client = TestClient(app)
+        results = []
+        worker = threading.Thread(
+            target=lambda: results.append(
+                client.post(f"{URL}/refresh", json={"cadastral_reference": REFERENCE})
+            )
+        )
+        worker.start()
+        assert entered.wait(timeout=10)
+
+        probe = threading.Thread(target=lambda: results.append(client.get(URL)))
+        probe.start()
+        probe.join(timeout=5)
+        finished_while_waiting = not probe.is_alive()
+        release.set()
+        worker.join(timeout=20)
+        probe.join(timeout=5)
+    finally:
+        release.set()
+        close_pools()
+
+    assert finished_while_waiting
+    assert sorted(r.status_code for r in results) == [200, 200]
