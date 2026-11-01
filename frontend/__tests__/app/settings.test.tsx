@@ -10,6 +10,10 @@ jest.mock("@/components/settings/ScoringSettingsEditor", () => ({
   ScoringSettingsEditor: () => <div data-testid="scoring-settings-editor" />,
 }));
 
+jest.mock("@/components/settings/TeamEditor", () => ({
+  TeamEditor: () => <div data-testid="team-editor" />,
+}));
+
 describe("page /settings", () => {
   it("renders the scoring settings editor (RGB-14)", () => {
     render(<SettingsPage />);
@@ -25,6 +29,14 @@ describe("page /settings", () => {
   it("renders the plan settings editor", () => {
     render(<SettingsPage />);
     expect(screen.getByTestId("plan-settings-editor")).toBeInTheDocument();
+  });
+
+  it("renders the study team editor (RGB-48) after the plan and scoring settings", () => {
+    render(<SettingsPage />);
+    const team = screen.getByTestId("team-editor");
+    expect(team).toBeInTheDocument();
+    const scoring = screen.getByTestId("scoring-settings-editor");
+    expect(scoring.compareDocumentPosition(team) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("is no longer an empty state", () => {

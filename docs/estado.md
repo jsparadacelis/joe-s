@@ -223,3 +223,6 @@ Las acciones tardaban ≥ 1,2 s porque la API (`us-central1`) abría una conexi�
 
 ## RGB-2c · alta del doble factor (2026-11-01)
 Primer contacto con Supabase real: Google, TOTP y `aal2` funcionan. El socio quedó bloqueado por dos fallos de `/login/mfa`: recargar dejaba un factor pendiente sin QR recuperable y el QR (SVG transparente) no se veía en tema oscuro. Arreglo: la pantalla retira los factores pendientes (los lee de `listFactors().all`, no de `totp`) antes de crear uno nuevo, muestra «Código de error» con el `code` de Supabase y pinta el QR sobre blanco. Sigue sin haber recuperación del segundo factor perdido. Plan: [plan-2c](plans/RGB-2/plan-2c.md).
+
+## RGB-48 · Equipo del estudio (2026-11-01)
+Sección «Equipo del estudio» en `/settings`: invitar por correo con rol y cualificaciones, ver el estado de cada persona (invitada, activa, acceso retirado) y retirar acceso con confirmación. Usa las rutas de RGB-2a, sin cambios de back; la persona invitada se activa al entrar con Google con ese correo. Veredicto del Juez: aprobado; 2096 tests de front; 29 pantallazos con el build y la API reales. Seguimiento menor: título visible del formulario, nombre accesible del foco tras retirar, 403 al listar con un rol sin permiso, desbordamiento a 320 px del shell. Plan: [plan](plans/RGB-48/plan.md) · [log](plans/RGB-48/implementation_log.md).
