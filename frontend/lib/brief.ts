@@ -195,7 +195,6 @@ export function validateBriefField(id: BriefFieldId, draft: string): string | nu
   if (id === "deadline") return isRealDate(trimmed) ? null : DEADLINE_MESSAGE;
   const label = BRIEF_FIELD_LABELS[id];
   if (Array.from(trimmed).length > MAX_TEXT) return `El campo «${label}» no puede superar ${MAX_TEXT} caracteres.`;
-  // eslint-disable-next-line no-control-regex
   if (/\u0000|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(trimmed)) {
     return `El campo «${label}» contiene caracteres no válidos.`;
   }

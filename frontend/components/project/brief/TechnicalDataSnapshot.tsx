@@ -4,7 +4,7 @@ import { DEFINITIONS } from "@/lib/technical-data";
 const LABEL_BY_ID = new Map(DEFINITIONS.map((d) => [d.id, d.label]));
 const labelOf = (id: string) => LABEL_BY_ID.get(id) ?? id;
 const HEADERS = ["Dato", "Valor", "Origen", "Original", "Editado", "Verificado"];
-const CELL = "border-b border-hair px-3 py-2 text-left align-top";
+const CELL = "break-words border-b border-hair px-3 py-2 text-left align-top";
 
 const queryDate = (iso: string) =>
   new Date(iso).toLocaleDateString("es-ES", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" });

@@ -380,6 +380,14 @@ describe("<BriefForm> read-only", () => {
     expect(screen.getByText("Por correo")).toBeInTheDocument();
   });
 
+  it("a long unbroken text wraps instead of widening the page", () => {
+    const long = "W".repeat(2000);
+    render(<BriefForm brief={asBrief(brief({ permissions: { can_edit: false }, fields: { needs: long } }))} />);
+    const value = screen.getByText(long);
+    expect(value.tagName).toBe("DD");
+    expect(value).toHaveClass("break-words");
+  });
+
   it("empty values read «Sin rellenar»", () => {
     render(<BriefForm brief={asBrief(brief({ permissions: { can_edit: false }, fields: { program: null, topographic_survey: null } }))} />);
     expect(screen.getAllByText("Sin rellenar").length).toBeGreaterThanOrEqual(3);

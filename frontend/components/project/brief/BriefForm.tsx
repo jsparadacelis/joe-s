@@ -202,7 +202,7 @@ export function BriefForm({ brief: incoming, save, onSaved }: BriefFormProps) {
           {BRIEF_FIELD_IDS.map((id) => (
             <div key={id} className="flex min-w-0 flex-col gap-0.5">
               <dt className="text-s font-medium text-muted">{BRIEF_FIELD_LABELS[id]}</dt>
-              <dd className="whitespace-pre-line text-m">{displayValue(current, id)}</dd>
+              <dd className="min-w-0 whitespace-pre-line break-words text-m">{displayValue(current, id)}</dd>
             </div>
           ))}
         </dl>
