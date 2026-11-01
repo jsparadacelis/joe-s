@@ -62,3 +62,15 @@ Lector de pantalla real, Supabase y Google reales (el inicio de sesión se susti
 ## Limpieza
 
 Parados uvicorn 8001 a 8004 (y 8005), proxy 8000, JWKS falso 9200 y `next start` 3010; base `rgb49` eliminada. Los scripts de Playwright quedaron fuera del repo. Se borraron pantallazos de una primera pasada que mostraban un caso mal planteado.
+
+# RGB-49 · Juez
+
+Veredicto: **APROBADO**.
+
+Verificado con evidencia propia: `npm run lint` (0 errores, los 3 avisos preexistentes), `npm run typecheck` verde, `npx jest` 97 suites / 2170 tests en verde, `npm run build` verde.
+
+1. **Plan y alcance:** pestaña «Equipo» en `components/project/ProjectTabs.tsx`, ruta `app/projects/[code]/team/page.tsx` (404 si el proyecto no existe), `lib/project-team.ts` con las rutas de RGB-4 (GET/POST/DELETE `/api/projects/{code}/members`), sin cambios en `backend/`, sin ocultar la pestaña por rol.
+2. **Tests:** desde el último commit del Escritor (`912200c`) no hay cambios en `frontend/__tests__` hechos por el Desarrollador (`git diff 912200c HEAD`). Los dos cambios del Escritor en `ProjectTabs.test.tsx` («dos pestañas» a «tres», y el orden con Tab) son un ajuste legítimo: el requisito añade una pestaña. No se debilitan: se conservan las comprobaciones de texto exacto, `href`, `aria-current`, teclado y axe, y se añaden casos para «Equipo» (también en `/team`).
+3. **Seguridad y reglas:** el texto se renderiza como texto de React (sin `dangerouslySetInnerHTML`; el Tester lo probó con cargas XSS), datos solo `@example.com`, sin secretos, el front no decide permisos (muestra el mensaje del servidor), código en inglés e interfaz en español, nada cambia el estado de un proyecto.
+4. **Pantallazos:** 52 en `docs/plans/RGB-49/screenshots/`, claro y oscuro, datos ficticios; abiertos `team-list-dark`, `assign-error-403-restricted-light` y `remove-confirm-light`: corresponden al cambio. Referenciados en el informe del Tester.
+5. **Hallazgos:** ninguno bloqueante. Sobre el nº 2 (fila que permanece tras 404 al quitar o 409 al asignar): es un caso de carrera poco frecuente, el aviso del servidor es claro y recargar lo resuelve; no justifica rechazar. Seguimiento: llamar a `reloadTeam()` también en `confirmRemove` (404 `assignment_not_found`) y `handleAssign` (409 `assignment_already_exists`), con un test que tras ese error vuelva a pedir el equipo. Sobre el nº 4: confirmado en `backend/app/access/domain/errors.py` (`SigningFunctionRestricted(NoAuthority)`, código `no_authority`, 403); el front muestra el mensaje del servidor (pantallazos `assign-error-403-restricted-*` y `remove-error-403-restricted-*`). Los hallazgos 1, 3 y 5 son preexistentes o de entorno.
