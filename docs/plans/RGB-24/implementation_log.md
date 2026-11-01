@@ -31,5 +31,5 @@ Rama `rgb-24/cadastre-client`. TDD estricto: cada pieza de producción se escrib
 
 ## Resultados
 - `ruff check backend` y `ruff format backend`: limpios.
-- Tests nuevos: 101 en `external_data` + gateway/parser/caché, 7 + 4 de rutas, 1 de arquitectura (ver el total en el informe).
+- Tests nuevos: 114 en `backend/tests/external_data` y las rutas del Catastro (11 de ellos con Postgres real, se omiten sin `DATABASE_URL`), más 1 de arquitectura.
 - `pytest backend` completo con Postgres real: **2183 passed** (6 min 58 s).
