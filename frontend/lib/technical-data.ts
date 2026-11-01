@@ -1,8 +1,7 @@
 /**
- * Technical data of the property (RGB-29).
- * The exported signatures are the contract with the API: once RGB-24, RGB-27 and
- * RGB-28 exist the "SAMPLE DATA" block is replaced by the API client without touching
- * the components. The front end never calls external services.
+ * Technical data of the property (RGB-29): types, definitions, pure functions and the fictitious sample data.
+ * Real projects talk to the server through `lib/technical-data-api.ts` (RGB-51); the samples (`PRY-EJ-00N`) use the
+ * sample data below. The front end never calls external services.
  */
 
 import { validateCadastralReference } from "@/lib/cadastral-reference";
@@ -32,6 +31,10 @@ export interface TechnicalDatum {
   value: string;
   original: string | null;
   verified: boolean;
+  /** What the server says (RGB-28); when absent, `isEdited` derives it from `value` and `original`. */
+  edited?: boolean;
+  /** Where the server got the value from (`catastro`, `manual`...). */
+  source?: string;
 }
 
 export interface TechnicalData {
@@ -93,7 +96,13 @@ export const DEFINITIONS: readonly DatumDefinition[] = [
 // ---- Pure functions ----
 
 export function isEdited(d: TechnicalDatum): boolean {
+  if (d.edited !== undefined) return d.edited;
   return d.original !== null && d.value !== d.original;
+}
+
+/** The API always returns the whole catalog: true when it was queried or something in it has a value or is verified. */
+export function hasTechnicalData(sheet: TechnicalData): boolean {
+  return sheet.queriedOn !== null || sheet.data.some((d) => d.value !== "" || d.verified);
 }
 
 export function countPending(data: TechnicalDatum[]): number {

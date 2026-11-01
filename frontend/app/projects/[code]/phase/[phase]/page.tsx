@@ -47,12 +47,10 @@ export default async function Page({ params }: Props) {
   const canScore = viewedPhase === 0 && currentPhase === 0 && !isSampleProject(project.code);
   const mode = phaseMode(viewedPhase, currentPhase);
   // Technical data are reviewed in Briefing (phase 2); the relief is queried in Anteproyecto (phase 3).
-  const [saved, sheetReference] =
-    viewedPhase === 2
-      ? await Promise.all([fetchSavedTechnicalData(project.code), fetchCadastralReference(project.code)])
-      : viewedPhase === 3
-        ? [null, await fetchCadastralReference(project.code)]
-        : [null, ""];
+  const sheetReference = viewedPhase === 2 || viewedPhase === 3 ? await fetchCadastralReference(project.code) : "";
+  // RGB-51: a real project's technical data are loaded by the editor from the API (in the browser, with the person's
+  // session); only the fictitious samples are resolved here, from their local data.
+  const savedSample = viewedPhase === 2 && isSampleProject(project.code) ? await fetchSavedTechnicalData(project.code) : undefined;
 
   // RGB-17a: the sheet belongs to phase 1 and only exists for real projects; no sheet yet is not an error.
   const sheetState = viewedPhase === 1 && !isSampleProject(project.code) ? await loadSheet(project.code) : undefined;
@@ -80,8 +78,9 @@ export default async function Page({ params }: Props) {
       {sheetState && "error" in sheetState ? <Notice tone="bad">No se pudo cargar la ficha del proyecto. {sheetState.error}</Notice> : null}
       {viewedPhase === 2 ? (
         <TechnicalDataEditor
-          cadastralReference={saved?.cadastralReference ?? sheetReference}
-          initial={saved}
+          projectCode={project.code}
+          cadastralReference={savedSample?.cadastralReference ?? sheetReference}
+          initial={isSampleProject(project.code) ? savedSample : undefined}
           mode={mode}
         />
       ) : null}

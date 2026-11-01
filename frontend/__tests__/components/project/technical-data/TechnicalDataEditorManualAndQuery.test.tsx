@@ -1,7 +1,8 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
 import { fetchTechnicalData } from "@/lib/technical-data";
+import { fakeTechnicalDataApi } from "../../../helpers/technical-data-fake-api";
 
 jest.setTimeout(20000);
 const REF = "1234567DG3413S0001AB";
@@ -13,7 +14,7 @@ describe("TechnicalDataEditor · manual path and later query (regression)", () =
       .mockRejectedValueOnce(new Error("sin servicio"))
       .mockImplementationOnce(fetchTechnicalData);
     const user = userEvent.setup();
-    render(<TechnicalDataEditor cadastralReference={REF} initial={null} mode="edit" query={query} />);
+    render(<TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference={REF} initial={null} mode="edit" api={fakeTechnicalDataApi({ query })} />);
 
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     await user.click(await screen.findByRole("button", { name: "Introducir datos manualmente" }));
@@ -21,6 +22,9 @@ describe("TechnicalDataEditor · manual path and later query (regression)", () =
     await user.type(screen.getByLabelText(/^Dirección/), "CL MANUAL 1");
     await user.type(screen.getByLabelText(/^Edificabilidad/), "2");
     await user.selectOptions(screen.getByLabelText(/^Superficie de cálculo/), "Polígono");
+    await user.tab();
+    // each manual entry is saved through the API; wait until none is pending
+    await waitFor(() => expect(screen.queryByText("Guardando…")).not.toBeInTheDocument());
 
     // No misleading marks on what was entered by hand.
     const row = screen.getByLabelText(/^Dirección/).closest("li") as HTMLElement;
