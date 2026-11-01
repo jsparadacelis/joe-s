@@ -192,3 +192,23 @@ Lector de pantalla real, Supabase y Google reales (el acceso se sustituyó por t
 ## Limpieza
 
 Parados uvicorn 8003, proxy 8000, JWKS 9200 y `next start` 3010; base `rgb32b` eliminada. Los scripts quedaron fuera del repo (scratchpad).
+
+# RGB-32b · Juez
+
+Veredicto: **APROBADO** (tras una primera revisión rechazada por el hallazgo 2 del Tester, corregida en 6a09777).
+
+## Verificación propia
+- `lint`: 0 errores, 3 avisos preexistentes (el aviso nuevo de `frontend/lib/brief.ts` desapareció). `typecheck` verde. Suite completa del front: 110 suites, 2557 tests en verde en la primera revisión; tras la corrección, los 6 conjuntos del brief (220 tests) en verde, y el coordinador informa de 2558 en la suite completa y de `build` verde.
+- Alcance: brief en la fase 2 de proyectos reales con `BriefForm`, `BriefPromotePanel`, `TechnicalDataSnapshot` y `BriefScreen`; versión congelada en solo lectura con fase > 2; `PRY-EJ-*` sin llamadas al brief; sin cambios de backend; el front no decide permisos (usa `permissions` del servidor).
+- Tests: los del Escritor solo cambian en 3e6bcd1 (consulta de la nota más estricta, `/1 dato técnico sin verificar/i`; se revierte el apaño de producción de los dos `<span>`): no debilita nada. La corrección 6a09777 añade un test nuevo (rojo antes) y no modifica ninguno existente.
+- Seguridad y reglas: sin `dangerouslySetInnerHTML`, texto como texto (XSS probado por el Tester), datos ficticios, sin secretos, código en inglés y UI en español, la única transición es la promoción explícita con confirmación, `.mcp.json` fuera del diff.
+- Pantallazos: 50 en `screenshots-32b/`, claro y oscuro, datos ficticios, referenciados; abiertos 41, 09-promoted-dark y 20-readonly-partner-light.
+
+## Corrección del hallazgo 2 (6a09777)
+`min-w-0 … break-words` en el `dd` de `BriefForm.tsx` y `break-words` en `CELL` de `TechnicalDataSnapshot.tsx`, con el test «a long unbroken text wraps instead of widening the page», y se quita el `eslint-disable` sin uso (hallazgo 8). Cubre la vista del brief; en la tabla de datos técnicos, `break-words` no reduce el ancho mínimo de una celda de tabla, pero esos valores vienen del Catastro y están acotados.
+
+## Seguimientos (no bloquean)
+1. **Hallazgo 1:** proyecto en fase >= 3 sin versión congelada (solo posible con datos anteriores a RGB-32a o insertados a mano; la ruta genérica ya lo impide) muestra el panel de promoción con «Faltan 7 requisitos». Tratar `phase > 2` como congelado y avisar «Sin versión congelada»; requiere pasar la fase a `BriefScreen`.
+2. **Hallazgo 3:** obtener datos técnicos en el editor de la misma página no actualiza el panel de promoción hasta recargar (`router.refresh()`).
+3. **Hallazgo 4:** tras «Recargar» por un 409 o tras promover, siguen visibles los avisos anteriores sobre la versión congelada; limpiarlos al recibir un brief congelado.
+4. **Comprobación visual pendiente:** el caso 41 (2000 caracteres sin espacios) no se ha repetido en navegador tras la corrección; solo lo cubre el test de clase. Repetirlo con el build real y comprobar `scrollWidth <= innerWidth`.
