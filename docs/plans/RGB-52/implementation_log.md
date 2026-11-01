@@ -64,3 +64,20 @@ Rama `rgb-52/connect-relief-viewer` (HEAD 585aa5a). Veredicto del Tester: **APRO
 ## Limpieza
 
 Parados uvicorn (8000) y `next start` (3052); el servidor de desarrollo preexistente del puerto 3000 no se tocó. Base `rgb52` eliminada. Los scripts quedaron fuera del repo (scratchpad).
+
+## RGB-52 · Juez
+
+Veredicto: **APROBADO** (tras una primera ronda RECHAZADA).
+
+**Ronda 1 (RECHAZADO).** Bloqueante: el visor escalaba la ventana con los `width_m`/`height_m` nominales UTM del servidor (125 × 131 m) mientras la rejilla cubre la caja en grados (~129 × 135 m): dimensiones, pendiente (~3 % mayor) y área del polígono en el visor (94 % de la del servidor) salían con escala errónea.
+
+**Ronda 2 (commit 7b0f533).** `reliefFromResponse` (`frontend/lib/relief-api.ts`) deriva W y H de la propia caja en grados con la latitud media (serie WGS84 de metros por grado); `width_m`/`height_m` solo se validan. Solo front, sin cambios de backend. Los tests nuevos cubren: ventana de la fixture ≈ 129,0 × 135,2 m, esquinas en (0,0) y (W,H), independencia de `width_m`/`height_m`, área de un rectángulo de 80 × 90 m dentro de ±1 % y plano inclinado (10 % este, 5 % norte) conservado. Las expectativas modificadas (`relief-api.test.ts`, helper `relief-api-response.ts`, dos aserciones de `ReliefViewerApi.test.tsx`) solo corrigen valores del comportamiento erróneo anterior; no se debilita ninguna comprobación (se añadieron tests).
+
+Comprobaciones propias: lint 0 errores (3 avisos preexistentes), typecheck verde, `npm test` 112 suites / 2646 tests en verde. Build verde según Tester/Desarrollador. Resto del alcance (llamada solo en proyectos reales, `PRY-EJ-*` sintéticos sin llamadas, 422/404 junto a la referencia, 503/red/502 en aviso, carrera de peticiones, sin servicios externos, sin backend, `.mcp.json` fuera del diff, datos ficticios, UI en español, solo tokens de color) verificado. Los tests del Escritor no fueron tocados por el Desarrollador salvo lo indicado.
+
+**Seguimientos (no bloquean):**
+- Nº 2: tras un error al reconsultar queda el terreno anterior con los controles ya cambiados; quitar el relieve al fallar o marcarlo como anterior.
+- Nº 3: «Parcela mayor que la ventana» aparece cuando solo el margen excede el lado (`clamped = clipped`) aunque la parcela quepa entera; afinar el texto.
+- Nº 4: el 503 `cadastre_unavailable` dice «Introduce los datos a mano.» dentro del visor, que no tiene ruta manual.
+- Nº 7: desfase de media celda entre las celdas del visor (borde a borde) y el WCS (centro de celda); no visible.
+- Pantallazos: faltan los pares claro/oscuro de `12-network-failure` y `16-focus-canvas` (solo versión clara). Los pantallazos son anteriores a la corrección de escala (la lectura «Vista» pasa de 125 × 131 m a ~129 × 135 m).
