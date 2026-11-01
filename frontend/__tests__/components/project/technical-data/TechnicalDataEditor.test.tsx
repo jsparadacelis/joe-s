@@ -3,6 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
 import { validateCadastralReference } from "@/lib/cadastral-reference";
+
+/** The message the screen must show for an invalid reference (fails if the reference is valid). */
+function invalidMessage(reference: string): string {
+  const result = validateCadastralReference(reference);
+  if (result.valid) throw new Error(`expected an invalid reference: ${reference}`);
+  return result.message;
+}
 import { DEFINITIONS, type TechnicalData, type TechnicalDatum } from "@/lib/technical-data";
 import { fakeTechnicalDataApi } from "../../../helpers/technical-data-fake-api";
 
@@ -127,7 +134,7 @@ describe("TechnicalDataEditor · invalid reference", () => {
     const { user, query } = mount();
     await typeInto(user, "Referencia catastral", ref);
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
-    expect(screen.getByText(validateCadastralReference(ref).message)).toBeInTheDocument();
+    expect(screen.getByText(invalidMessage(ref))).toBeInTheDocument();
     expect(query).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
   });
@@ -464,7 +471,7 @@ describe("TechnicalDataEditor · query again", () => {
     const { user, query } = await queried();
     await typeInto(user, "Referencia catastral", "123");
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
-    expect(screen.getByText(validateCadastralReference("123").message)).toBeInTheDocument();
+    expect(screen.getByText(invalidMessage("123"))).toBeInTheDocument();
     expect(query).toHaveBeenCalledTimes(1);
     expect(control("Dirección")).toHaveValue("CL TEST 1");
   });
@@ -594,7 +601,7 @@ describe("TechnicalDataEditor · accessibility", () => {
       </main>,
     );
     await user.click(queryButton());
-    expect(screen.getByText(validateCadastralReference("123").message)).toBeInTheDocument();
+    expect(screen.getByText(invalidMessage("123"))).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 
