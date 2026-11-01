@@ -25,7 +25,7 @@ _NOT_FOUND_CODES = frozenset({"4", "9"})
 _NOT_FOUND_TEXT = ("NO EXISTE", "NO ESTÁ CORRECTAMENTE FORMADA", "NO ESTA CORRECTAMENTE FORMADA")
 
 
-def _root(body: bytes) -> Element:
+def parse_xml(body: bytes) -> Element:
     """The document without XML namespaces, or `CadastreUnavailable` if it is not XML."""
     try:
         root = ElementTree.fromstring(body)
@@ -67,7 +67,7 @@ def _raise_service_errors(root: Element) -> None:
 
 def parse_property(reference: str, body: bytes) -> CadastralProperty:
     """The property from a `Consulta_DNPRC` answer, without coordinates."""
-    root = _root(body)
+    root = parse_xml(body)
     _raise_service_errors(root)
     info = root.find("bico/bi")
     if info is None:
@@ -117,7 +117,7 @@ def parse_coordinates(body: bytes) -> tuple[float, float]:
     Any failure is `CadastreUnavailable`: the property itself was already found, so a missing
     plot here is an inconsistency of the service, not an unknown reference.
     """
-    root = _root(body)
+    root = parse_xml(body)
     try:
         _raise_service_errors(root)
     except CadastreNotFound as error:
