@@ -51,3 +51,20 @@ Lector de pantalla real, Supabase y Google reales (solo `AUTH_MODE=dev`), 401.
 ## Limpieza
 
 Parados uvicorn 8001 y 8002, proxy 8000 y `next start` 3010; base `rgb48` eliminada. Los scripts de Playwright quedaron fuera del repo.
+
+# RGB-48 · Juez
+
+Veredicto: **APROBADO**.
+
+## Evidencia propia
+
+- `npm run lint`: 0 errores, 3 avisos preexistentes ajenos. `npm run typecheck`: verde. `npx jest`: 94 suites, 2096 tests en verde. `npm run build`: verde.
+- Alcance: `frontend/app/settings/page.tsx` monta `TeamEditor` bajo plan y scoring; `frontend/lib/members.ts` y `frontend/components/settings/TeamEditor.tsx` cubren listar, invitar y retirar. Sin cambios en `backend/`, sin ocultar secciones por rol, sin edición de roles. El front muestra los errores del servidor (403, 409, 422) tal cual.
+- Tests del Escritor (`TeamEditor.test.tsx`, `members.test.ts`, `settings.test.tsx`): sin cambios desde 4dd55bc (`git diff 4dd55bc HEAD` solo toca ficheros de RGB-2c llegados con el merge de main).
+- Seguridad y reglas: solo correos `@example.com`, sin secretos; los correos se renderizan como texto de React (sin `dangerouslySetInnerHTML`; el Tester comprobó el XSS sembrado); identificadores en inglés, interfaz en español.
+- Pantallazos: 29 ficheros en `screenshots/`, claro y oscuro, datos ficticios, referenciados en el informe del Tester. Revisados `team-list-light` y `invite-error-403-dark`: corresponden al cambio.
+
+## Hallazgos del Tester: ninguno bloqueante
+
+- Correo cliente/API: el cliente solo rechaza direcciones malformadas (`a@b..c`, `a@.com`, sin dominio con punto), que no son direcciones legítimas; acepta `+`, subdominios y mayúsculas. No impide invitar a una persona legítima.
+- Seguimiento (menor): título visible «Invitar a una persona» (hoy solo `aria-label`); nombre accesible del contenedor de foco tras retirar (`tableWrapRef` en `TeamEditor.tsx`) o enfocar el aviso `status`; 403 al listar con rol `architect` sin probar; desbordamiento a 320 px es del shell (ya en RGB-16).
