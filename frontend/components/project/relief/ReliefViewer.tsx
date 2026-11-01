@@ -5,8 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { Panel } from "@/components/ui/Panel";
+import { ApiError } from "@/lib/api";
+import { isSampleProject } from "@/lib/projects";
+import { reliefFetcherFor } from "@/lib/relief-api";
 import { isValidCadastralReference } from "@/lib/technical-data";
-import { fetchRelief, type Exaggeration, type MaxSide, type Margin, type Relief } from "@/lib/relief";
+import { type Exaggeration, type MaxSide, type Margin, type Relief, type ReliefOptions } from "@/lib/relief";
 import { readSceneColors } from "@/lib/relief-colors";
 import type { ReliefScene } from "@/lib/relief-scene";
 import { calculateReadings } from "@/lib/relief-readings";
@@ -17,8 +20,10 @@ import { ReliefReadings } from "./ReliefReadings";
 export type ReliefViewerProps = {
   /** Cadastral reference from the project sheet (may be empty). */
   initialReference: string;
-  /** Injectable in tests; by default, the relief service. */
-  fetcher?: typeof fetchRelief;
+  /** Project the viewer belongs to: PRY-EJ-* samples use the synthetic terrain, the rest the relief service. */
+  projectCode: string;
+  /** Injectable in tests; by default, `reliefFetcherFor(projectCode)`. */
+  fetcher?: (options: ReliefOptions) => Promise<Relief>;
 };
 
 type ViewerState = "idle" | "loading" | "ready" | "no-webgl" | "error";
@@ -26,16 +31,22 @@ type ViewerState = "idle" | "loading" | "ready" | "no-webgl" | "error";
 const RURAL_REFERENCE = "08187A005001230000OK";
 const RESIDENTIAL_REFERENCE = "9876543DF3897N0001XY";
 const REFERENCE_ERROR_ID = "relief-reference-error";
+const REFERENCE_LENGTH_ERROR = "La referencia catastral debe tener 20 caracteres.";
+const GENERIC_ERROR = "No se pudo obtener el relieve. Inténtalo de nuevo.";
 const KEYBOARD_HINT = "Usa las flechas para girar; los botones + y − acercan y alejan";
 
-export function ReliefViewer({ initialReference, fetcher = fetchRelief }: ReliefViewerProps) {
+export function ReliefViewer({ projectCode, initialReference, fetcher: injectedFetcher }: ReliefViewerProps) {
+  const fetcher = useMemo(() => injectedFetcher ?? reliefFetcherFor(projectCode), [injectedFetcher, projectCode]);
   const [reference, setReference] = useState(initialReference);
   const [margin, setMargin] = useState<Margin>(25);
   const [maxSide, setMaxSide] = useState<MaxSide>(200);
   const [exaggeration, setExaggeration] = useState<Exaggeration>(2);
   const [relief, setRelief] = useState<Relief | null>(null);
   const [state, setState] = useState<ViewerState>("idle");
-  const [referenceError, setReferenceError] = useState(false);
+  /** Message shown next to the reference field (local validation, or 422/404 from the service). */
+  const [referenceError, setReferenceError] = useState<string | null>(null);
+  /** Any other failure of the service (503, network, malformed response). */
+  const [serviceError, setServiceError] = useState<string | null>(null);
 
   const canvasHost = useRef<HTMLDivElement>(null);
   const scene = useRef<ReliefScene | null>(null);
@@ -55,12 +66,20 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
     async (options: { reference: string; margin: Margin; maxSide: MaxSide }) => {
       const id = ++requestId.current;
       setState("loading");
+      setReferenceError(null);
+      setServiceError(null);
       try {
         const next = await fetcher(options);
         if (id !== requestId.current) return;
         setRelief(next);
-      } catch {
-        if (id === requestId.current) setState("error");
+      } catch (error) {
+        if (id !== requestId.current) return;
+        if (error instanceof ApiError && (error.status === 422 || error.status === 404)) {
+          setReferenceError(error.message);
+        } else {
+          setServiceError(error instanceof ApiError ? error.message : GENERIC_ERROR);
+        }
+        setState("error");
       }
     },
     [fetcher],
@@ -103,10 +122,10 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
     const trimmed = reference.trim();
     setReference(trimmed);
     if (!isValidCadastralReference(trimmed)) {
-      setReferenceError(true);
+      setReferenceError(REFERENCE_LENGTH_ERROR);
+      setServiceError(null);
       return;
     }
-    setReferenceError(false);
     void query({ reference: trimmed, margin, maxSide });
   };
 
@@ -117,10 +136,15 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
     if (relief) void query({ reference: relief.reference, ...next });
   };
 
+  // The simulated references only exist in the synthetic terrain, not in Catastro.
   const shortcuts: readonly ReliefShortcut[] = [
     { id: "sheet", label: "La de la ficha", reference: initialReference },
-    { id: "rural", label: "Parcela rústica grande (simulada)", reference: RURAL_REFERENCE },
-    { id: "residential", label: "Parcela residencial (simulada)", reference: RESIDENTIAL_REFERENCE },
+    ...(isSampleProject(projectCode)
+      ? [
+          { id: "rural", label: "Parcela rústica grande (simulada)", reference: RURAL_REFERENCE },
+          { id: "residential", label: "Parcela residencial (simulada)", reference: RESIDENTIAL_REFERENCE },
+        ]
+      : []),
   ];
 
   const showCanvas = relief !== null && state !== "no-webgl";
@@ -133,7 +157,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
         maxSide={maxSide}
         exaggeration={exaggeration}
         shortcuts={shortcuts}
-        errorId={referenceError ? REFERENCE_ERROR_ID : undefined}
+        errorId={referenceError !== null ? REFERENCE_ERROR_ID : undefined}
         onReference={setReference}
         onMargin={(m) => changeViewWindow({ margin: m, maxSide })}
         onMaxSide={(l) => changeViewWindow({ margin, maxSide: l })}
@@ -143,19 +167,17 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
       />
 
       <div aria-live="polite" className="flex flex-col gap-2">
-        {referenceError ? (
+        {referenceError !== null ? (
           <div id={REFERENCE_ERROR_ID}>
-            <Notice tone="bad">La referencia catastral debe tener 20 caracteres.</Notice>
+            <Notice tone="bad">{referenceError}</Notice>
           </div>
         ) : null}
-        {state === "loading" ? <Notice>Cargando el visor 3D…</Notice> : null}
-        {state === "error" ? (
-          <Notice tone="bad">No se pudo obtener el relieve. Inténtalo de nuevo.</Notice>
-        ) : null}
+        {state === "loading" ? <Notice>Cargando relieve…</Notice> : null}
+        {serviceError !== null ? <Notice tone="bad">{serviceError}</Notice> : null}
         {state === "no-webgl" ? (
           <Notice tone="warn">Este navegador no puede mostrar el modelo 3D (WebGL no disponible).</Notice>
         ) : null}
-        {relief === null && state === "idle" && !referenceError ? (
+        {relief === null && state === "idle" && referenceError === null ? (
           <Notice>Escribe una referencia catastral de 20 caracteres y pulsa «Ver relieve».</Notice>
         ) : null}
       </div>
@@ -201,6 +223,7 @@ export function ReliefViewer({ initialReference, fetcher = fetchRelief }: Relief
             plotClipped={relief.plotClipped}
             source={relief.source}
             hasReadings={readings !== null}
+            noDataCells={relief.noDataCells}
           />
         </>
       ) : null}

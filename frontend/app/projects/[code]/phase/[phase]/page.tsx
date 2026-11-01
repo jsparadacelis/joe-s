@@ -105,7 +105,7 @@ export default async function Page({ params }: Props) {
       {briefState && "brief" in briefState ? <BriefScreen brief={briefState.brief} /> : null}
       {briefState && "empty" in briefState ? <Notice>Todavía no hay brief para este proyecto.</Notice> : null}
       {briefState && "error" in briefState ? <Notice tone="bad">No se pudo cargar el brief. {briefState.error}</Notice> : null}
-      {viewedPhase === 3 ? <ReliefViewer initialReference={sheetReference} /> : null}
+      {viewedPhase === 3 ? <ReliefViewer projectCode={project.code} initialReference={sheetReference} /> : null}
     </>
   );
 }

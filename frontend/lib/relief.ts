@@ -32,6 +32,8 @@ export interface Relief {
   /** The perimeter was cut by the window. */
   plotClipped: boolean;
   source: string;
+  /** Cells that came without data and were estimated from their neighbours (0 or absent when none). */
+  noDataCells?: number;
 }
 
 export const MARGINS: readonly Margin[] = [0, 10, 25, 50, 100];
