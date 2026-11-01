@@ -120,3 +120,95 @@ Sin cuerpo. Solo el director de proyecto de ese proyecto (política RGB-4: la fa
 - `pytest backend` completo con `DATABASE_URL=postgresql://rgb:rgb@localhost:54329/rgb`: **3253 pasan, 0 fallos** (8 min 10 s). De ellos, **261 tests nuevos** de RGB-32 (dominio 78, casos de uso 40, Postgres de infraestructura 21, rutas con dobles 28, rutas con Postgres real 75, más el validador de la fase 2 y la arquitectura).
 - `ruff check backend` y `ruff format backend` limpios.
 - Un test del Escritor se corrigió con justificación: `test_unverified_lists_only_data_with_a_value_that_are_not_verified` esperaba `["year", "use"]` pero el orden del catálogo es `use`, `year` (el orden de la fotografía es el del catálogo); no se debilitó ninguna aserción.
+
+# RGB-32b · Tester
+
+Rama `rgb-32b/brief-screen`. Veredicto del Tester: **APROBADO**, sin bloqueantes. Hay hallazgos de gravedad media y baja (abajo); ninguno corrompe datos, se salta un permiso ni rompe la promoción. Pantallazos en [`screenshots-32b/`](screenshots-32b/) (50 ficheros, claro y oscuro, 1280 px página completa salvo `50-320px-*`, `51-320px-*` y `41-*`). Datos ficticios `@example.com`. No se tocó código de producción ni tests.
+
+## Resultados de las comprobaciones
+
+| Comprobación | Resultado |
+|---|---|
+| `npm run lint` | 0 errores, **4 avisos**: los 3 preexistentes y uno nuevo de esta rama (hallazgo 8) |
+| `npm run typecheck` | verde |
+| `npx jest` (suite completa) | 110 suites, **2557 tests** en verde |
+| `npm run build` | verde (`NEXT_PUBLIC_API_URL=http://localhost:8000`, `NEXT_PUBLIC_AUTH_MODE=dev`) |
+
+## Entorno
+
+`next build` + `next start` (3010) contra uvicorn real y Postgres local `back-db-1` en una base propia `rgb32b` (migraciones 001-015 + `seed_dev`; borrada al terminar), nunca producción. El API corre en **`AUTH_MODE=supabase`** contra un JWKS falso local (9200, tokens ES256 firmados con una clave de prueba) para que las funciones sean por proyecto: `dir@example.com` (rol de estudio `architect`, asignado como «Director de proyecto» en los proyectos de prueba), `out@example.com` (`architect`, sin asignación), `partner@example.com` (socio), `dir2@example.com` (director de proyecto solo de `PRY-B-007`), un director de estudio y una persona con rol de estudio `project_director` sin asignación. Un proxy local en el 8000 inyecta el `Authorization` de la persona elegida (cambia de identidad en caliente), añade latencia o fabrica errores (422/500 con y sin cuerpo). El Catastro va simulado con las respuestas grabadas (`launcher.py`, sin red); no se llamó a INSPIRE, Open-Meteo ni PVGIS. Playwright (Chrome, `es-ES`), claro y oscuro, axe-core con todas las reglas. Proyectos `PRY-B-001..032` insertados en la base (fases 0, 1, 2 y 3).
+
+## Verificación de `/projects/<code>/phase/2` (brief)
+
+- **Director asignado (UI y API):** edita, guarda y ve el panel de promoción. Vacío: «Faltan 7 requisitos» con la razón visible y enlazada (`aria-describedby`) al botón deshabilitado (`01-*`). Guardado parcial (necesidades y presupuesto): una sola petición `PUT` con solo los campos cambiados y recortados, `role=status` «Brief guardado» con el foco, el servidor devuelve el brief completo y la lista de requisitos se recalcula (`03-*`). Guardar sin cambios: «No hay cambios que guardar» y ninguna petición. Con los cinco obligatorios: «Faltan 2 requisitos» (datos técnicos y aprobación) (`04-*`). Con aprobación «Por correo» y datos técnicos: botón habilitado (`06-*`).
+- **Validaciones de cliente** (sin ninguna petición, error junto al campo con `aria-invalid`, foco en el primer campo inválido, `02-*`): presupuesto `250.000 €`, `0`, `-5`, `10,123`, `1e3`, `abc`, `250000,5` («debe ser un número mayor que 0, con punto decimal y hasta 2 decimales»), `1000000001` («no puede superar 1.000.000.000 €»), 2001 caracteres, NUL. Se aceptan `0.01`, `250000.50`, `1000000000`, plazo `2000-01-01` y `2100-12-31`.
+- **Validaciones de servidor** (API directa, 27 casos; todas con `field` y mensaje en español): presupuesto texto, 0, negativo, > 1.000 millones, 3 decimales, booleano; plazo `2027-02-30`, `30/06/2027`, `1999-12-31`, `2101-01-01`; 2001 caracteres, NUL, sustituto aislado, número en un texto; aprobación `verbal`; clave desconocida (`unknown_field`); cuerpos `{}`, `{"fields":{}}`, `{"fields":[]}` y JSON mal formado (`invalid_request`). Un 422 inyectado con `field: deadline` se muestra bajo «Plazo», con `aria-invalid` y el foco en el campo, y reintentar funciona (`31-*`).
+- **Qué falta para promover:** `422 incomplete_deliverable` con `missing` en orden y etiquetas en español («faltan 5 / 2 requisitos», «falta 1 requisito»). En pantalla (promover con un campo vaciado a espaldas de la pantalla): el aviso lista «Necesidades» y «Aprobación del cliente registrada» con el foco (`33-*`); Escape cierra la confirmación y devuelve el foco al botón. Los datos técnicos obtenidos desde el editor existente de la misma página **no** actualizan el panel hasta recargar (hallazgo 3); tras recargar pasa de «Falta» a «Cumplido».
+- **Sin autoridad (UI):** persona sin asignación, socio y director de *otro* proyecto ven solo lectura (`dl`, sin formulario), «Solo lectura.», la lista de requisitos cumplida, el botón deshabilitado con «Solo el director de proyecto de este proyecto puede promover» (`20-*`). En API: `PUT` y `promote` dan 403 `no_authority` «…Pueden hacerlo: Director de proyecto.» para la persona sin asignación, el socio, el director del otro proyecto, el director del estudio y el rol de estudio `project_director` sin asignación; `permissions` a `false` para todos. Si la identidad cambia con la pantalla abierta: el `PUT` da 403, aviso con el foco y la pantalla pasa a solo lectura (`30-*`); el `promote` da 403 con el foco en el aviso (`34-*`).
+- **Promoción de extremo a extremo (UI, `PRY-B-001`):** brief completo + referencia catastral (Catastro simulado) con 7 datos con valor y ninguno verificado → «Promover a 3 · Anteproyecto» → confirmación con foco en «Confirmar promoción» (`07-*`) → «Promoviendo…» (`08-*`) → `role=status` «El brief v1 quedó congelado y el proyecto pasó a Anteproyecto» con el foco, enlace «Ir a Anteproyecto» (`/projects/PRY-B-001/phase/3`) y cabecera/ficha refrescadas a la fase 3 sin recargar (`09-*`). `/phase/2` pasa a «Brief v1 congelado · solo lectura» con el brief y la tabla «Datos técnicos congelados» (origen, original, editado, verificado; «7 datos técnicos sin verificar: Dirección, Municipio, …» y «Sin verificar» en la celda) (`10-*`). Mismo recorrido en oscuro con `PRY-B-008`. Con 2 datos verificados a mano (`PRY-B-002`, API) quedan 5 sin verificar y la fotografía lo refleja.
+- **Fase equivocada (409):** `PUT` y `promote` en fases 0, 1, 3 y la segunda promoción dan 409 `brief_not_editable`. En pantalla, con la fase cambiada a espaldas: promover → aviso con foco y «Recargar», que muestra el brief congelado sin panel de promoción (`35-*`); guardar → aviso con foco y «Recargar» (`36-*`).
+- **Fases 0 y 1:** `GET /brief` da 404 `brief_not_found`; `/phase/0` y `/phase/1` no hacen ninguna llamada a `/brief`; `/phase/2` de un proyecto en fase 0 o 1 hace una llamada y muestra «Todavía no hay brief para este proyecto.» (`21-*`).
+- **Ejemplos `PRY-EJ-001` y `PRY-EJ-002`:** **cero** llamadas a `/brief` (registro del proxy), sin panel de brief.
+- **`/phase/3`:** no muestra el brief (la versión congelada se ve en `/phase/2` y su enlace «Volver a la fase actual»). Es lo que dice el plan; se anota por si la persona espera verla en la fase 3.
+
+## Base de datos (`audit_events`, `frozen_versions`, `exit_deliverables`)
+
+- 12 proyectos promovidos (UI y API): cada uno con **una sola** fila en `frozen_versions` (`phase 2`, `version 1`, `frozen_by` el director), con `content` = `{brief, technical_data}` en la **misma** versión, 26 datos y `unverified` = exactamente los ids con valor y sin verificar (comprobado programáticamente: 0 incoherentes). `exit_deliverables` de la fase 2: `complete` y `approved` verdaderos; se abre el de la fase 3 (12). `projects.current_phase = 3`. Los campos opcionales vacíos no se guardan en la versión y se leen como `null`.
+- Auditoría (todo el recorrido): `project_brief/update` ok 47 y rechazado 32 (403 y 409 con `new_value {"error": code}`), `project_brief/promote` rechazado 18, `project/promote` ok 12 y `project_brief/freeze` ok 12 (con versión 1), cada evento con el `user_id` de quien lo hizo.
+- **Ruta genérica `POST /api/projects/{code}/promote`:** vacía → 422 («falta entregable de salida»); con el entregable marcado completo y aprobado en BD pero brief vacío o `{}` → 422 con las 7 etiquetas del brief; con brief y datos técnicos completos pero sin marcar el entregable → 422 («entregable de salida completo, aprobación del entregable, Datos técnicos obtenidos»). No se salta el brief y no se creó ninguna versión congelada ni cambió la fase.
+- Dos pestañas promoviendo a la vez (`PRY-B-016`): una gana, la otra 409; una sola versión.
+
+## Intentar romper
+
+- **Doble envío:** doble clic en «Guardar brief» (y con 1,2 s de latencia, clic más Enter más clic forzado): una única `PUT`. Doble clic en «Confirmar promoción» con 1,5 s de latencia: un único `POST /brief/promote`.
+- **Recarga durante la promoción** (3 s de latencia, recarga a los 0,4 s): el servidor termina, hay una versión 1 y, al volver, la pantalla muestra el brief congelado.
+- **XSS** (`<img src=x onerror=alert(1)>"><script>alert(2)</script>` en necesidades y levantamiento): se guarda y se devuelve literal, se ve como texto en el formulario y en la versión congelada, sin diálogos ni nodos inyectados, y la BD lo guarda tal cual.
+- **Valores extremos:** 2000 caracteres, multilínea, emoji, CJK y árabe se guardan y se muestran; presupuesto `1000000000` y `0.01`, plazos en los límites. Un texto de 2000 caracteres **sin espacios** rompe la vista de solo lectura (hallazgo 2).
+- **Teclado:** el orden de tabulación recorre los campos; Enter en el presupuesto guarda y el foco va al estado; Enter en «Promover» lleva el foco a «Confirmar», Tab a «Cancelar», Escape cierra y devuelve el foco; tras confirmar el foco queda en el estado y Tab llega a «Ir a Anteproyecto». Tras un 422 de campo el foco va al campo; tras 403/409/500 al aviso.
+- **Lector de pantalla** (`ariaSnapshot`, no uno real): `form "Brief"` con `textbox`/`combobox` con nombre, «Obligatorio/Opcional» enlazado con `aria-describedby`, `region "Promoción a Anteproyecto"`, lista «Requisitos» con «Cumplido/Falta» en texto (no solo color), `role=status` y `role=alert`.
+- **axe** (todas las reglas, incluido contraste), claro y oscuro: 0 violaciones en vacío, errores de cliente, listo para promover, confirmación, 403, 422 de servidor, 422 y 409 de promoción, 409 de guardado, solo lectura (sin autoridad, socio, director de otro proyecto) y formulario con XSS. Excepción: hallazgo 5.
+- **320 px:** la columna principal queda en ~38 px por la barra lateral de 232 px del shell (`scrollWidth` 586 frente a 453 de `/portfolio`); el formulario y la lista de requisitos se aplastan por esa causa, no por el brief (`50-*`, `51-*`). Plataforma de escritorio; ya conocido (RGB-16, RGB-48, RGB-49, RGB-51).
+
+## Último commit (3e6bcd1, «consulta del test acotada a la nota…»)
+
+No debilita nada. El test seguía exigiendo que la instantánea congelada nombre los datos sin verificar; solo cambia la consulta de `/sin verificar/i` (que casaba con la nota y con la celda «Sin verificar») a `/1 dato técnico sin verificar/i`, **más estricta** (exige el recuento). Se revierte además un apaño de producción (partir «Sin verificar» en dos `<span>` para esquivar la consulta), que dejaba el nombre accesible de la celda «Sin verificar» troceado; el texto actual es una sola cadena y las pruebas de axe y de lectura la ven entera. Ninguna aserción se elimina ni se relaja.
+
+## Hallazgos
+
+1. **Media. Un proyecto en fase ≥ 3 sin versión congelada muestra un brief vacío con el panel de promoción.** `GET /brief` devuelve 200 con `frozen_version: null` y campos vacíos (p. ej. un proyecto que pasó a la fase 3 antes de RGB-32 o con la ruta genérica). La pantalla decide `frozen` solo por `frozen_version !== null`, así que enseña «Solo lectura.», la lista «Falta» ×7 y «Promover a 3 · Anteproyecto … Faltan 7 requisitos» en un proyecto ya en Anteproyecto (`22-*`). Repro: insertar un proyecto con `current_phase = 3` sin fila en `frozen_versions` y abrir `/projects/<code>/phase/2`. Sugerencia: tratar `phase > 2` como congelado (sin panel de promoción) y avisar «Sin versión congelada».
+2. **Media. Un texto largo sin espacios desborda la vista de solo lectura y la versión congelada.** Con 2000 caracteres seguidos en «Condicionantes», el documento mide 28.279 px de ancho a 1280 px y aparece scroll horizontal de página (`41-*`); el `dd` tiene `whitespace-pre-line` pero no `break-words` / `min-w-0`. En el formulario (textarea) no pasa. Repro: guardar 2000 `W` en un campo de texto y abrir la pantalla como persona sin autoridad o tras promover. Sugerencia: `break-words` (o `[overflow-wrap:anywhere]`) en el `dd`.
+3. **Baja. Obtener datos técnicos en el editor de la misma página no actualiza el panel de promoción.** Tras «Obtener datos técnicos» el panel sigue con «Falta Datos técnicos obtenidos» y el botón deshabilitado hasta recargar (`05-*`). Repro: brief completo sin datos técnicos, obtener la referencia, mirar el panel. Sugerencia: `router.refresh()` al terminar el editor o recalcular al guardar el brief.
+4. **Baja. Tras «Recargar» por un 409 al guardar, el aviso rojo y el botón «Recargar» siguen visibles en la versión ya congelada** (`BriefForm` conserva su estado; `37-*`): contradice «Brief v1 congelado». Tras promover, además, el «Brief guardado» anterior sigue encima de la versión congelada (`09-*`). Sugerencia: limpiar avisos al recibir un brief congelado.
+5. **Baja, preexistente (RGB-51 hallazgo 2).** axe `scrollable-region-focusable` (2 nodos: `#datum-address` y `#datum-municipality`) en `/phase/2` con la fase cerrada o solo lectura: inputs deshabilitados con valor largo del editor de datos técnicos, no del brief. El brief y la versión congelada no dan violaciones.
+6. **Info. El presupuesto exige punto decimal** (`250000,5` se rechaza con un mensaje claro, `250.000` también); para una persona española puede sorprender. Es decisión de negocio 4 del servidor (número en euros).
+7. **Info. El selector de fecha** usa `input type=date` (el formato lo pone el navegador; en Chrome `mm/dd/yyyy` con el idioma por defecto del navegador de pruebas); el valor viaja como `AAAA-MM-DD`.
+8. **Info. Aviso nuevo de lint en `frontend/lib/brief.ts:198`:** «Unused eslint-disable directive (no-control-regex)». No falla el lint, pero lo introduce esta rama; conviene quitar la directiva.
+9. **Info. En `/phase/3` no hay nada del brief** (solo en `/phase/2`), conforme al plan.
+
+## No verificado
+
+Lector de pantalla real, Supabase y Google reales (el acceso se sustituyó por tokens de un JWKS local), el inicio de sesión de la interfaz (el proxy inyecta el token), Catastro/INSPIRE/Open-Meteo/PVGIS reales (a propósito), un fallo de red real (código 0) en guardar o promover, y los pantallazos oscuros de 320 px y de las vistas con XSS/extremos.
+
+## Limpieza
+
+Parados uvicorn 8003, proxy 8000, JWKS 9200 y `next start` 3010; base `rgb32b` eliminada. Los scripts quedaron fuera del repo (scratchpad).
+
+# RGB-32b · Juez
+
+Veredicto: **APROBADO** (tras una primera revisión rechazada por el hallazgo 2 del Tester, corregida en 6a09777).
+
+## Verificación propia
+- `lint`: 0 errores, 3 avisos preexistentes (el aviso nuevo de `frontend/lib/brief.ts` desapareció). `typecheck` verde. Suite completa del front: 110 suites, 2557 tests en verde en la primera revisión; tras la corrección, los 6 conjuntos del brief (220 tests) en verde, y el coordinador informa de 2558 en la suite completa y de `build` verde.
+- Alcance: brief en la fase 2 de proyectos reales con `BriefForm`, `BriefPromotePanel`, `TechnicalDataSnapshot` y `BriefScreen`; versión congelada en solo lectura con fase > 2; `PRY-EJ-*` sin llamadas al brief; sin cambios de backend; el front no decide permisos (usa `permissions` del servidor).
+- Tests: los del Escritor solo cambian en 3e6bcd1 (consulta de la nota más estricta, `/1 dato técnico sin verificar/i`; se revierte el apaño de producción de los dos `<span>`): no debilita nada. La corrección 6a09777 añade un test nuevo (rojo antes) y no modifica ninguno existente.
+- Seguridad y reglas: sin `dangerouslySetInnerHTML`, texto como texto (XSS probado por el Tester), datos ficticios, sin secretos, código en inglés y UI en español, la única transición es la promoción explícita con confirmación, `.mcp.json` fuera del diff.
+- Pantallazos: 50 en `screenshots-32b/`, claro y oscuro, datos ficticios, referenciados; abiertos 41, 09-promoted-dark y 20-readonly-partner-light.
+
+## Corrección del hallazgo 2 (6a09777)
+`min-w-0 … break-words` en el `dd` de `BriefForm.tsx` y `break-words` en `CELL` de `TechnicalDataSnapshot.tsx`, con el test «a long unbroken text wraps instead of widening the page», y se quita el `eslint-disable` sin uso (hallazgo 8). Cubre la vista del brief; en la tabla de datos técnicos, `break-words` no reduce el ancho mínimo de una celda de tabla, pero esos valores vienen del Catastro y están acotados.
+
+## Seguimientos (no bloquean)
+1. **Hallazgo 1:** proyecto en fase >= 3 sin versión congelada (solo posible con datos anteriores a RGB-32a o insertados a mano; la ruta genérica ya lo impide) muestra el panel de promoción con «Faltan 7 requisitos». Tratar `phase > 2` como congelado y avisar «Sin versión congelada»; requiere pasar la fase a `BriefScreen`.
+2. **Hallazgo 3:** obtener datos técnicos en el editor de la misma página no actualiza el panel de promoción hasta recargar (`router.refresh()`).
+3. **Hallazgo 4:** tras «Recargar» por un 409 o tras promover, siguen visibles los avisos anteriores sobre la versión congelada; limpiarlos al recibir un brief congelado.
+4. **Comprobación visual pendiente:** el caso 41 (2000 caracteres sin espacios) no se ha repetido en navegador tras la corrección; solo lo cubre el test de clase. Repetirlo con el build real y comprobar `scrollWidth <= innerWidth`.
