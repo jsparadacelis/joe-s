@@ -37,9 +37,7 @@ MEMBERS: tuple[MemberSpec, ...] = (
         "Socia (también sponsor)",
         frozenset({Qualification.SPONSOR}),
     ),
-    MemberSpec(
-        "director@example.com", "demo-director", "Bruno Muestra", Role.DIRECTOR, "Director"
-    ),
+    MemberSpec("director@example.com", "demo-director", "Bruno Muestra", Role.DIRECTOR, "Director"),
     MemberSpec(
         "director.proyecto@example.com",
         "demo-project-director",
@@ -271,7 +269,11 @@ PROJECTS: tuple[ProjectSpec, ...] = (
         traffic_light="amber",
         next_milestone="Entrega del paquete de anteproyecto",
         cadastral_index=3,
-        technical_overrides={"slope": "12", "slopeType": "Moderada (10–20 %)"},
+        technical_overrides={
+            "slope": "12",
+            "slopeType": "Moderada (10–20 %)",
+            "builtArea": "190",
+        },
         technical_edits={"builtArea": "182,5"},
     ),
     ProjectSpec(
@@ -324,3 +326,27 @@ PROJECTS: tuple[ProjectSpec, ...] = (
         cadastral_index=6,
     ),
 )
+
+
+def team_for_phase(phase: int) -> tuple[tuple[str, str], ...]:
+    """(project function, `user_id` of the member) the demo assigns to a project in that phase.
+
+    Phase 2 onwards has a project team; the signing functions appear when their phase does.
+    Values of `ProjectRole`, as text so this module stays free of other contexts.
+    """
+    if phase < 2:
+        return ()
+    team = [
+        ("project_director", "demo-project-director"),
+        ("technical_lead", "demo-technical-lead"),
+        ("architect", "demo-architect"),
+        ("sponsor", "demo-partner"),
+    ]
+    if phase >= 4:
+        team.append(("licensed_signatory", "demo-licensed-signatory"))
+    if phase >= 6:
+        team += [
+            ("site_management", "demo-site-management"),
+            ("site_collaborator", "demo-site-collaborator"),
+        ]
+    return tuple(team)

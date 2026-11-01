@@ -17,6 +17,7 @@ from backend.app.shared.demo_data import (
     TECHNICAL_DATA,
     fictitious_cadastral_reference,
     is_fictitious_reference,
+    team_for_phase,
 )
 from backend.app.study.domain.context import Qualification, Role
 from backend.app.technical_data.domain.catalog import definition_of
@@ -129,8 +130,42 @@ class TestTechnicalData:
 
     def test_the_overrides_of_every_project_are_valid_too(self):
         for project in PROJECTS:
-            for field_id, value in {**project.technical_overrides, **project.technical_edits}.items():
+            for field_id, value in {
+                **project.technical_overrides,
+                **project.technical_edits,
+            }.items():
                 assert normalize_value(definition_of(field_id), value) == value
 
     def test_has_no_ownership_data(self):
         assert not {"owner", "holder", "titular", "ownerName"} & set(TECHNICAL_DATA)
+
+
+class TestTeam:
+    def test_has_no_team_before_phase_two(self):
+        assert team_for_phase(0) == team_for_phase(1) == ()
+
+    def test_every_assigned_person_exists_and_every_function_is_known(self):
+        from backend.app.access.domain.project_roles import ProjectRole
+
+        user_ids = {m.user_id for m in MEMBERS}
+        for phase in range(2, 7):
+            for role, user_id in team_for_phase(phase):
+                assert user_id in user_ids
+                assert ProjectRole(role)
+
+    def test_the_signing_functions_arrive_with_their_phase(self):
+        roles = {phase: {r for r, _ in team_for_phase(phase)} for phase in range(2, 7)}
+
+        assert "licensed_signatory" not in roles[3] and "licensed_signatory" in roles[4]
+        assert "site_management" not in roles[5] and "site_management" in roles[6]
+
+    def test_each_function_goes_to_someone_holding_its_qualification(self):
+        needs = {
+            "licensed_signatory": Qualification.LICENSED_SIGNATORY,
+            "site_management": Qualification.SITE_MANAGEMENT,
+            "sponsor": Qualification.SPONSOR,
+        }
+        held = {m.user_id: m.qualifications for m in MEMBERS}
+        for role, user_id in team_for_phase(6):
+            if role in needs:
+                assert needs[role] in held[user_id]

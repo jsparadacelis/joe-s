@@ -12,6 +12,10 @@ FORBIDDEN = {
     "application": ("infrastructure", "api"),
 }
 EXTERNAL = ("fastapi", "psycopg", "requests", "httpx", "pydantic_settings")
+# Where the Postgres adapters may be wired to use cases. The request path has one root; the demo
+# seed (RGB-7) is a script entry point that runs the real use cases offline, so it is the second
+# and last one. Nothing else may be added without an explicit decision.
+COMPOSITION_ROOTS = ("api/dependencies.py", "shared/seed_demo.py")
 
 
 def _imports(path: Path) -> list[str]:
@@ -75,7 +79,7 @@ def test_only_the_composition_root_wires_the_project_plans_adapter():
         for p in APP.rglob("*.py")
         for name in _imports(p)
         if name.endswith("postgres_project_plans")
-        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+        and p.relative_to(APP).as_posix() not in COMPOSITION_ROOTS
     ]
 
     assert violations == []
@@ -100,7 +104,7 @@ def test_project_sheet_domain_is_pure_and_the_adapter_is_wired_by_the_compositio
         for p in APP.rglob("*.py")
         for name in _imports(p)
         if name.endswith("postgres_project_sheets")
-        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+        and p.relative_to(APP).as_posix() not in COMPOSITION_ROOTS
     ]
 
     assert domain_violations == []
@@ -175,7 +179,7 @@ def test_only_the_composition_root_wires_the_study_adapters(adapter):
         f"{p.relative_to(APP)} importa {name}"
         for p in APP.rglob("*.py")
         for name in _imports(p)
-        if name.endswith(adapter) and p.relative_to(APP).as_posix() != "api/dependencies.py"
+        if name.endswith(adapter) and p.relative_to(APP).as_posix() not in COMPOSITION_ROOTS
     ]
 
     assert violations == []
@@ -227,7 +231,7 @@ def test_the_external_data_domain_is_pure_and_its_adapters_are_wired_by_the_comp
                 "postgres_plot_cache",
             )
         )
-        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+        and p.relative_to(APP).as_posix() not in COMPOSITION_ROOTS
     ]
 
     assert domain_violations == []
@@ -253,7 +257,7 @@ def test_the_technical_data_domain_is_pure_and_its_adapters_are_wired_by_the_com
         for p in APP.rglob("*.py")
         for name in _imports(p)
         if name.endswith(("postgres_technical_data", "postgres_technical_projects"))
-        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+        and p.relative_to(APP).as_posix() not in COMPOSITION_ROOTS
     ]
 
     assert domain_violations == []
@@ -291,7 +295,7 @@ def test_the_brief_domain_is_pure_and_its_adapter_is_wired_by_the_composition_ro
         for p in APP.rglob("*.py")
         for name in _imports(p)
         if name.endswith("postgres_briefs")
-        and p.relative_to(APP).as_posix() != "api/dependencies.py"
+        and p.relative_to(APP).as_posix() not in COMPOSITION_ROOTS
     ]
     promote = _imports(APP / "briefing" / "application" / "promote_brief.py")
 
@@ -300,3 +304,17 @@ def test_the_brief_domain_is_pure_and_its_adapter_is_wired_by_the_composition_ro
     assert "backend.app.lifecycle.application.promotion_service" in promote
     assert not [name for name in promote if "lifecycle.infrastructure" in name]
     assert not [name for name in promote if "lifecycle.domain.ports" in name]
+
+
+def test_the_demo_seed_is_the_only_extra_composition_root_and_nothing_imports_it():
+    """RGB-7: the seed wires adapters like the API does, so it is a composition root, but it is
+    a command line entry point: no application code (API included) may import it."""
+    assert COMPOSITION_ROOTS == ("api/dependencies.py", "shared/seed_demo.py")
+    violations = [
+        f"{p.relative_to(APP)} importa {name}"
+        for p in APP.rglob("*.py")
+        for name in _imports(p)
+        if name.endswith("shared.seed_demo") and p.name != "seed_demo.py"
+    ]
+
+    assert violations == []

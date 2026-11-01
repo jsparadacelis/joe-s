@@ -78,3 +78,87 @@ class TestMessagesNeverLeakSecrets:
         message = str(error.value)
         for secret in ("s3cr3tpass", "postgres.abcdefgh", "abcdefgh", "rgb:rgb", "postgresql://"):
             assert secret not in message
+
+
+class TestCommandLine:
+    @pytest.fixture(autouse=True)
+    def never_seeds(self, monkeypatch):
+        calls = []
+
+        def fake(*args, **kwargs):
+            calls.append(args)
+            raise AssertionError("the seed must not run")
+
+        monkeypatch.setattr("backend.app.shared.seed_demo.seed_demo", fake)
+        self.calls = calls
+
+    def run(self, monkeypatch, capsys, argv=(), **env):
+        from backend.app.shared.seed_demo import main
+
+        for name in ("DATABASE_URL", "ENVIRONMENT", "DEV_STUDY_ID"):
+            monkeypatch.delenv(name, raising=False)
+        for name, value in env.items():
+            monkeypatch.setenv(name, value)
+        code = main(list(argv))
+        return code, capsys.readouterr()
+
+    def test_refuses_production_even_with_force_and_a_local_url(self, monkeypatch, capsys):
+        code, out = self.run(
+            monkeypatch, capsys, ["--force"], DATABASE_URL=LOCAL, ENVIRONMENT="production"
+        )
+
+        assert code == 1
+        assert "rgb:rgb" not in out.err + out.out
+        assert self.calls == []
+
+    def test_refuses_supabase_even_with_force_without_leaking_the_url(self, monkeypatch, capsys):
+        code, out = self.run(
+            monkeypatch,
+            capsys,
+            ["--force"],
+            DATABASE_URL=SUPABASE_POOLER,
+            ENVIRONMENT="development",
+        )
+
+        assert code == 1
+        assert "s3cr3tpass" not in out.err + out.out
+        assert self.calls == []
+
+    def test_refuses_a_remote_host_without_force(self, monkeypatch, capsys):
+        code, out = self.run(
+            monkeypatch,
+            capsys,
+            DATABASE_URL="postgresql://u:s3cr3tpass@10.0.0.5/rgb",
+            ENVIRONMENT="development",
+        )
+
+        assert code == 1
+        assert "s3cr3tpass" not in out.err + out.out
+        assert self.calls == []
+
+    def test_refuses_when_the_dev_study_would_be_the_demo_study(self, monkeypatch, capsys):
+        from backend.app.shared.demo_data import DEMO_STUDY_ID
+
+        code, _ = self.run(
+            monkeypatch,
+            capsys,
+            DATABASE_URL=LOCAL,
+            ENVIRONMENT="development",
+            DEV_STUDY_ID=DEMO_STUDY_ID,
+        )
+
+        assert code == 1
+        assert self.calls == []
+
+    def test_a_database_error_is_reported_without_the_connection_string(self, monkeypatch, capsys):
+        import psycopg
+
+        def unreachable(*args, **kwargs):
+            raise psycopg.OperationalError("connection to postgresql://rgb:rgb@localhost failed")
+
+        monkeypatch.setattr("backend.app.shared.seed_demo.seed_demo", unreachable)
+
+        code, out = self.run(monkeypatch, capsys, DATABASE_URL=LOCAL, ENVIRONMENT="development")
+
+        assert code == 1
+        assert "rgb:rgb" not in out.err + out.out
