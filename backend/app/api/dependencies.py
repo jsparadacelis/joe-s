@@ -16,11 +16,14 @@ from backend.app.access.infrastructure.postgres_project_directory import Postgre
 from backend.app.access.infrastructure.postgres_project_members import PostgresProjectMembers
 from backend.app.audit.infrastructure.postgres_audit_log import PostgresAuditLog
 from backend.app.external_data.application.get_cadastral_property import GetCadastralProperty
-from backend.app.external_data.domain.ports import CadastreGateway
+from backend.app.external_data.application.get_plot_geometry import GetPlotGeometry
+from backend.app.external_data.domain.ports import CadastreGateway, PlotGateway
 from backend.app.external_data.infrastructure.http_cadastre_gateway import HttpCadastreGateway
+from backend.app.external_data.infrastructure.http_plot_gateway import HttpPlotGateway
 from backend.app.external_data.infrastructure.postgres_cadastre_cache import (
     PostgresCadastreCache,
 )
+from backend.app.external_data.infrastructure.postgres_plot_cache import PostgresPlotCache
 from backend.app.lifecycle.application.promotion_service import PromotionService
 from backend.app.lifecycle.application.validators import VALIDATORS_BY_PHASE
 from backend.app.lifecycle.infrastructure.postgres_lifecycle import PostgresLifecycle
@@ -462,6 +465,39 @@ def cadastre_unit_of_work(
                 yield PostgresCadastreCache(conn)
 
         yield GetCadastralProperty(gateway, open_cache)
+
+    return open_unit
+
+
+@lru_cache
+def _http_plot_gateway() -> HttpPlotGateway:
+    """One HTTP client per process, so connections to the INSPIRE WFS are reused."""
+    return HttpPlotGateway()
+
+
+def plot_gateway() -> PlotGateway:
+    return _http_plot_gateway()
+
+
+PlotUnitOfWork = Callable[[RequestContext], AbstractContextManager[GetPlotGeometry]]
+
+
+def plot_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    gateway: Annotated[PlotGateway, Depends(plot_gateway)],
+) -> PlotUnitOfWork:
+    """Composition root for the plot lookup. As for the cadastre lookup, no connection is taken
+    here: each cache access is its own short transaction, so the (slow) WFS call runs with the
+    pool untouched."""
+
+    @contextmanager
+    def open_unit(context: RequestContext) -> Iterator[GetPlotGeometry]:
+        @contextmanager
+        def open_cache() -> Iterator[PostgresPlotCache]:
+            with study_transaction(settings.database_url, context) as conn:
+                yield PostgresPlotCache(conn)
+
+        yield GetPlotGeometry(gateway, open_cache)
 
     return open_unit
 

@@ -1,4 +1,5 @@
-"""Cadastre route: property data by cadastral reference (read-only, any member of the study)."""
+"""Cadastre routes: property data and plot outline by cadastral reference (read-only, any member
+of the study)."""
 
 from __future__ import annotations
 
@@ -6,7 +7,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from backend.app.api.dependencies import CadastreUnitOfWork, cadastre_unit_of_work, request_context
+from backend.app.api.dependencies import (
+    CadastreUnitOfWork,
+    PlotUnitOfWork,
+    cadastre_unit_of_work,
+    plot_unit_of_work,
+    request_context,
+)
 from backend.app.external_data.domain.cadastral_reference import InvalidCadastralReference
 from backend.app.external_data.domain.errors import CadastreError, CadastreNotFound
 from backend.app.study.domain.context import RequestContext
@@ -15,6 +22,7 @@ router = APIRouter(prefix="/api", tags=["cadastre"])
 
 Context = Annotated[RequestContext, Depends(request_context)]
 Unit = Annotated[CadastreUnitOfWork, Depends(cadastre_unit_of_work)]
+PlotUnit = Annotated[PlotUnitOfWork, Depends(plot_unit_of_work)]
 
 
 def _rejected(error: InvalidCadastralReference | CadastreError) -> HTTPException:
@@ -27,6 +35,16 @@ def _rejected(error: InvalidCadastralReference | CadastreError) -> HTTPException
 
 @router.get("/cadastre/{reference}")
 def get_cadastral_property(reference: str, context: Context, open_unit: Unit) -> dict:
+    try:
+        with open_unit(context) as service:
+            found = service.execute(reference)
+    except (InvalidCadastralReference, CadastreError) as error:
+        raise _rejected(error) from error
+    return found.to_dict()
+
+
+@router.get("/cadastre/{reference}/plot")
+def get_plot_geometry(reference: str, context: Context, open_unit: PlotUnit) -> dict:
     try:
         with open_unit(context) as service:
             found = service.execute(reference)
