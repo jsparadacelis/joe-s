@@ -1,0 +1,128 @@
+[
+  {
+    "name": "acceptance criterion: 96 m2, 1,5, 70 %, PB+2 -> 144 m2t limited by buildability",
+    "values": {"cadastralPlotArea": "96", "buildability": "1,5", "maxOccupancy": "70", "floors": "PB+2", "calcArea": "Catastral"},
+    "missing": [],
+    "expected": {"surface": 96, "buildableArea": 144, "footprint": 67.2, "byFloors": 201.6, "maximum": 144, "limitedBy": "buildability", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "limited by occupancy and floors, with existing and a met minimum plot",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Catastral", "builtArea": "60", "minPlot": "80"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 150, "maximum": 150, "limitedBy": "occupancy-floors", "existing": 60, "existingShare": 40, "minPlot": 80, "meetsMinPlot": true}
+  },
+  {
+    "name": "tie between the buildability ceiling and footprint x floors: buildability",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB+3", "calcArea": "Catastral"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 200, "maximum": 200, "limitedBy": "buildability", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "calcArea Poligono uses the polygon surface",
+    "values": {"cadastralPlotArea": "100", "polygonPlotArea": "80", "buildability": "2", "maxOccupancy": "50", "floors": "PB", "calcArea": "Polígono"},
+    "missing": [],
+    "expected": {"surface": 80, "buildableArea": 160, "footprint": 40, "byFloors": 40, "maximum": 40, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "calcArea Topografico has no survey datum yet: uses the cadastral surface",
+    "values": {"cadastralPlotArea": "100", "polygonPlotArea": "80", "buildability": "2", "maxOccupancy": "50", "floors": "PB", "calcArea": "Topográfico"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 50, "maximum": 50, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "blank calcArea uses the cadastral surface",
+    "values": {"cadastralPlotArea": "100", "polygonPlotArea": "80", "buildability": "2", "maxOccupancy": "50", "floors": "PB", "calcArea": ""},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 50, "maximum": 50, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "calcArea Catastral ignores the polygon surface",
+    "values": {"cadastralPlotArea": "100", "polygonPlotArea": "80", "buildability": "2", "maxOccupancy": "50", "floors": "PB", "calcArea": "Catastral"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 50, "maximum": 50, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "six floors: PB+5 multiplies the footprint by 6",
+    "values": {"cadastralPlotArea": "100", "buildability": "100", "maxOccupancy": "10", "floors": "PB+5", "calcArea": "Catastral"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 10000, "footprint": 10, "byFloors": 60, "maximum": 60, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "decimals with a comma",
+    "values": {"cadastralPlotArea": "99,4", "buildability": "1,5", "maxOccupancy": "70", "floors": "PB+2", "calcArea": "Catastral"},
+    "missing": [],
+    "expected": {"surface": 99.4, "buildableArea": 149.1, "footprint": 69.58, "byFloors": 208.74, "maximum": 149.1, "limitedBy": "buildability", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "surface smaller than the minimum plot",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Catastral", "minPlot": "150"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 150, "maximum": 150, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": 150, "meetsMinPlot": false}
+  },
+  {
+    "name": "surface equal to the minimum plot meets it",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Catastral", "minPlot": "100"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 150, "maximum": 150, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": 100, "meetsMinPlot": true}
+  },
+  {
+    "name": "minimum plot is compared with the chosen surface (polygon)",
+    "values": {"cadastralPlotArea": "100", "polygonPlotArea": "90", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Polígono", "minPlot": "95"},
+    "missing": [],
+    "expected": {"surface": 90, "buildableArea": 180, "footprint": 45, "byFloors": 135, "maximum": 135, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": 95, "meetsMinPlot": false}
+  },
+  {
+    "name": "existing built area larger than the maximum ceiling",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Catastral", "builtArea": "300"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 150, "maximum": 150, "limitedBy": "occupancy-floors", "existing": 300, "existingShare": 200, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "zero existing is a number: 0 % used",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Catastral", "builtArea": "0"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 150, "maximum": 150, "limitedBy": "occupancy-floors", "existing": 0, "existingShare": 0, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "zero surface: everything is zero and the share of existing is not computed (no division by zero)",
+    "values": {"cadastralPlotArea": "0", "buildability": "2", "maxOccupancy": "50", "floors": "PB+2", "calcArea": "Catastral", "builtArea": "50"},
+    "missing": [],
+    "expected": {"surface": 0, "buildableArea": 0, "footprint": 0, "byFloors": 0, "maximum": 0, "limitedBy": "buildability", "existing": 50, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "non numeric optional data are ignored",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB", "calcArea": "Catastral", "builtArea": "abc", "minPlot": "m²"},
+    "missing": [],
+    "expected": {"surface": 100, "buildableArea": 200, "footprint": 50, "byFloors": 50, "maximum": 50, "limitedBy": "occupancy-floors", "existing": null, "existingShare": null, "minPlot": null, "meetsMinPlot": null}
+  },
+  {
+    "name": "nothing filled in: every mandatory datum is missing",
+    "values": {},
+    "missing": ["cadastralPlotArea", "buildability", "maxOccupancy", "floors"],
+    "expected": null
+  },
+  {
+    "name": "calcArea Poligono without a polygon surface: the polygon surface is missing, not the cadastral one",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "PB", "calcArea": "Polígono"},
+    "missing": ["polygonPlotArea"],
+    "expected": null
+  },
+  {
+    "name": "non numeric buildability is missing",
+    "values": {"cadastralPlotArea": "100", "buildability": "abc", "maxOccupancy": "50", "floors": "PB", "calcArea": "Catastral"},
+    "missing": ["buildability"],
+    "expected": null
+  },
+  {
+    "name": "blank floors are missing",
+    "values": {"cadastralPlotArea": "100", "buildability": "2", "maxOccupancy": "50", "floors": "", "calcArea": "Catastral"},
+    "missing": ["floors"],
+    "expected": null
+  },
+  {
+    "name": "only the buildability is known",
+    "values": {"buildability": "2"},
+    "missing": ["cadastralPlotArea", "maxOccupancy", "floors"],
+    "expected": null
+  }
+]
