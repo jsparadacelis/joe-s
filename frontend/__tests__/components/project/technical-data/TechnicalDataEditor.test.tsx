@@ -2,7 +2,9 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { TechnicalDataEditor } from "@/components/project/technical-data/TechnicalDataEditor";
+import { validateCadastralReference } from "@/lib/cadastral-reference";
 import { DEFINITIONS, type TechnicalData, type TechnicalDatum } from "@/lib/technical-data";
+import { fakeTechnicalDataApi } from "../../../helpers/technical-data-fake-api";
 
 jest.setTimeout(20000);
 
@@ -37,19 +39,52 @@ const control = (label: string) => screen.getByLabelText(new RegExp(`^${escapeRe
 const rowOf = (label: string) => row(control(label));
 const checkbox = (label: string) => within(rowOf(label)).getByRole("checkbox");
 
-async function typeInto(user: ReturnType<typeof userEvent.setup>, label: string, text: string) {
+/** RGB-51: every operation now goes through the (fake) API, so an action is finished when no request is pending. */
+async function settle() {
+  await waitFor(() => {
+    expect(screen.queryByText("Guardando…")).not.toBeInTheDocument();
+    expect(screen.queryByText("Verificando…")).not.toBeInTheDocument();
+    expect(screen.queryByText("Consultando…")).not.toBeInTheDocument();
+  });
+}
+
+type User = ReturnType<typeof userEvent.setup>;
+/** The user-event instance whose actions wait for the pending request to settle, so the assertions stay unchanged. */
+function settledUser(): User {
+  const user = userEvent.setup();
+  return new Proxy(user, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value !== "function" || prop === "setup") return value;
+      return async (...args: unknown[]) => {
+        const result = await (value as (...a: unknown[]) => unknown).apply(target, args);
+        await settle();
+        return result;
+      };
+    },
+  });
+}
+
+/** A text datum is saved when the field loses focus (not on every keystroke), so typing ends with a Tab. */
+async function typeInto(user: User, label: string, text: string) {
   const c = control(label);
   await user.clear(c);
   if (text) await user.type(c, text);
+  await user.tab();
 }
 
-function mount(props: Partial<React.ComponentProps<typeof TechnicalDataEditor>> = {}) {
-  const query = (props.query as jest.Mock | undefined) ?? jest.fn().mockResolvedValue(data());
-  const user = userEvent.setup();
+/** `raw`: plain user-event, for tests that keep a request pending on purpose. */
+type MountProps = Partial<React.ComponentProps<typeof TechnicalDataEditor>> & { query?: jest.Mock; raw?: boolean };
+
+function mount(props: MountProps = {}) {
+  const { query: givenQuery, raw, ...rest } = props;
+  const query = givenQuery ?? jest.fn().mockResolvedValue(data());
+  const api = fakeTechnicalDataApi({ initial: rest.initial ?? null, query });
+  const user = raw ? userEvent.setup() : settledUser();
   const r = render(
-    <TechnicalDataEditor cadastralReference={REF} initial={null} mode="edit" {...props} query={query} />,
+    <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference={REF} initial={null} mode="edit" api={api} {...rest} />,
   );
-  return { user, query, ...r };
+  return { user, query, api, ...r };
 }
 
 const queryButton = () => screen.getByRole("button", { name: /Obtener datos técnicos|Volver a consultar|Consultando/ });
@@ -92,7 +127,7 @@ describe("TechnicalDataEditor · invalid reference", () => {
     const { user, query } = mount();
     await typeInto(user, "Referencia catastral", ref);
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
-    expect(screen.getByText("La referencia catastral debe tener 20 caracteres.")).toBeInTheDocument();
+    expect(screen.getByText(validateCadastralReference(ref).message)).toBeInTheDocument();
     expect(query).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "Parcela" })).not.toBeInTheDocument();
   });
@@ -100,7 +135,7 @@ describe("TechnicalDataEditor · invalid reference", () => {
   it("no notice while the reference is valid", async () => {
     const { user } = mount();
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
-    expect(screen.queryByText("La referencia catastral debe tener 20 caracteres.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/La referencia catastral|Introduce la referencia/)).not.toBeInTheDocument();
   });
 
   it("after fixing the reference and pressing again, it queries", async () => {
@@ -119,7 +154,7 @@ describe("TechnicalDataEditor · query", () => {
   it("shows «Consultando…» with the button disabled and then the data", async () => {
     let resolveFetch!: (d: TechnicalData) => void;
     const query = jest.fn(() => new Promise<TechnicalData>((r) => (resolveFetch = r)));
-    const { user } = mount({ query });
+    const { user } = mount({ query, raw: true });
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     const b = screen.getByRole("button", { name: "Consultando…" });
     expect(b).toBeDisabled();
@@ -266,15 +301,16 @@ describe("TechnicalDataEditor · edit and restore", () => {
 });
 
 describe("TechnicalDataEditor · verification", () => {
-  it("ticking «Verificado» updates the counter and unticking reverts it", async () => {
+  it("ticking «Verificado» updates the counter; a verified datum cannot be unticked (the API has no un-verify)", async () => {
     const { user } = await queried();
     expect(screen.getByText("26 sin verificar")).toBeInTheDocument();
     await user.click(checkbox("Dirección"));
     expect(checkbox("Dirección")).toBeChecked();
     expect(screen.getByText("25 sin verificar")).toBeInTheDocument();
+    expect(checkbox("Dirección")).toBeDisabled();
     await user.click(checkbox("Dirección"));
-    expect(checkbox("Dirección")).not.toBeChecked();
-    expect(screen.getByText("26 sin verificar")).toBeInTheDocument();
+    expect(checkbox("Dirección")).toBeChecked();
+    expect(screen.getByText("25 sin verificar")).toBeInTheDocument();
   });
 
   it("verifying all 26 one by one shows «Todo verificado»", async () => {
@@ -292,11 +328,14 @@ describe("TechnicalDataEditor · verification", () => {
     expect(screen.queryByText(/sin verificar/)).not.toBeInTheDocument();
   });
 
-  it("editing a datum does not change its verified checkbox", async () => {
+  it("editing a verified datum un-verifies it (server rule of RGB-28), and it can be verified again", async () => {
     const { user } = await queried();
     await user.click(checkbox("Municipio"));
-    await typeInto(user, "Municipio", "OTRO");
     expect(checkbox("Municipio")).toBeChecked();
+    await typeInto(user, "Municipio", "OTRO");
+    expect(checkbox("Municipio")).not.toBeChecked();
+    expect(checkbox("Municipio")).toBeEnabled();
+    expect(screen.getByText("26 sin verificar")).toBeInTheDocument();
   });
 
   it("with `initial` already verified it shows «Todo verificado»", () => {
@@ -412,7 +451,7 @@ describe("TechnicalDataEditor · query again", () => {
       .fn()
       .mockResolvedValueOnce(data())
       .mockImplementationOnce(() => new Promise<TechnicalData>((r) => (resolveFetch = r)));
-    const { user } = mount({ query });
+    const { user } = mount({ query, raw: true });
     await user.click(screen.getByRole("button", { name: "Obtener datos técnicos" }));
     await screen.findByRole("heading", { name: "Parcela" });
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
@@ -425,7 +464,7 @@ describe("TechnicalDataEditor · query again", () => {
     const { user, query } = await queried();
     await typeInto(user, "Referencia catastral", "123");
     await user.click(screen.getByRole("button", { name: "Volver a consultar" }));
-    expect(screen.getByText("La referencia catastral debe tener 20 caracteres.")).toBeInTheDocument();
+    expect(screen.getByText(validateCadastralReference("123").message)).toBeInTheDocument();
     expect(query).toHaveBeenCalledTimes(1);
     expect(control("Dirección")).toHaveValue("CL TEST 1");
   });
@@ -494,7 +533,7 @@ describe.each(["read-only", "preview"] as const)("TechnicalDataEditor · %s mode
   it("no accessibility violations", async () => {
     const { container } = render(
       <main>
-        <TechnicalDataEditor cadastralReference={REF} initial={data({ address: { value: "CL OTHER 5" } })} mode={mode} query={jest.fn()} />
+        <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference={REF} initial={data({ address: { value: "CL OTHER 5" } })} mode={mode} api={fakeTechnicalDataApi()} />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();
@@ -517,7 +556,7 @@ describe("TechnicalDataEditor · read-only without data", () => {
   it("no accessibility violations", async () => {
     const { container } = render(
       <main>
-        <TechnicalDataEditor cadastralReference="" initial={null} mode="read-only" query={jest.fn()} />
+        <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference="" initial={null} mode="read-only" api={fakeTechnicalDataApi()} />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();
@@ -528,7 +567,7 @@ describe("TechnicalDataEditor · accessibility", () => {
   it("before querying", async () => {
     const { container } = render(
       <main>
-        <TechnicalDataEditor cadastralReference={REF} initial={null} mode="edit" query={jest.fn()} />
+        <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference={REF} initial={null} mode="edit" api={fakeTechnicalDataApi()} />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();
@@ -539,7 +578,7 @@ describe("TechnicalDataEditor · accessibility", () => {
     const user = userEvent.setup();
     const { container } = render(
       <main>
-        <TechnicalDataEditor cadastralReference={REF} initial={null} mode="edit" query={query} />
+        <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference={REF} initial={null} mode="edit" api={fakeTechnicalDataApi({ query })} />
       </main>,
     );
     await user.click(queryButton());
@@ -551,11 +590,11 @@ describe("TechnicalDataEditor · accessibility", () => {
     const user = userEvent.setup();
     const { container } = render(
       <main>
-        <TechnicalDataEditor cadastralReference="123" initial={null} mode="edit" query={jest.fn()} />
+        <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference="123" initial={null} mode="edit" api={fakeTechnicalDataApi()} />
       </main>,
     );
     await user.click(queryButton());
-    expect(screen.getByText("La referencia catastral debe tener 20 caracteres.")).toBeInTheDocument();
+    expect(screen.getByText(validateCadastralReference("123").message)).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 
