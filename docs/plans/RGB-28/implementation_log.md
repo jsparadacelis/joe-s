@@ -29,7 +29,7 @@ Rama `rgb-28/technical-data-model`. TDD: cada pieza nace de tests escritos antes
 
 ## Resultados
 
-- `pytest backend` con Postgres real: 2418 passed (6 min). Tests nuevos del contexto: dominio 45 funciones (con parametrizados 100+), aplicación 47, infraestructura 24, rutas 19 + 13 con Postgres; en total 230 casos nuevos en esos ficheros.
+- `pytest backend` con Postgres real: 2418 passed (6 min). Tests nuevos: 230 casos en `backend/tests/technical_data/` y `backend/tests/api/test_technical_data_routes*.py` (dominio, aplicación con `create_autospec`, Postgres real, rutas con dobles y con Postgres), más el test de arquitectura y 27 casos de paridad en el front.
 - `ruff check backend` y `ruff format backend`: limpios. Front: `lint` (3 avisos que ya existían), `typecheck` y `test` (2197) en verde, con el test de paridad (27 casos).
 
 ## Seguimientos
