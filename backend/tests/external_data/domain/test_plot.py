@@ -352,3 +352,7 @@ def test_the_distance_between_two_positions_is_horizontal_metres():
     assert plot.horizontal_distance_m(plot.vertices[0], plot.vertices[1]) == pytest.approx(
         90.0, abs=0.01
     )
+
+
+def test_the_utm_zone_of_a_plot_is_public_and_follows_its_centre():
+    assert a_plot().utm_zone == 30

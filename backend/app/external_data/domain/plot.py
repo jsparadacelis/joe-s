@@ -122,6 +122,11 @@ class Plot:
 
     # -- projection ------------------------------------------------------------------------
 
+    @property
+    def utm_zone(self) -> int:
+        """The UTM zone (28-31) of the plot's centre, the plane every measurement uses."""
+        return self._zone()
+
     def _zone(self) -> int:
         lons = [lon for polygon in self.geometry.polygons for lon, _ in polygon.exterior]
         try:
