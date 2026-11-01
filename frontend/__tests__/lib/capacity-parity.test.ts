@@ -38,7 +38,7 @@ describe("capacity parity with the server", () => {
       expect(result).toBeNull();
       return;
     }
-    const { existingShare: _share, ...expected } = shared.expected;
+    const expected = shared.expected;
     expect(result).not.toBeNull();
     const { limitedBy, meetsMinPlot, existing, minPlot, ...numbers } = result!;
     expect(limitedBy).toBe(expected.limitedBy);
