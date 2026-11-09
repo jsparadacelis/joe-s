@@ -165,8 +165,13 @@ describe("default api by project", () => {
   it("a real project loads from GET /api/projects/{code}/technical-data", async () => {
     render(<TechnicalDataEditor projectCode={CODE} cadastralReference="" mode="edit" />);
     expect(await screen.findByDisplayValue("CL REAL 1")).toBeInTheDocument();
-    expect(calls).toHaveLength(1);
     expect(calls[0]).toMatch(/\/api\/projects\/PRY-2026-001\/technical-data$/);
+    // RGB-51b: once the sheet is there, the alerts and the capacity are read from the server too.
+    await waitFor(() => expect(calls).toHaveLength(3));
+    expect(calls.slice(1).sort()).toEqual([
+      expect.stringMatching(/\/api\/projects\/PRY-2026-001\/alerts$/),
+      expect.stringMatching(/\/api\/projects\/PRY-2026-001\/capacity$/),
+    ]);
   });
 
   it("PRY-EJ-001 loads the sample data and never calls the network", async () => {

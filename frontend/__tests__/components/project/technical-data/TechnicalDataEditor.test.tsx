@@ -88,8 +88,9 @@ function mount(props: MountProps = {}) {
   const query = givenQuery ?? jest.fn().mockResolvedValue(data());
   const api = fakeTechnicalDataApi({ initial: rest.initial ?? null, query });
   const user = raw ? userEvent.setup() : settledUser();
+  // RGB-51b: these tests cover the local capacity calculation, which only the fictitious projects keep.
   const r = render(
-    <TechnicalDataEditor projectCode="PRY-2026-001" cadastralReference={REF} initial={null} mode="edit" api={api} {...rest} />,
+    <TechnicalDataEditor projectCode="PRY-EJ-001" cadastralReference={REF} initial={null} mode="edit" api={api} {...rest} />,
   );
   return { user, query, api, ...r };
 }
