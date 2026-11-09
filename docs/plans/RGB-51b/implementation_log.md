@@ -66,3 +66,31 @@ Veredicto del Tester: **APROBADO**, sin bloqueantes. Sin cambios en código de p
 - Baja: `AlertsPanel` usa `alert.code` como `key`; si el servidor repitiera un código, React avisa de claves duplicadas (solo consola). Hoy los códigos del backend son únicos por regla.
 - Baja: un id de campo desconocido se muestra en crudo («Datos afectados: nope»); decisión documentada del Desarrollador.
 - Informativo: la carrera «guardar dos veces seguidas» no se probó en navegador; la lógica (contador de versión y limpieza con `cancelled`) la cubren las pruebas de carrera anteriores.
+
+# RGB-51b · Juez
+
+Veredicto: **RECHAZADO** (un único motivo, de corrección rápida).
+
+## Motivo
+
+- `TechnicalDataEditorConnected.test.tsx` («data without a value…»): la aserción original
+  «Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.» pasó a `/^Rellena: /`.
+  Es una debilitación no justificada: en ese caso la API simulada (`fakeTechnicalDataApi`) devuelve
+  `missing = [buildability, maxOccupancy, floors]` (FILLED no los tiene), así que se puede aseverar lo mismo
+  de forma específica sin romper el contrato. Restaurar como
+  `findByText("Rellena: Edificabilidad, Ocupación máxima, Número de plantas")` (o regex equivalente).
+  Que Followups cubra etiquetas en otro caso no compensa: este test dejaba fijado qué falta en el caso base.
+
+## Resto verificado (conforme)
+
+- Criterios del plan, código en inglés, UI en español, solo tokens de color, el cliente solo lee (GET) y no cambia estado.
+- Todo código nuevo tiene test (alerts-api, capacity-api, AlertsPanel, CapacityPanel, Followups, unavailable, ToPromote).
+- `TechnicalDataEditor.test.tsx` (mount a `PRY-EJ-001`) y la petición única → «primera + /alerts + /capacity»: cambios justificados y equivalentes.
+- Pantallazos: 10 archivos existen (claro/oscuro); vistos 02 claro y 03 oscuro, corresponden al cambio.
+
+### Juez · cierre del rechazo
+Restaurada la aserción específica de «data without a value…» en `TechnicalDataEditorConnected.test.tsx`
+(`"Rellena: Edificabilidad, Ocupación máxima, Número de plantas."`); el archivo pasa (64 de 64). Era la
+única condición del Juez, que había dicho que con eso el veredicto pasaba a **aprobado**. La
+comprobación la hizo quien orquesta, no una segunda pasada del Juez; los checks de CI cubren la suite
+completa.
