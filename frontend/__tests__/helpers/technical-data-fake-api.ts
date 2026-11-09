@@ -4,10 +4,19 @@
  * clears `verified`; restore goes back to the original (and clears `verified`); a refresh keeps the manual
  * (planning) data. Every method is a jest mock, so tests can assert calls and override a single method.
  */
+import { calculateCapacity } from "@/lib/capacity";
+import type { Alert } from "@/lib/alerts-api";
+import type { CapacityAnswer } from "@/lib/capacity-api";
 import { DEFINITIONS, requery, type TechnicalData, type TechnicalDatum } from "@/lib/technical-data";
 import type { TechnicalDataApi } from "@/lib/technical-data-api";
 
-type Mocked = { [K in keyof TechnicalDataApi]: jest.Mock<ReturnType<TechnicalDataApi[K]>, Parameters<TechnicalDataApi[K]>> };
+type Mocked = { [K in keyof TechnicalDataApi]: jest.Mock<ReturnType<TechnicalDataApi[K]>, Parameters<TechnicalDataApi[K]>> } & {
+  // RGB-51b: server alerts and capacity, read after the sheet changes.
+  alerts: jest.Mock<Promise<Alert[]>, [string]>;
+  capacity: jest.Mock<Promise<CapacityAnswer>, [string]>;
+};
+
+const CAPACITY_INPUTS = ["buildability", "maxOccupancy", "floors"];
 
 export function emptyCatalog(): TechnicalDatum[] {
   return DEFINITIONS.map((d) => ({ id: d.id, value: "", original: null, verified: false, edited: false }));
@@ -47,7 +56,15 @@ export function fakeTechnicalDataApi(
       const incoming = await options.query(cadastralReference);
       const data = (current ? requery(current.data, incoming.data) : incoming.data).map(withEdited);
       current = { cadastralReference: incoming.cadastralReference, queriedOn: incoming.queriedOn, data };
-      return { ...structuredClone(current), unmapped: [] };
+      return { ...structuredClone(current), unmapped: [], unavailable: [] };
+    }),
+    // By default: no alerts, and the capacity the server would compute from the current sheet.
+    alerts: jest.fn(async () => []),
+    capacity: jest.fn(async () => {
+      const data = sheet().data;
+      const capacity = calculateCapacity(data);
+      const empty = (id: string) => (data.find((d) => d.id === id)?.value ?? "") === "" || (id === "floors" && !capacity);
+      return { capacity, missing: capacity ? [] : CAPACITY_INPUTS.filter(empty) };
     }),
   } as unknown as Mocked;
 }

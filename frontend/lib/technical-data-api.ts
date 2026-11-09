@@ -5,6 +5,9 @@
  * in-memory API that follows the same rules.
  */
 import { ApiError, request as defaultRequest, type ApiRequest } from "@/lib/api";
+import { fetchAlerts, type Alert } from "@/lib/alerts-api";
+import { calculateCapacity } from "@/lib/capacity";
+import { fetchCapacity, type CapacityAnswer } from "@/lib/capacity-api";
 import { isSampleProject } from "@/lib/projects";
 import {
   DEFINITIONS,
@@ -16,7 +19,14 @@ import {
   type TechnicalDatum,
 } from "@/lib/technical-data";
 
-export type RefreshResult = TechnicalData & { unmapped: string[] };
+/** Origins of the external data a query can fail to reach, as the server names them. */
+export const SOURCE_LABELS: Readonly<Record<string, string>> = {
+  inspire: "Polígono INSPIRE",
+  open_meteo: "Altitud y pendiente",
+  pvgis: "Producción fotovoltaica",
+};
+
+export type RefreshResult = TechnicalData & { unmapped: string[]; unavailable?: string[] };
 
 export interface TechnicalDataApi {
   load(code: string): Promise<TechnicalData>;
@@ -25,6 +35,8 @@ export interface TechnicalDataApi {
   verify(code: string, fieldId: string): Promise<TechnicalDatum>;
   verifyAll(code: string): Promise<TechnicalData>;
   refresh(code: string, cadastralReference: string): Promise<RefreshResult>;
+  alerts(code: string): Promise<Alert[]>;
+  capacity(code: string): Promise<CapacityAnswer>;
 }
 
 const INVALID_RESPONSE = "La respuesta del servidor no es válida. Inténtalo de nuevo.";
@@ -92,7 +104,11 @@ export async function refreshFromCadastre(
 ): Promise<RefreshResult> {
   const raw = await request(`${basePath(code)}/refresh`, { method: "POST", body: { cadastral_reference: cadastralReference } });
   const unmapped = isRecord(raw) && Array.isArray(raw.unmapped) ? raw.unmapped.filter((id): id is string => typeof id === "string") : [];
-  return { ...mapSheet(raw), unmapped };
+  const unavailable =
+    isRecord(raw) && Array.isArray(raw.unavailable)
+      ? raw.unavailable.filter((id): id is string => typeof id === "string" && Object.hasOwn(SOURCE_LABELS, id))
+      : [];
+  return { ...mapSheet(raw), unmapped, unavailable };
 }
 
 export function createTechnicalDataApi(request: ApiRequest = defaultRequest): TechnicalDataApi {
@@ -103,6 +119,8 @@ export function createTechnicalDataApi(request: ApiRequest = defaultRequest): Te
     verify: (code, fieldId) => verifyDatum(code, fieldId, request),
     verifyAll: (code) => verifyAll(code, request),
     refresh: (code, cadastralReference) => refreshFromCadastre(code, cadastralReference, request),
+    alerts: (code) => fetchAlerts(code, request),
+    capacity: (code) => fetchCapacity(code, request),
   };
 }
 
@@ -166,7 +184,13 @@ export function createSampleTechnicalDataApi(): TechnicalDataApi {
         data: requery(sheet.data, incoming.data).map(withEdited),
       };
       sheets.set(code, next);
-      return { ...copyOf(next), unmapped: [] };
+      return { ...copyOf(next), unmapped: [], unavailable: [] };
+    },
+    // The sample projects have no cross-data rules; the editor calculates their capacity locally.
+    alerts: async () => [],
+    capacity: async (code) => {
+      const capacity = calculateCapacity((await sheetOf(code)).data);
+      return { capacity, missing: [] };
     },
   };
 }

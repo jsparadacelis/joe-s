@@ -49,6 +49,6 @@ export function ToPromoteView({ fetcher = defaultFetcher }: ToPromoteViewProps) 
       </div>
     );
   }
-  if (data === null) return <p className="text-s text-muted">Cargando los proyectos por promover…</p>;
+  if (data === null) return <p role="status" className="text-s text-muted">Cargando los proyectos por promover…</p>;
   return <ToPromoteTable projects={data.projects} />;
 }

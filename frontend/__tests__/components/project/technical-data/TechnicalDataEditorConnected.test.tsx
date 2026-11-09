@@ -165,8 +165,13 @@ describe("default api by project", () => {
   it("a real project loads from GET /api/projects/{code}/technical-data", async () => {
     render(<TechnicalDataEditor projectCode={CODE} cadastralReference="" mode="edit" />);
     expect(await screen.findByDisplayValue("CL REAL 1")).toBeInTheDocument();
-    expect(calls).toHaveLength(1);
     expect(calls[0]).toMatch(/\/api\/projects\/PRY-2026-001\/technical-data$/);
+    // RGB-51b: once the sheet is there, the alerts and the capacity are read from the server too.
+    await waitFor(() => expect(calls).toHaveLength(3));
+    expect(calls.slice(1).sort()).toEqual([
+      expect.stringMatching(/\/api\/projects\/PRY-2026-001\/alerts$/),
+      expect.stringMatching(/\/api\/projects\/PRY-2026-001\/capacity$/),
+    ]);
   });
 
   it("PRY-EJ-001 loads the sample data and never calls the network", async () => {
@@ -591,7 +596,8 @@ describe("data without a value (altitude, slope, INSPIRE polygon... not availabl
       expect(checkbox(label)).not.toBeChecked();
     }
     expect(control("Tipo de pendiente")).toHaveValue("");
-    expect(screen.getByText("Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.")).toBeInTheDocument();
+    // RGB-51b: a real project takes the capacity from the server, which says what is missing.
+    expect(await screen.findByText("Rellena: Edificabilidad, Ocupación máxima, Número de plantas.")).toBeInTheDocument();
   });
 
   it("a datum with an empty original that the person fills in shows «Valor de Open-Meteo: vacío»", async () => {

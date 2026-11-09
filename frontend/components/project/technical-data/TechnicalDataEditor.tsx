@@ -6,7 +6,10 @@ import { Notice } from "@/components/ui/Notice";
 import { Panel } from "@/components/ui/Panel";
 import { ApiError } from "@/lib/api";
 import { validateCadastralReference } from "@/lib/cadastral-reference";
+import type { Alert } from "@/lib/alerts-api";
 import { calculateCapacity } from "@/lib/capacity";
+import type { CapacityAnswer } from "@/lib/capacity-api";
+import { isSampleProject } from "@/lib/projects";
 import {
   DEFINITIONS,
   DATA_GROUPS,
@@ -16,8 +19,9 @@ import {
   type TechnicalDatum,
   type TechnicalData,
 } from "@/lib/technical-data";
-import { technicalDataApiFor, type TechnicalDataApi } from "@/lib/technical-data-api";
+import { SOURCE_LABELS, technicalDataApiFor, type TechnicalDataApi } from "@/lib/technical-data-api";
 import type { PhaseMode } from "@/lib/phases";
+import { AlertsPanel } from "./AlertsPanel";
 import { CapacityPanel } from "./CapacityPanel";
 import { GroupPanel } from "./GroupPanel";
 import { VerificationSummary } from "./VerificationSummary";
@@ -84,6 +88,13 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
   const [verifyingAll, setVerifyingAll] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [unmapped, setUnmapped] = useState<string[]>([]);
+  const [unavailable, setUnavailable] = useState<string[]>([]);
+  // Alerts and capacity come from the server and are read again after every change to the sheet.
+  const [serverVersion, setServerVersion] = useState(0);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alertsFailed, setAlertsFailed] = useState(false);
+  const [serverCapacity, setServerCapacity] = useState<CapacityAnswer | null>(null);
+  const [capacityFailed, setCapacityFailed] = useState(false);
   // 403/409: the server will not accept changes, so the screen stops offering them.
   const [locked, setLocked] = useState(false);
   const noticeRef = useRef<HTMLDivElement>(null);
@@ -115,6 +126,45 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
     };
   }, [needsLoad, client, projectCode]);
 
+  const hasData = data !== null;
+  const sample = isSampleProject(projectCode);
+
+  useEffect(() => {
+    if (!hasData) return;
+    let cancelled = false;
+    client
+      .alerts(projectCode)
+      .then((result) => {
+        if (cancelled) return;
+        setAlerts(result);
+        setAlertsFailed(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAlerts([]);
+        setAlertsFailed(true);
+      });
+    if (!sample) {
+      client
+        .capacity(projectCode)
+        .then((result) => {
+          if (cancelled) return;
+          setServerCapacity(result);
+          setCapacityFailed(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setServerCapacity(null);
+          setCapacityFailed(true);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [hasData, sample, serverVersion, client, projectCode]);
+
+  const reloadServerData = useCallback(() => setServerVersion((n) => n + 1), []);
+
   // A new general error takes the focus so it is announced and reachable.
   useEffect(() => {
     if (notice?.kind === "error") noticeRef.current?.focus();
@@ -139,6 +189,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
       try {
         const datum = await operation();
         setData((prev) => (prev ? replaceDatum(prev, datum) : prev));
+        reloadServerData();
         return true;
       } catch (error) {
         if (error instanceof ApiError && (NO_AUTHORITY_OR_PHASE.has(error.status) || error.status === 404)) {
@@ -155,7 +206,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
         });
       }
     },
-    [failGeneral],
+    [failGeneral, reloadServerData],
   );
 
   const onValueChange = useCallback(
@@ -176,6 +227,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
     try {
       const sheet = await client.verifyAll(projectCode);
       setData(sheet.data);
+      reloadServerData();
     } catch (error) {
       failGeneral(error, SAVE_FAILURE, false);
     } finally {
@@ -193,6 +245,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
     }
     setNotice(null);
     setUnmapped([]);
+    setUnavailable([]);
     const hadFocus = document.activeElement === queryButtonRef.current;
     setQuerying(true);
     try {
@@ -200,6 +253,8 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
       setData(result.data);
       setQueriedOn(result.queriedOn);
       setUnmapped(result.unmapped);
+      setUnavailable(result.unavailable ?? []);
+      reloadServerData();
     } catch (error) {
       failGeneral(error, FAILURE_NOTICE, true);
     } finally {
@@ -212,10 +267,12 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
     setData(emptyData());
     setQueriedOn(null);
     setNotice(null);
+    setUnavailable([]);
   }
 
   const byId = useMemo(() => (data ? new Map(data.map((d) => [d.id, d])) : null), [data]);
-  const capacity = useMemo(() => (data ? calculateCapacity(data) : null), [data]);
+  // The fictitious projects have no server: their capacity is calculated here.
+  const localCapacity = useMemo(() => (sample && data ? calculateCapacity(data) : null), [sample, data]);
 
   if (loading) {
     return (
@@ -244,6 +301,7 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
   }
 
   const unmappedLabels = unmapped.map((id) => LABELS.get(id) ?? id);
+  const unavailableLabels = unavailable.map((id) => SOURCE_LABELS[id] ?? id);
 
   return (
     <Panel
@@ -292,6 +350,9 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
         {unmappedLabels.length > 0 ? (
           <Notice tone="warn">{`No se pudieron rellenar: ${unmappedLabels.join(", ")}. Introdúcelos a mano.`}</Notice>
         ) : null}
+        {unavailableLabels.length > 0 ? (
+          <Notice tone="warn">{`No se pudo consultar: ${unavailableLabels.join(" · ")}. Se conservan los datos que ya había; introdúcelos a mano.`}</Notice>
+        ) : null}
         {data && queriedOn ? (
           <p className="text-xs text-muted">
             Consultado el {readableDate(queriedOn)} a través del servidor. Volver a consultar sustituye los datos de
@@ -299,6 +360,9 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
           </p>
         ) : null}
       </div>
+
+      {alertsFailed ? <p className="text-xs text-muted">No se pudieron cargar las alertas de los datos.</p> : null}
+      <AlertsPanel alerts={alerts} />
 
       {data && byId ? (
         <>
@@ -326,7 +390,16 @@ export function TechnicalDataEditor({ projectCode, cadastralReference, initial, 
                 onEditStart={onEditStart}
               />
             ))}
-            <CapacityPanel capacity={capacity} />
+            {sample ? (
+              <CapacityPanel capacity={localCapacity} />
+            ) : (
+              <CapacityPanel
+                capacity={serverCapacity?.capacity ?? null}
+                missing={serverCapacity?.missing}
+                loading={serverCapacity === null && !capacityFailed}
+                failed={capacityFailed}
+              />
+            )}
           </div>
         </>
       ) : null}

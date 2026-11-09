@@ -1,8 +1,17 @@
 import { Panel } from "@/components/ui/Panel";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { formatNumber, type Capacity } from "@/lib/capacity";
+import { DEFINITIONS } from "@/lib/technical-data";
 
-export type CapacityPanelProps = { capacity: Capacity | null };
+export type CapacityPanelProps = {
+  capacity: Capacity | null;
+  /** Ids of the data the server says are missing. */
+  missing?: string[];
+  loading?: boolean;
+  failed?: boolean;
+};
+
+const LABELS = new Map(DEFINITIONS.map((d) => [d.id, d.label]));
 
 const LIMIT_LABEL: Record<Capacity["limitedBy"], string> = {
   buildability: "Edificabilidad",
@@ -21,7 +30,9 @@ function Figure({ value, name, limitedBy }: { value: string; name: string; limit
   );
 }
 
-export function CapacityPanel({ capacity: c }: CapacityPanelProps) {
+export function CapacityPanel({ capacity, missing = [], loading = false, failed = false }: CapacityPanelProps) {
+  const c = loading || failed ? null : capacity;
+  const missingLabels = missing.map((id) => LABELS.get(id) ?? id);
   return (
     <Panel
       title="Capacidad"
@@ -55,6 +66,16 @@ export function CapacityPanel({ capacity: c }: CapacityPanelProps) {
             </dd>
           </dl>
         </>
+      ) : loading ? (
+        <p role="status" className="text-s text-muted">
+          Calculando…
+        </p>
+      ) : failed ? (
+        <p role="status" className="text-s text-muted">
+          No se pudo calcular la capacidad. Inténtalo de nuevo más tarde.
+        </p>
+      ) : missingLabels.length > 0 ? (
+        <p className="text-s text-muted">Rellena: {missingLabels.join(", ")}.</p>
       ) : (
         <p className="text-s text-muted">
           Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.
