@@ -591,7 +591,8 @@ describe("data without a value (altitude, slope, INSPIRE polygon... not availabl
       expect(checkbox(label)).not.toBeChecked();
     }
     expect(control("Tipo de pendiente")).toHaveValue("");
-    expect(screen.getByText("Rellena edificabilidad, ocupación y número de plantas para calcular la capacidad.")).toBeInTheDocument();
+    // RGB-51b: a real project takes the capacity from the server, which says what is missing.
+    expect(await screen.findByText(/^Rellena: /)).toBeInTheDocument();
   });
 
   it("a datum with an empty original that the person fills in shows «Valor de Open-Meteo: vacío»", async () => {

@@ -29,6 +29,11 @@ describe("ToPromoteView", () => {
     expect(screen.queryByText("No hay proyectos por promover")).not.toBeInTheDocument();
   });
 
+  it("loading: the text is announced as a status (role=status)", () => {
+    setup(jest.fn(() => new Promise(() => {})));
+    expect(screen.getByRole("status")).toHaveTextContent("Cargando los proyectos por promover…");
+  });
+
   it("calls the fetcher once on mount and shows the table", async () => {
     const { fetcher } = setup();
     expect(await screen.findByRole("table", { name: "Proyectos por promover" })).toBeInTheDocument();
