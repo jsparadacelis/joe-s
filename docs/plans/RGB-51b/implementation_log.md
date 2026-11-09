@@ -37,3 +37,32 @@
 Tests: 2815 / 2815 en verde (124 suites; 30 nuevos en rojo del Escritor ahora en verde, más 7 ya existentes
 afectados corregidos como arriba). `lint` (0 errores, 3 avisos previos), `typecheck` y `build` en verde.
 Pendiente del Tester: pantallazos en `docs/plans/RGB-51b/screenshots/`.
+
+# RGB-51b · Tester
+
+Veredicto del Tester: **APROBADO**, sin bloqueantes. Sin cambios en código de producción ni en tests. Datos ficticios.
+
+## Comprobaciones
+
+- `npm run build`: verde. `next start` (3010) contra un servidor simulado en el 8000 (proyecto `PRY-T-001`, fase 2, con respuestas ajustables de `/alerts`, `/capacity` y `/refresh`). Pantallazos con Chrome real en claro y oscuro (`screenshots/`): `01-capacity-server` (144 m²t, limita la edificabilidad, caso del PRD), `02-unavailable-sources` (aviso de fuentes), `03-alerts` (aviso, información y una alerta con HTML), `04-error-state` (alertas y capacidad con 503), `05-capacity-loading` («Calculando…»).
+- axe-core en navegador (claro y oscuro, estados 01-04): 0 violaciones. Tras «Volver a consultar» el foco queda en el botón. El aviso desaparece tras una consulta correcta.
+- Criterios del plan: aviso `unavailable` con nombres en español; alertas con texto de gravedad, mensaje, sugerencia y datos por etiqueta, recargadas tras guardar/restaurar/verificar/consultar, un fallo no bloquea; capacidad del servidor en proyectos reales y local en `PRY-EJ-*`; `role="status"` en «Cargando…» de Por promover. Todo cumple.
+
+## Intentar romper (pruebas desechables, no incluidas en el repo; todas en verde)
+
+- Respuestas mal formadas de `/alerts` y `/capacity` (null, `{}`, tipos erróneos, severidad desconocida, NaN, falta `meets_min_plot`): error 502 de contrato; los campos extra se descartan.
+- 401/403/404/503 en ambos endpoints: la pantalla sigue operativa, con avisos discretos.
+- Carreras: una respuesta antigua de alertas o de capacidad que llega tarde NO pisa la nueva.
+- XSS en mensaje y sugerencia: se pinta como texto (sin `<img>`/`<script>`, sin diálogos). 200 alertas con textos de 500 caracteres: axe limpio.
+- Ids desconocidos (`nope`, `__proto__`, `constructor`) en `fields`: se muestran tal cual, sin romper.
+
+## Cobertura de los dos tests modificados
+
+- `TechnicalDataEditor.test.tsx` (mount a `PRY-EJ-001`): cambio justificado; esos tests cubren el cálculo local, que ahora es solo de los ejemplos. No se pierde cobertura: el cálculo de un proyecto real con servidor lo cubren `TechnicalDataEditorFollowups.test.tsx` (caso del PRD 144 m²t, `missing`, fallo, recarga tras guardar) y `capacity-api.test.ts`.
+- `TechnicalDataEditorConnected.test.tsx`: la petición única pasa a «la primera es technical-data y las otras dos son exactamente `/alerts` y `/capacity`»; igual de estricta. La aserción del texto «Rellena edificabilidad, ocupación…» pasó a `/^Rellena: /` (más débil: ya no fija qué etiquetas faltan en ese caso); las etiquetas concretas sí se cubren en Followups.
+
+## Hallazgos (no bloqueantes)
+
+- Baja: `AlertsPanel` usa `alert.code` como `key`; si el servidor repitiera un código, React avisa de claves duplicadas (solo consola). Hoy los códigos del backend son únicos por regla.
+- Baja: un id de campo desconocido se muestra en crudo («Datos afectados: nope»); decisión documentada del Desarrollador.
+- Informativo: la carrera «guardar dos veces seguidas» no se probó en navegador; la lógica (contador de versión y limpieza con `cancelled`) la cubren las pruebas de carrera anteriores.
