@@ -121,3 +121,61 @@ con ella salen 8 proyectos (2 listos en fase 0, 4 en curso, 2 bloqueados por pau
 106 pruebas nuevas (dominio 30, casos de uso 16 + 15, Postgres 17, rutas 12 con dobles + 14 con Postgres).
 Suite completa del backend: 3670 pruebas en verde con `DATABASE_URL` local; `ruff check` y
 `ruff format` limpios.
+
+## Tester (RGB-12b, front)
+
+Verificación sobre la rama `rgb-12b/to-promote-screen` (sin tocar código de producción ni tests).
+
+### Resultado de las comprobaciones
+
+- `tsc --noEmit`: limpio. `npm run lint`: 0 errores (3 avisos previos en tests ajenos). `npm run build`: correcto, `/to-promote` se genera como estática.
+- `npm test` (jest, suite completa): 118 suites, 2736 pruebas en verde. En esta pasada no apareció el fallo intermitente de `TechnicalDataEditorConnected` (ver abajo).
+- Pantallazos de `screenshots-12b/` revisados: corresponden a la interfaz real (contador «2», 8 filas en el orden del servidor, chips con texto además de color, motivo bajo el estado, «(vencida)», marca «Puedes promover» solo en las filas con `can_promote`; la vista de arquitecto no muestra la marca). Claro y oscuro presentes y legibles. No se regeneraron.
+
+### Criterios del plan contra el código
+
+| Criterio | Resultado |
+| --- | --- |
+| `fetchToPromote`, tipos, etiquetas, `invalid_to_promote_response`, `ApiError` propagado | Cumple |
+| Tabla con encabezados y título, código como enlace a `/projects/{code}`, fase con nombre, entregable | Cumple |
+| Chip por estado (texto + tono), motivo bajo el estado, «Quién promueve», marca «Puedes promover» | Cumple |
+| Vacío, carga y error con «Reintentar» (mensaje del servidor) | Cumple |
+| Sin botones que promuevan | Cumple |
+| Contador junto a «Por promover» con `aria-label`, oculto con 0 o error, no rompe la barra, se actualiza al navegar | Cumple |
+| Solo con sesión supabase o en modo dev | Cumple (`canCallApi`) |
+| Solo tokens de color, textos en español, código en inglés | Cumple |
+
+### Intentos de romperla
+
+- XSS: nombre, entregable, motivo y promotor se pintan como texto de React (sin `dangerouslySetInnerHTML`); el código del proyecto va en `href` bajo `/projects/` (no puede formar `javascript:`). Sin hallazgo.
+- Estado desconocido: etiqueta «Estado desconocido» y tono neutro; `Object.hasOwn` evita claves como `constructor`/`__proto__`. Sin hallazgo.
+- Respuesta mal formada (campos ausentes, tipos erróneos, `projects` no array): 502 `invalid_to_promote_response` con mensaje en español. Sin hallazgo.
+- 401/403/503 y fallo de red: aviso con el mensaje del servidor o el genérico, y «Reintentar» funciona; el contador queda oculto sin romper la barra.
+- Lista vacía y `ready_count` 0: estado vacío y sin badge. Texto muy largo: `break-words` y región con desplazamiento horizontal y foco por teclado. Lista larga: sin paginación, solo filas simples (el servidor ya la acota por estudio).
+- Teclado y lector: enlaces con foco visible, región enfocable con nombre, `th` y `caption`, badge con `aria-label` singular/plural.
+
+### Defectos y observaciones
+
+1. Baja. El estado «Cargando…» de `ToPromoteView` es un `<p>` sin `role="status"`/`aria-live`; el lector no anuncia ni la carga ni el cambio a la tabla o al error. Sugerencia: `role="status"` en el párrafo y `role="alert"` ya implícito en `Notice` si lo tiene.
+2. Baja. Si `ready_count` no coincide con los elementos `ready` de la lista (servidor), el badge y la tabla discreparían; es contrato del servidor, no del front.
+3. Cosmética. En los pantallazos de página completa la barra lateral termina a la altura del viewport (comportamiento de captura, no defecto de la interfaz).
+4. Cobertura de pantallazos: faltan los casos vacío, error y móvil. No bloquean (el vacío y el error tienen pruebas); regenerar solo si el Juez lo exige.
+
+### Prueba intermitente `TechnicalDataEditorConnected`
+
+No pertenece a esta rama: el diff contra `main` no toca `technical-data` ni su componente. En la suite completa de esta rama pasó; aislada, pasa. Se intentó confirmarlo en `main` con un `git worktree` en el scratchpad (suite completa en serie); resultado: en `main`, en serie, 112 suites y 2646 pruebas en verde (el fallo no se reprodujo ni en `main` ni en esta rama, ni aislado), así que solo se observa bajo carga en paralelo. Es un problema de temporización bajo carga.
+
+### Recomendación
+
+Aprobar. Sin defectos de severidad media o alta; el punto 1 es una mejora menor opcional.
+
+## Juez (RGB-12b, front)
+
+Veredicto: APROBADO.
+
+- Verificación propia: `jest` sobre to-promote, ReadyCountBadge y Sidebar: 7 suites, 94 pruebas en verde; `tsc --noEmit` limpio.
+- Criterios del plan contra el código: cumplidos (lib con validación e `invalid_to_promote_response`, tabla accesible con enlace, chips con texto, motivo, marca «Puedes promover», vacío/carga/error con «Reintentar», contador con `aria-label`, oculto con 0 o fallo, se actualiza con `pathname`, condición `canCallApi`).
+- Cobertura: cada archivo de producción nuevo (`lib/to-promote.ts`, `ToPromoteTable`, `ToPromoteView`, `ReadyCountBadge`, cambio en `Sidebar` y `page.tsx`) tiene tests escritos antes. El único test existente modificado (`pages.test.tsx`) excluye «Por promover» de los placeholders con justificación, y la página tiene su propio test; no se debilita nada.
+- Reglas de CLAUDE.md: código en inglés, UI en español, solo tokens de color, la vista solo hace GET (no promueve ni escribe).
+- Pantallazos: existen en `screenshots-12b/` (claro y oscuro, vista de socio, arquitecto y director) y corresponden al cambio (contador «2», 8 filas, chips, motivos, marca).
+- Observaciones no bloqueantes: «Cargando…» sin `role="status"`; faltan pantallazos de vacío/error/móvil (cubiertos por tests).
