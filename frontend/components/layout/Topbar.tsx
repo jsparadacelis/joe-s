@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { InviteButton } from "@/components/layout/InviteButton";
 import { findNavItem } from "@/lib/nav";
 
 export function Topbar({ account }: { account?: ReactNode }) {
@@ -23,7 +24,10 @@ export function Topbar({ account }: { account?: ReactNode }) {
           ) : null}
         </ol>
       </nav>
-      {account}
+      <div className="flex items-center gap-3">
+        <InviteButton />
+        {account}
+      </div>
     </header>
   );
 }
