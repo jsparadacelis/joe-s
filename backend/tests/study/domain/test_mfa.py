@@ -8,25 +8,27 @@ from backend.app.study.domain.context import Role
 from backend.app.study.domain.mfa import AAL2, requires_mfa
 
 
-@pytest.mark.parametrize("role", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION])
-def test_management_roles_require_two_factor(role):
-    assert requires_mfa(role) is True
+def test_the_partner_requires_two_factor():
+    assert requires_mfa(Role.PARTNER) is True
 
 
 @pytest.mark.parametrize(
     "role",
-    [Role.PROJECT_DIRECTOR, Role.TECHNICAL_LEAD, Role.ARCHITECT, Role.SITE_COLLABORATOR],
+    [
+        Role.DIRECTOR,
+        Role.ADMINISTRATION,
+        Role.PROJECT_DIRECTOR,
+        Role.TECHNICAL_LEAD,
+        Role.ARCHITECT,
+        Role.SITE_COLLABORATOR,
+    ],
 )
 def test_other_roles_do_not_require_two_factor(role):
     assert requires_mfa(role) is False
 
 
 def test_every_role_has_an_explicit_answer():
-    assert {role for role in Role if requires_mfa(role)} == {
-        Role.PARTNER,
-        Role.DIRECTOR,
-        Role.ADMINISTRATION,
-    }
+    assert {role for role in Role if requires_mfa(role)} == {Role.PARTNER}
 
 
 def test_the_required_assurance_level_is_aal2():

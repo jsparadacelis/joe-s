@@ -3,7 +3,7 @@
  *   type GuardSession = { aal: "aal1" | "aal2"; nextAal?: "aal1" | "aal2"; role?: string | null } | null
  *   decideAccess({ mode: "dev" | "supabase", pathname: string, session: GuardSession }):
  *     { action: "allow" } | { action: "redirect"; to: "/login" | "/login/mfa" | "/" }
- *   requiresMfa(role: string | null | undefined): boolean   (partner, director, administration)
+ *   requiresMfa(role: string | null | undefined): boolean   (partner only)
  *
  * Rules:
  *  - dev mode allows everything.
@@ -28,11 +28,11 @@ const guard = (pathname: string, session: GuardSession, mode: "dev" | "supabase"
   decideAccess({ mode, pathname, session });
 
 describe("requiresMfa", () => {
-  it.each(["partner", "director", "administration"])("is required for %s", (role) => {
-    expect(requiresMfa(role)).toBe(true);
+  it("is required for the partner", () => {
+    expect(requiresMfa("partner")).toBe(true);
   });
 
-  it.each(["project_director", "technical_lead", "architect", "site_collaborator"])("is not required for %s", (role) => {
+  it.each(["director", "administration", "project_director", "technical_lead", "architect", "site_collaborator"])("is not required for %s", (role) => {
     expect(requiresMfa(role)).toBe(false);
   });
 
@@ -66,8 +66,12 @@ describe("decideAccess · protected routes", () => {
     expect(guard("/portfolio", aal1Architect)).toEqual(allow);
   });
 
-  it.each(["partner", "director", "administration"])("sends %s at aal1 to /login/mfa", (role) => {
-    expect(guard("/portfolio", { aal: "aal1", role })).toEqual(to("/login/mfa"));
+  it("sends the partner at aal1 to /login/mfa", () => {
+    expect(guard("/portfolio", { aal: "aal1", role: "partner" })).toEqual(to("/login/mfa"));
+  });
+
+  it.each(["director", "administration"])("lets %s in at aal1 without a second factor", (role) => {
+    expect(guard("/portfolio", { aal: "aal1", role })).toEqual(allow);
   });
 
   it("sends an aal1 person with an enrolled factor (nextAal aal2) to /login/mfa even if the role is lax", () => {
@@ -126,7 +130,7 @@ describe("decideAccess · public routes", () => {
   });
 
   it("allows /login/mfa while the second factor is pending", () => {
-    expect(guard("/login/mfa", { aal: "aal1", role: "director" })).toEqual(allow);
+    expect(guard("/login/mfa", { aal: "aal1", role: "partner" })).toEqual(allow);
     expect(guard("/login/mfa", { aal: "aal1", nextAal: "aal2" })).toEqual(allow);
   });
 

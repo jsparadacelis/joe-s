@@ -180,18 +180,15 @@ class TestRejections:
 
 
 class TestTwoFactor:
-    @pytest.mark.parametrize("role", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION])
-    def test_roles_with_two_factor_are_rejected_with_aal1(
-        self, authenticate, resolver, verifier, role
-    ):
+    def test_the_partner_is_rejected_with_aal1(self, authenticate, resolver, verifier):
         verifier.verify.return_value = claims(aal="aal1")
-        resolver.resolve.return_value = Resolution(a_member(role=role), activated=False)
+        resolver.resolve.return_value = Resolution(a_member(role=Role.PARTNER), activated=False)
 
         with pytest.raises(MfaRequired):
             authenticate.execute("the-token")
 
     @pytest.mark.parametrize("role", [Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION])
-    def test_roles_with_two_factor_enter_with_aal2(self, authenticate, resolver, verifier, role):
+    def test_roles_can_enter_with_aal2(self, authenticate, resolver, verifier, role):
         verifier.verify.return_value = claims(aal="aal2")
         resolver.resolve.return_value = Resolution(a_member(role=role), activated=False)
 
@@ -209,7 +206,14 @@ class TestTwoFactor:
 
     @pytest.mark.parametrize(
         "role",
-        [Role.PROJECT_DIRECTOR, Role.TECHNICAL_LEAD, Role.ARCHITECT, Role.SITE_COLLABORATOR],
+        [
+            Role.DIRECTOR,
+            Role.ADMINISTRATION,
+            Role.PROJECT_DIRECTOR,
+            Role.TECHNICAL_LEAD,
+            Role.ARCHITECT,
+            Role.SITE_COLLABORATOR,
+        ],
     )
     def test_the_other_roles_enter_with_aal1(self, authenticate, resolver, role):
         resolver.resolve.return_value = Resolution(a_member(role=role), activated=False)

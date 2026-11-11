@@ -5,7 +5,7 @@ import type { AuthMode } from "@/lib/auth";
 export type GuardSession = { aal: "aal1" | "aal2"; nextAal?: "aal1" | "aal2"; role?: string | null } | null;
 export type AccessDecision = { action: "allow" } | { action: "redirect"; to: "/login" | "/login/mfa" | "/" };
 
-const MFA_ROLES = new Set(["partner", "director", "administration"]);
+const MFA_ROLES = new Set(["partner"]);
 
 export function requiresMfa(role: string | null | undefined): boolean {
   return role != null && MFA_ROLES.has(role);
