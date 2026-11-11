@@ -198,7 +198,7 @@ Hasta ahora la API corre con un estudio y un usuario ficticios (`AUTH_MODE=dev`,
 2. En «URI de redirección autorizados» añade exactamente `https://teiegxepgraxxsuisgtb.supabase.co/auth/v1/callback`.
 3. En Supabase → Authentication → Providers → **Google**: actívalo y pega el **Client ID** y el **Client Secret** directamente en el panel. Nunca los pegues en un chat, en un issue ni en el repo.
 4. En Supabase → Authentication → **URL Configuration**: **Site URL** = el dominio de Vercel; en «Redirect URLs» añade también `http://localhost:3000` (y su ruta de retorno cuando exista RGB-2b).
-5. En Supabase → Authentication → **Multi-Factor** (MFA): activa **TOTP**. Socio, director y administración exigen `aal2`; sin el segundo factor la API responde 403 `mfa_required`.
+5. En Supabase → Authentication → **Multi-Factor** (MFA): activa **TOTP**. Solo el socio exige `aal2` (desde RGB-53; antes también director y administración); sin el segundo factor la API responde 403 `mfa_required`.
 6. Comprueba en el proyecto que las claves de firma de los tokens son asimétricas (ES256). La API solo acepta ES256; un proyecto con el secreto HS256 antiguo daría 401 a todos los tokens.
 
 ### 2. Variables en Cloud Run

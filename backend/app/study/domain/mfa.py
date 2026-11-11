@@ -6,7 +6,7 @@ from backend.app.study.domain.context import Role
 
 AAL2 = "aal2"
 
-_MFA_ROLES = frozenset({Role.PARTNER, Role.DIRECTOR, Role.ADMINISTRATION})
+_MFA_ROLES = frozenset({Role.PARTNER})
 
 
 def requires_mfa(role: Role) -> bool:
