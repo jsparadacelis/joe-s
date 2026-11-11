@@ -10,9 +10,10 @@ import { Topbar } from "@/components/layout/Topbar";
 jest.mock("next/navigation", () => ({ usePathname: () => "/portfolio" }));
 
 describe("Topbar · account slot", () => {
-  it("shows nothing new in dev mode (no slot)", () => {
+  it("shows only the invite button in dev mode (no account slot)", () => {
     render(<Topbar />);
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Invitar a alguien" })).toBeInTheDocument();
     expect(screen.queryByText(/Cerrar sesión/)).not.toBeInTheDocument();
   });
 
