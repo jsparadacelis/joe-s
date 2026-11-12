@@ -28,6 +28,8 @@ describe("keyboard navigation", () => {
       await user.tab();
       expect(screen.getByRole("link", { name: item.label })).toHaveFocus();
     }
+    await user.tab(); // the header's invite button comes before the content
+    expect(screen.getByRole("button", { name: "Invitar a alguien" })).toHaveFocus();
     await user.tab();
     expect(screen.getByRole("button", { name: "Primero" })).toHaveFocus();
     await user.tab(); // skips the disabled one
