@@ -85,10 +85,10 @@ def test_the_counter_sees_every_round_trip_of_a_connection(url, statement_log): 
     assert statement_log.statements() == ["BEGIN", "SELECT 1", "SELECT $1::int", "COMMIT"]
 
 
-def test_reading_a_project_costs_twelve_round_trips(client, statement_log):  # noqa: F811
+def test_reading_a_project_costs_eleven_round_trips(client, statement_log):  # noqa: F811
     assert round_trips(client, statement_log, "/api/projects/P-1") == [
         # who is calling
-        *["check", "BEGIN", "role", "resolve", "study", "COMMIT"],
+        *["check", "BEGIN", "role", "resolve+study", "COMMIT"],
         # the endpoint
         *["check", "BEGIN", "role", "study", "query", "COMMIT"],
     ]
