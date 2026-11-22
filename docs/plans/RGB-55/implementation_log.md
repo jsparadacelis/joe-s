@@ -27,6 +27,8 @@ Los endpoints sin migrar bajan de 12 a 9: −1 por el slice 2 y −2 por el slic
 - **Slice 4, cómo se detecta la activación:** `PostgresMemberResolver` anota en `activated` si la última resolución activó una invitación. `authenticated_unit` hace `COMMIT` en ese momento y vuelve a fijar rol y estudio con `enter_study`, una función nueva de `db.py` que también usa `study_transaction`.
 - **Slice 5, la comprobación no se salta sin más:** antes de reutilizar una conexión, un `select` con espera cero mira si el servidor ya ha enviado algo, lo que ocurre cuando cierra la conexión. No es un viaje a la base. Solo se hace la comprobación real (consulta vacía) si hay algo pendiente o si la conexión no se ha usado en 30 s. Queda sin cubrir una caída silenciosa (sin aviso del servidor) en los 30 s siguientes a un uso: es raro, y el pool ya cierra las conexiones con 60 s de inactividad. Comprobado con mutación: sin el `select`, el test de la conexión terminada con `pg_terminate_backend` falla.
 
+- **Slice 5, conexiones recién abiertas:** la primera CI falló en `test_the_endpoints_not_migrated_yet_keep_two_transactions`. El pool tenía dos conexiones, las reparte por turnos, y la segunda transacción cayó en una recién abierta que nunca se había usado; por eso se comprobó. Una conexión que el pool acaba de abrir está viva, así que el `configure` del pool anota su hora de creación y su primer uso no se comprueba. Test nuevo: `test_a_connection_the_pool_just_opened_is_not_probed`. Repetido 15 veces en local sin fallos.
+
 ### Pendiente
 
 - **Producción tras el merge:** 20 lecturas de `GET /api/projects/{code}` con una sesión real (solo lecturas) y comparar la mediana en los logs de Cloud Run con los 240 ms medidos. Criterio: ≤ 120 ms.

@@ -154,6 +154,13 @@ class TestPoolCheck:
 
         assert self.probes(statement_log, pooled) == 0
 
+    def test_a_connection_the_pool_just_opened_is_not_probed(self, statement_log, url):  # noqa: F811
+        open_pool(url, min_size=0, max_size=1)
+        try:
+            assert self.probes(statement_log, url) == 0
+        finally:
+            close_pools()
+
     def test_a_connection_idle_for_a_while_is_probed(self, statement_log, pooled, monkeypatch):  # noqa: F811
         self.probes(statement_log, pooled)
         monkeypatch.setattr(db, "RECENTLY_USED_SECONDS", 0)

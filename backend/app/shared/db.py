@@ -19,6 +19,11 @@ RECENTLY_USED_SECONDS = 30.0
 _checked_out_at: WeakKeyDictionary[psycopg.Connection, float] = WeakKeyDictionary()
 
 
+def _mark_as_fresh(conn: psycopg.Connection) -> None:
+    """A connection the pool has just opened is alive: its first checkout needs no probe."""
+    _checked_out_at[conn] = time.monotonic()
+
+
 def _check_if_maybe_dead(conn: psycopg.Connection) -> None:
     """Probe a pooled connection (one round trip) only when it may be dead.
 
@@ -51,6 +56,7 @@ def open_pool(database_url: str, *, min_size: int = 1, max_size: int = 4) -> Non
         max_size=max_size,
         max_idle=60,
         max_lifetime=600,
+        configure=_mark_as_fresh,
         check=_check_if_maybe_dead,
         open=False,
     )
