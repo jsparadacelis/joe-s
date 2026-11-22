@@ -1,8 +1,6 @@
 # Despliegue
 
-Front en Vercel, backend en Google Cloud Run (capa gratuita, región de EE. UU.) y base de datos en Supabase.
-
-> **Aviso de datos.** El README fija la base de datos en la UE (Supabase). Con la API en EE. UU. cada consulta cruza el Atlántico (~100 ms) y los datos de proyectos pasan por EE. UU. Aceptable para una demo con datos ficticios; antes de usar datos reales hay que decidir si es compatible con el RGPD o mover la API a `europe-west1` (deja de ser gratuito, pero cuesta céntimos con este tráfico). Comprueba también en la página de precios de Cloud Run qué regiones entran en la capa gratuita.
+Front en Vercel, backend en Google Cloud Run (`europe-west1`, Bélgica, dentro de la capa gratuita) y base de datos en Supabase (`eu-west-1`, Irlanda). Hasta el 2026-11-22 la API estuvo en `us-central1`; se movió en RGB-54 porque cada consulta cruzaba el Atlántico (1,3–1,8 s por petición, ver [el plan](plans/RGB-54/plan.md)). Ahora los datos no salen de la UE.
 
 ## 1. Base de datos (Supabase)
 
@@ -26,7 +24,7 @@ Requisitos: proyecto de Google Cloud con facturación activada (la capa gratuita
 
 ```bash
 PROYECTO=<id-del-proyecto>
-REGION=us-central1   # también us-east1 o us-west1
+REGION=europe-west1  # Tier 1 y cerca del pooler de Supabase (Irlanda); no uses una región de Tier 2
 
 gcloud config set project $PROYECTO
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com cloudbuild.googleapis.com
@@ -45,7 +43,7 @@ gcloud run deploy rgb-api \
   --set-env-vars CORS_ORIGINS=https://<dominio-de-vercel>
 ```
 
-Dale a la cuenta de servicio de Cloud Run el rol `Secret Manager Secret Accessor`. La URL resultante (`https://rgb-api-….run.app`) es el valor de `NEXT_PUBLIC_API_URL` en Vercel.
+Dale a la cuenta de servicio de Cloud Run el rol `Secret Manager Secret Accessor`. La URL resultante (hoy `https://rgb-api-368607571687.europe-west1.run.app`) es el valor de `NEXT_PUBLIC_API_URL` en Vercel.
 
 Comprobación: `curl https://rgb-api-….run.app/api/health` → `{"status":"ok"}`.
 
@@ -65,16 +63,30 @@ El secreto `database-url` apunta al pooler en modo sesión, el mismo que se usó
 
 ### Notas
 
-- Escala a cero: la primera petición tras un rato sin uso tarda 1–3 s. `--min-instances 1` lo evita, pero deja de ser gratis.
+- Escala a cero: la primera petición tras un rato sin uso tarda 6–7 s (arranque en frío). `--min-instances 1` lo evita, pero sale de la capa gratuita (~9–10 $/mes).
 - Mientras no exista autenticación (RGB-2) la API usa un estudio y usuario ficticios (`DEV_ESTUDIO_ID`, `DEV_USUARIO_ID`). No publiques endpoints de negocio ni datos reales hasta tenerla.
 - **Estudio ficticio de desarrollo.** Las escrituras de la API (por ejemplo `PUT /api/settings/plan/...`) necesitan que exista la fila de `studies` con el id `DEV_STUDY_ID` (por defecto `00000000-0000-0000-0000-00000000e001`); sin ella la clave foránea falla. En local la siembra `bash scripts/dev.sh` con `python -m backend.app.shared.seed_dev` (idempotente, nombre «Estudio de desarrollo»). No es una migración a propósito: producción y Supabase no la reciben, y el script se niega a correr contra un host que no sea local salvo con `--force`. Cuando llegue la autenticación (RGB-2) los estudios reales se crearán por su propio flujo.
 - Topes de los ajustes del plan: semanas enteras entre 1 y 520 (7 valores) y factor de escala entre 0,1 y 10; fuera de rango la API responde 422 con `{detail:{code,message}}` (`invalid_weeks`, `invalid_factor`). Cualquier otra petición mal formada responde 422 con `code: "invalid_request"` (no el `detail` en lista de FastAPI).
 - El Dockerfile y las dependencias de Python viven en `backend/`; el contexto de construcción es esa carpeta. `railway.toml` (primera opción, Railway) se eliminó.
 
+### Mantenerlo gratis
+
+La capa gratuita de Cloud Run es por cuenta de facturación y cubre las regiones de Tier 1, `europe-west1` incluida (~180.000 vCPU-s, 360.000 GiB-s y 2 millones de peticiones al mes). Con el tráfico de hoy (unas 600 peticiones al mes) se usa menos del 1 %. Para no salir de ella:
+
+- **Servicio:** `--min-instances 0`, `--max-instances 2` y facturación por petición. No uses `--no-cpu-throttling` ni la facturación por instancia.
+- **Imágenes:** cada `--source` sube una imagen a Artifact Registry (`cloud-run-source-deploy`, en la región del servicio). La capa gratuita es de 0,5 GB. El repositorio de `europe-west1` tiene una política de limpieza que guarda las 3 versiones más recientes. Si cambias de región, crea la misma política en la nueva y borra el repositorio antiguo:
+  ```bash
+  gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy \
+    --location $REGION --policy cleanup.json --no-dry-run
+  ```
+  con `cleanup.json` = `[{"name":"keep-latest-3","action":{"type":"Keep"},"mostRecentVersions":{"keepCount":3}},{"name":"delete-older","action":{"type":"Delete"},"condition":{"tagState":"any"}}]`.
+- **Presupuesto:** «RGB Proyectos 5 USD», con avisos por correo al 20 % (1 $), 50 % y 100 %. Solo avisa: no corta el gasto.
+- **Cada mes:** en *Facturación → Informes*, filtra el proyecto y agrupa por servicio. Todo debería salir a 0 (Cloud Run, Artifact Registry, Cloud Build, Secret Manager). Si algo cobra, revisa los puntos de arriba.
+
 ## 3. Front (Vercel)
 
 1. Importa el repositorio; en *Root Directory* pon `frontend`. No hace falta `vercel.json`.
-2. Variable de entorno `NEXT_PUBLIC_API_URL` = URL de Cloud Run, fijada en los entornos de producción y de preview (ya está fijada con el valor de Cloud Run). En local se define en `frontend/.env.local` (ver `frontend/.env.example`). Al ser `NEXT_PUBLIC_*`, Next.js la incrusta en el build: si cambia, hay que redesplegar el front para que surta efecto.
+2. Variable de entorno `NEXT_PUBLIC_API_URL` = URL de Cloud Run (`https://rgb-api-368607571687.europe-west1.run.app`), fijada en los entornos de producción y de preview (ya está fijada con el valor de Cloud Run). En local se define en `frontend/.env.local` (ver `frontend/.env.example`). Al ser `NEXT_PUBLIC_*`, Next.js la incrusta en el build: si cambia, hay que redesplegar el front para que surta efecto.
 3. Añade el dominio de Vercel (y los de preview que uses) a `CORS_ORIGINS` en Cloud Run, separados por comas:
    `gcloud run services update rgb-api --region $REGION --update-env-vars ^@^CORS_ORIGINS=https://a.vercel.app,https://b.vercel.app`
 4. `next/font/google` necesita red en el build; en Vercel la hay. Pasar a fuentes locales sigue pendiente (ver [estado](estado.md)).
@@ -178,7 +190,7 @@ Estaba pendiente: producción tenía migradas la 001–005 y el backend anterior
 
 La guía de abajo se conserva como referencia del procedimiento.
 
-1. **Antes:** CI en verde en `main` y `curl https://rgb-api-368607571687.us-central1.run.app/api/health` responde `ok`.
+1. **Antes:** CI en verde en `main` y `curl https://rgb-api-368607571687.europe-west1.run.app/api/health` responde `ok`.
 2. **Migraciones (en este orden, una sola ejecución):** `006`, `007`, `008` solo crean tablas nuevas (con RLS; `opportunity_scorings` es de solo inserción), sin tocar datos existentes. Aplícalas con el Job (`gcloud run jobs deploy rgb-migrar …` y `execute --wait`, ver arriba) o a mano con `python -m backend.app.shared.migrate`. Salida esperada: `006_opportunities.sql, 007_pauses.sql, 008_scoring.sql`. El migrador corre cada archivo en su transacción: si una falla, las anteriores quedan aplicadas y se puede reintentar.
 3. **Estudio ficticio:** las escrituras (alta de oportunidad, pausas, scoring, ajustes) fallan por clave foránea si no existe la fila de `studies` con `DEV_STUDY_ID`. La siembra no es una migración y se niega a correr contra un host no local, así que en producción es una decisión consciente: `DATABASE_URL=<pooler> python -m backend.app.shared.seed_dev --force` (idempotente). Hazlo solo mientras la API siga usando el contexto ficticio y la base solo tenga datos de demo (RGB-2 trae los estudios reales).
 4. **Backend:** `gcloud run deploy rgb-api --source backend --region $REGION` (conserva secretos y variables del servicio actual).
