@@ -302,3 +302,7 @@ El visor de la fase 3 de un proyecto real pide el relieve a `GET /api/cadastre/{
 ## RGB-51b · Seguimientos de datos técnicos (2026-11-09, PR abierto)
 Front: aviso de fuentes no disponibles tras «Obtener datos técnicos» (`unavailable`: polígono INSPIRE, altitud y pendiente, producción fotovoltaica), panel de alertas de cruce de RGB-31 encima de los datos (gravedad en texto, mensaje, sugerencia y datos afectados; se recarga tras cada cambio y un fallo no bloquea) y capacidad edificable del servidor (`/capacity`) en los proyectos reales; los `PRY-EJ-*` siguen con cálculo local. Además `role="status"` en el «Cargando…» de «Por promover». El Juez rechazó una vez por una aserción debilitada (restaurada); 2815 tests de front; 10 pantallazos. Siguen pendientes `AlertConfig` por estudio y cablear las tablas de RGB-27. Plan: [plan](plans/RGB-51b/plan.md) · [log](plans/RGB-51b/implementation_log.md).
 
+
+## RGB-55 · Una sola transacción por petición, piloto (2026-11-22, PR abierto)
+
+`GET /api/projects/{code}` resuelve a la persona dentro de la transacción del endpoint: pasa de 12 a 5 viajes a la base. Los demás endpoints bajan de 12 a 9 por dos piezas compartidas: el estudio se fija en `resolve_member` y el pool comprueba la conexión solo si puede estar muerta. La RLS, las respuestas 401/403/404, la revocación inmediata y la auditoría de la activación no cambian. Pendiente: medir en producción (criterio: ≤ 120 ms) y migrar el resto de endpoints en otra tarea. [Plan](plans/RGB-55/plan.md) · [log](plans/RGB-55/implementation_log.md)
