@@ -14,6 +14,7 @@ from backend.app.study.infrastructure.postgres_members import (
     PostgresMemberResolver,
     PostgresMembers,
 )
+from backend.tests.support.statements import statement_log  # noqa: F401 (fixture)
 
 pytestmark = pytest.mark.integration
 
@@ -199,3 +200,34 @@ class TestPostgresMemberResolver:
             visible = conn.execute("SELECT count(*) FROM study_members").fetchone()[0]
 
         assert (role, visible) == ("rgb_app", 0)
+
+    def test_resolving_sets_the_study_of_the_member_on_the_transaction(self, url):
+        invite(url, STUDY_A, "ana@example.com")
+        invite(url, STUDY_B, "bob@example.com")
+
+        with identity_transaction(url) as conn:
+            PostgresMemberResolver(conn).resolve("ana@example.com", SUB)
+            study = conn.execute("SELECT current_setting('app.study_id')").fetchone()[0]
+            emails = [r[0] for r in conn.execute("SELECT email FROM study_members").fetchall()]
+
+        assert (study, emails) == (STUDY_A, ["ana@example.com"])
+
+    def test_an_unknown_email_leaves_the_study_unset(self, url):
+        invite(url, STUDY_A, "ana@example.com")
+
+        with identity_transaction(url) as conn:
+            PostgresMemberResolver(conn).resolve("nobody@example.com", SUB)
+            study = conn.execute("SELECT current_setting('app.study_id', true)").fetchone()[0]
+            visible = conn.execute("SELECT count(*) FROM study_members").fetchone()[0]
+
+        assert (study or None, visible) == (None, 0)
+
+    def test_resolving_takes_a_single_round_trip(self, url, statement_log):  # noqa: F811
+        invite(url, STUDY_A, "ana@example.com")
+
+        with psycopg.Connection.connect(url) as conn:
+            statement_log.reset()
+            PostgresMemberResolver(conn).resolve("ana@example.com", SUB)
+            statements = statement_log.statements()
+
+        assert len(statements) == 2, statements  # BEGIN + the resolution itself

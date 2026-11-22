@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import select
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from weakref import WeakKeyDictionary
 
 import psycopg
 from psycopg_pool import ConnectionPool
@@ -11,6 +14,31 @@ from psycopg_pool import ConnectionPool
 from backend.app.study.domain.context import RequestContext
 
 _pools: dict[str, ConnectionPool] = {}
+
+RECENTLY_USED_SECONDS = 30.0
+_checked_out_at: WeakKeyDictionary[psycopg.Connection, float] = WeakKeyDictionary()
+
+
+def _mark_as_fresh(conn: psycopg.Connection) -> None:
+    """A connection the pool has just opened is alive: its first checkout needs no probe."""
+    _checked_out_at[conn] = time.monotonic()
+
+
+def _check_if_maybe_dead(conn: psycopg.Connection) -> None:
+    """Probe a pooled connection (one round trip) only when it may be dead.
+
+    A connection the server closed has its goodbye already waiting on the socket, which a
+    zero-timeout `select` sees without a round trip. A silent loss (no goodbye) can only be
+    caught by the probe, so it still runs after a while idle; the pool already closes
+    connections idle for 60 s.
+    """
+    now = time.monotonic()
+    last = _checked_out_at.get(conn)
+    _checked_out_at[conn] = now
+    recently_used = last is not None and now - last < RECENTLY_USED_SECONDS
+    if recently_used and not select.select([conn.fileno()], [], [], 0)[0]:
+        return
+    ConnectionPool.check_connection(conn)
 
 
 def open_pool(database_url: str, *, min_size: int = 1, max_size: int = 4) -> None:
@@ -28,7 +56,8 @@ def open_pool(database_url: str, *, min_size: int = 1, max_size: int = 4) -> Non
         max_size=max_size,
         max_idle=60,
         max_lifetime=600,
-        check=ConnectionPool.check_connection,
+        configure=_mark_as_fresh,
+        check=_check_if_maybe_dead,
         open=False,
     )
     pool.open(wait=False)  # an unreachable database must not keep /api/health from answering
@@ -60,9 +89,15 @@ def study_transaction(database_url: str, context: RequestContext) -> Iterator[ps
     Commits on a clean exit and rolls back on an exception.
     """
     with _connection(database_url) as conn:
-        conn.execute("SET LOCAL ROLE rgb_app")
-        conn.execute("SELECT set_config('app.study_id', %s, true)", (context.study_id,))
+        enter_study(conn, context.study_id)
         yield conn
+
+
+def enter_study(conn: psycopg.Connection, study_id: str) -> None:
+    """Run the current transaction as `rgb_app` with `app.study_id`, both valid only inside
+    it (so they must be set again after a commit)."""
+    conn.execute("SET LOCAL ROLE rgb_app")
+    conn.execute("SELECT set_config('app.study_id', %s, true)", (study_id,))
 
 
 @contextmanager

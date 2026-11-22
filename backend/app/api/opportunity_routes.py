@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, RootModel
 
 from backend.app.api.dependencies import (
+    AuthenticatedUnitOfWork,
     OpportunityUnitOfWork,
     PortfolioUnitOfWork,
     ProjectPlanUnitOfWork,
@@ -17,6 +18,7 @@ from backend.app.api.dependencies import (
     PromoteProjectSheetUnitOfWork,
     StartProjectUnitOfWork,
     UpdateProjectSheetUnitOfWork,
+    authenticated_portfolio_unit_of_work,
     opportunity_unit_of_work,
     portfolio_unit_of_work,
     project_plan_unit_of_work,
@@ -40,6 +42,7 @@ from backend.app.opportunity.domain.errors import (
 from backend.app.opportunity.domain.errors import (
     ProjectNotFound as OpportunityProjectNotFound,
 )
+from backend.app.portfolio.application.queries import PortfolioQueries
 from backend.app.portfolio.domain.errors import ProjectNotFound
 from backend.app.study.domain.context import RequestContext
 
@@ -48,6 +51,9 @@ router = APIRouter(prefix="/api", tags=["opportunity"])
 Context = Annotated[RequestContext, Depends(request_context)]
 CreateUnit = Annotated[OpportunityUnitOfWork, Depends(opportunity_unit_of_work)]
 ReadUnit = Annotated[PortfolioUnitOfWork, Depends(portfolio_unit_of_work)]
+AuthenticatedRead = Annotated[
+    AuthenticatedUnitOfWork[PortfolioQueries], Depends(authenticated_portfolio_unit_of_work)
+]
 StartUnit = Annotated[StartProjectUnitOfWork, Depends(start_project_unit_of_work)]
 PlanUnit = Annotated[ProjectPlanUnitOfWork, Depends(project_plan_unit_of_work)]
 SheetUnit = Annotated[ProjectSheetUnitOfWork, Depends(project_sheet_unit_of_work)]
@@ -146,9 +152,11 @@ def get_portfolio(context: Context, open_unit: ReadUnit) -> dict:
 
 
 @router.get("/projects/{code}")
-def get_project(code: str, context: Context, open_unit: ReadUnit) -> dict:
+def get_project(code: str, open_unit: AuthenticatedRead) -> dict:
     try:
-        with open_unit(context) as queries:
+        # One transaction: who is calling and the read. It commits on leaving the block,
+        # before the response is built.
+        with open_unit() as (_, queries):
             project = queries.project(code)
     except ProjectNotFound as error:
         raise HTTPException(404, detail={"code": error.code, "message": str(error)}) from error

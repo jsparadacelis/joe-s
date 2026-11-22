@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.api.dependencies import (
+    authenticated_portfolio_unit_of_work,
     get_settings,
     opportunity_unit_of_work,
     portfolio_unit_of_work,
@@ -64,6 +65,13 @@ def client(create_service, queries):
 
     app.dependency_overrides[opportunity_unit_of_work] = fake(create_service)
     app.dependency_overrides[portfolio_unit_of_work] = fake(queries)
+
+    @contextmanager
+    def authenticated_unit():
+        yield None, queries
+
+    # GET /api/projects/{code} opens one transaction for the caller and the read (RGB-55).
+    app.dependency_overrides[authenticated_portfolio_unit_of_work] = lambda: authenticated_unit
     return TestClient(app)
 
 

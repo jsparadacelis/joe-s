@@ -30,18 +30,21 @@ class PostgresMemberResolver:
 
     def __init__(self, conn: psycopg.Connection) -> None:
         self._conn = conn
+        self.activated = False  # whether the last resolution activated an invitation
 
     def resolve(self, email: str, subject: str) -> Resolution | None:
+        # The study is set in the same round trip: from here on this transaction belongs to
+        # it, so the activation can be audited in it (the audit table is protected by the same
+        # policy). `set_config` runs once per returned row, so no row leaves it unset.
         row = self._conn.execute(
             "SELECT member_id::text, study_id::text, email, role, qualifications, status, "
-            "user_id, activated FROM resolve_member(%s, %s)",
+            "user_id, activated, set_config('app.study_id', study_id::text, true) "
+            "FROM resolve_member(%s, %s)",
             (email, subject),
         ).fetchone()
+        self.activated = row is not None and row[7]
         if row is None:
             return None
-        # From here on this transaction belongs to that study, so the activation can be
-        # audited in it (the audit table is protected by the same policy).
-        self._conn.execute("SELECT set_config('app.study_id', %s, true)", (row[1],))
         return Resolution(member=_member(row[:7]), activated=row[7])
 
 
