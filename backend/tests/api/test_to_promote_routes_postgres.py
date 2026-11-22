@@ -83,7 +83,7 @@ def url(schema_url):
         admin.execute(
             "INSERT INTO pauses (study_id, project_id, phase, reason, started_on, "
             "expected_resumption, opened_by) SELECT study_id, id, 3, 'client_wait', "
-            "'2026-10-20', '2026-11-20', 'user-1' FROM projects WHERE code = 'P-PAUSED'"
+            "'2026-10-20', '2099-11-20', 'user-1' FROM projects WHERE code = 'P-PAUSED'"
         )
     return url
 
@@ -150,7 +150,7 @@ def test_each_row_has_the_contract_fields_in_spanish(url):
         "promoter": "Socio o director",
         "can_promote": True,
     }
-    assert projects["P-PAUSED"]["reason"] == "En pausa; reanudación prevista el 20/11/2026."
+    assert projects["P-PAUSED"]["reason"] == "En pausa; reanudación prevista el 20/11/2099."
     assert projects["P-READY-OLD"]["reason"] is None
     assert projects["P-READY-OLD"]["promoter"] == "Director de proyecto"
 
