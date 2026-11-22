@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import select
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from weakref import WeakKeyDictionary
 
 import psycopg
 from psycopg_pool import ConnectionPool
@@ -11,6 +14,26 @@ from psycopg_pool import ConnectionPool
 from backend.app.study.domain.context import RequestContext
 
 _pools: dict[str, ConnectionPool] = {}
+
+RECENTLY_USED_SECONDS = 30.0
+_checked_out_at: WeakKeyDictionary[psycopg.Connection, float] = WeakKeyDictionary()
+
+
+def _check_if_maybe_dead(conn: psycopg.Connection) -> None:
+    """Probe a pooled connection (one round trip) only when it may be dead.
+
+    A connection the server closed has its goodbye already waiting on the socket, which a
+    zero-timeout `select` sees without a round trip. A silent loss (no goodbye) can only be
+    caught by the probe, so it still runs after a while idle; the pool already closes
+    connections idle for 60 s.
+    """
+    now = time.monotonic()
+    last = _checked_out_at.get(conn)
+    _checked_out_at[conn] = now
+    recently_used = last is not None and now - last < RECENTLY_USED_SECONDS
+    if recently_used and not select.select([conn.fileno()], [], [], 0)[0]:
+        return
+    ConnectionPool.check_connection(conn)
 
 
 def open_pool(database_url: str, *, min_size: int = 1, max_size: int = 4) -> None:
@@ -28,7 +51,7 @@ def open_pool(database_url: str, *, min_size: int = 1, max_size: int = 4) -> Non
         max_size=max_size,
         max_idle=60,
         max_lifetime=600,
-        check=ConnectionPool.check_connection,
+        check=_check_if_maybe_dead,
         open=False,
     )
     pool.open(wait=False)  # an unreachable database must not keep /api/health from answering

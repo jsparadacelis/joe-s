@@ -1,6 +1,7 @@
 import psycopg
 import pytest
 
+from backend.app.shared import db
 from backend.app.shared.db import (
     close_pools,
     identity_transaction,
@@ -9,6 +10,7 @@ from backend.app.shared.db import (
 )
 from backend.app.shared.migrate import MIGRATIONS_DIR, apply_migrations
 from backend.app.study.domain.context import RequestContext, Role
+from backend.tests.support.statements import statement_log  # noqa: F401 (fixture)
 
 pytestmark = pytest.mark.integration
 
@@ -135,3 +137,40 @@ class TestPool:
                 assert conn.execute("SELECT 1").fetchone()[0] == 1
         finally:
             close_pools()
+
+
+class TestPoolCheck:
+    """The pool probes a connection (an empty query, one round trip) only when it may be dead:
+    idle for a while, or with something from the server already waiting on its socket."""
+
+    def probes(self, statement_log, url):  # noqa: F811
+        statement_log.reset()
+        with study_transaction(url, a_context()) as conn:
+            backend_pid(conn)
+        return statement_log.statements().count("")
+
+    def test_a_connection_used_moments_ago_is_not_probed(self, statement_log, pooled):  # noqa: F811
+        self.probes(statement_log, pooled)
+
+        assert self.probes(statement_log, pooled) == 0
+
+    def test_a_connection_idle_for_a_while_is_probed(self, statement_log, pooled, monkeypatch):  # noqa: F811
+        self.probes(statement_log, pooled)
+        monkeypatch.setattr(db, "RECENTLY_USED_SECONDS", 0)
+
+        assert self.probes(statement_log, pooled) == 1
+
+    def test_a_connection_closed_by_the_server_is_replaced_not_failed(self, pooled):
+        with study_transaction(pooled, a_context()) as conn:
+            first = backend_pid(conn)
+        with psycopg.connect(pooled, autocommit=True) as admin:
+            admin.execute("SELECT pg_terminate_backend(%s)", (first,))
+            while admin.execute(
+                "SELECT count(*) FROM pg_stat_activity WHERE pid = %s", (first,)
+            ).fetchone()[0]:
+                pass
+
+        with study_transaction(pooled, a_context()) as conn:
+            second = backend_pid(conn)
+
+        assert second != first
