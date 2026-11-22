@@ -60,9 +60,15 @@ def study_transaction(database_url: str, context: RequestContext) -> Iterator[ps
     Commits on a clean exit and rolls back on an exception.
     """
     with _connection(database_url) as conn:
-        conn.execute("SET LOCAL ROLE rgb_app")
-        conn.execute("SELECT set_config('app.study_id', %s, true)", (context.study_id,))
+        enter_study(conn, context.study_id)
         yield conn
+
+
+def enter_study(conn: psycopg.Connection, study_id: str) -> None:
+    """Run the current transaction as `rgb_app` with `app.study_id`, both valid only inside
+    it (so they must be set again after a commit)."""
+    conn.execute("SET LOCAL ROLE rgb_app")
+    conn.execute("SELECT set_config('app.study_id', %s, true)", (study_id,))
 
 
 @contextmanager

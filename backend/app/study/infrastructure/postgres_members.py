@@ -30,6 +30,7 @@ class PostgresMemberResolver:
 
     def __init__(self, conn: psycopg.Connection) -> None:
         self._conn = conn
+        self.activated = False  # whether the last resolution activated an invitation
 
     def resolve(self, email: str, subject: str) -> Resolution | None:
         # The study is set in the same round trip: from here on this transaction belongs to
@@ -41,6 +42,7 @@ class PostgresMemberResolver:
             "FROM resolve_member(%s, %s)",
             (email, subject),
         ).fetchone()
+        self.activated = row is not None and row[7]
         if row is None:
             return None
         return Resolution(member=_member(row[:7]), activated=row[7])

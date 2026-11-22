@@ -37,8 +37,9 @@ def url(schema_url):
         admin.execute(
             "INSERT INTO study_members (study_id, email, role, status, user_id, invited_by) "
             "VALUES (%s, 'ana@example.com', 'partner', 'active', %s, 'bootstrap'), "
-            "(%s, 'cris@example.com', 'architect', 'revoked', NULL, 'bootstrap')",
-            (STUDY_A, ANA, STUDY_A),
+            "(%s, 'cris@example.com', 'architect', 'revoked', NULL, 'bootstrap'), "
+            "(%s, 'bea@example.com', 'architect', 'invited', NULL, 'bootstrap')",
+            (STUDY_A, ANA, STUDY_A, STUDY_A),
         )
         admin.execute(
             "INSERT INTO projects (study_id, code, name, current_phase) VALUES "
@@ -115,6 +116,44 @@ class TestThePilotRoute:
         response = client.get("/api/projects/P-A")
 
         assert (response.status_code, response.json()["code"]) == (200, "P-A")
+
+
+class TestTheFirstSignIn:
+    BEA = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+
+    def bea(self, url):
+        with psycopg.connect(url) as admin:
+            member = admin.execute(
+                "SELECT status, user_id FROM study_members WHERE email = 'bea@example.com'"
+            ).fetchone()
+            events = admin.execute("SELECT user_id, action FROM audit_events").fetchall()
+        return member, events
+
+    def test_the_activation_is_kept_even_if_the_endpoint_then_fails(self, url):
+        response = client_for(supabase_settings(database_url=url)).get(
+            "/api/projects/P-NONE", headers=headers(email="bea@example.com", sub=self.BEA)
+        )
+
+        assert response.status_code == 404
+        assert self.bea(url) == (("active", self.BEA), [(self.BEA, "activate")])
+
+    def test_after_the_activation_the_work_still_runs_as_the_api_role_in_the_study(self, url):
+        token_claims = TokenClaims(
+            subject=self.BEA, email="bea@example.com", email_verified=True, aal="aal1"
+        )
+
+        with authenticated_unit(
+            supabase_settings(database_url=url),
+            real_verifier(),
+            token_claims,
+            lambda conn, context: conn,
+        ) as (context, conn):
+            role, study = conn.execute(
+                "SELECT current_user, current_setting('app.study_id')"
+            ).fetchone()
+            codes = [r[0] for r in conn.execute("SELECT code FROM projects").fetchall()]
+
+        assert (context.study_id, role, study, codes) == (STUDY_A, "rgb_app", STUDY_A, ["P-A"])
 
 
 class TestTheUnit:

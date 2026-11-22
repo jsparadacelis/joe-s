@@ -65,7 +65,7 @@ from backend.app.opportunity.infrastructure.postgres_scoring import (
 from backend.app.portfolio.application.queries import PortfolioQueries
 from backend.app.portfolio.infrastructure.postgres_projects import PostgresProjects
 from backend.app.shared.config import Settings
-from backend.app.shared.db import identity_transaction, study_transaction
+from backend.app.shared.db import enter_study, identity_transaction, study_transaction
 from backend.app.study.application.authenticate import Authenticate, check_token
 from backend.app.study.application.manage_members import ManageMembers
 from backend.app.study.domain.context import Qualification, RequestContext, Role
@@ -239,11 +239,17 @@ def authenticated_unit(
             yield context, build(conn, context)
         return
     with identity_transaction(settings.database_url) as conn:
-        authenticate = Authenticate(verifier, PostgresMemberResolver(conn), PostgresAuditLog(conn))
+        resolver = PostgresMemberResolver(conn)
+        authenticate = Authenticate(verifier, resolver, PostgresAuditLog(conn))
         try:
             context = authenticate.admit(claims)
         except StudyError as error:
             raise study_http_error(error) from error
+        if resolver.activated:
+            # First sign-in: keep the activation and its audit event even if the work fails,
+            # as when they had a transaction of their own. Only once per member.
+            conn.commit()
+            enter_study(conn, context.study_id)
         yield context, build(conn, context)
 
 
