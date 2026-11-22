@@ -66,22 +66,25 @@ def token(**overrides):
         "nul-sub",
     ],
 )
-def test_a_bad_token_costs_no_connection(client, connection, headers):
-    response = client.get("/api/members", headers=headers)
+@pytest.mark.parametrize("path", ["/api/members", "/api/projects/P-1"])
+def test_a_bad_token_costs_no_connection(client, connection, headers, path):
+    response = client.get(path, headers=headers)
 
     assert response.status_code == 401
     connection.assert_not_called()
 
 
-def test_an_unverified_email_costs_no_connection(client, connection):
-    response = client.get("/api/members", headers=token(user_metadata={"email_verified": False}))
+@pytest.mark.parametrize("path", ["/api/members", "/api/projects/P-1"])
+def test_an_unverified_email_costs_no_connection(client, connection, path):
+    response = client.get(path, headers=token(user_metadata={"email_verified": False}))
 
     assert response.status_code == 403
     assert response.json()["detail"]["code"] == "email_not_verified"
     connection.assert_not_called()
 
 
-def test_a_valid_token_does_open_the_connection(client, connection):
-    client.get("/api/members", headers=token())
+@pytest.mark.parametrize("path", ["/api/members", "/api/projects/P-1"])
+def test_a_valid_token_does_open_the_connection(client, connection, path):
+    client.get(path, headers=token())
 
     connection.assert_called_once()

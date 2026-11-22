@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from contextlib import AbstractContextManager, contextmanager
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, TypeVar
 
+import psycopg
 from fastapi import Depends, Header, HTTPException
 
 from backend.app.access.application.manage_project_members import ManageProjectMembers
@@ -76,7 +77,7 @@ from backend.app.study.domain.errors import (
     StudyError,
     Unauthenticated,
 )
-from backend.app.study.domain.ports import TokenVerifier
+from backend.app.study.domain.ports import TokenClaims, TokenVerifier
 from backend.app.study.infrastructure.postgres_members import (
     PostgresMemberResolver,
     PostgresMembers,
@@ -170,6 +171,15 @@ def _bearer_token(authorization: str | None) -> str:
     return token.strip()
 
 
+def _dev_context(settings: Settings) -> RequestContext:
+    return RequestContext(
+        study_id=settings.dev_study_id,
+        user_id=settings.dev_user_id,
+        role=Role(settings.dev_role),
+        qualifications=frozenset(Qualification(h) for h in settings.dev_qualifications),
+    )
+
+
 def request_context(
     settings: Annotated[Settings, Depends(get_settings)],
     verifier: Annotated[TokenVerifier, Depends(token_verifier)],
@@ -179,12 +189,7 @@ def request_context(
     """`AUTH_MODE=dev`: the fixed, fictitious development context. `AUTH_MODE=supabase`: the
     context of the invited member who owns the bearer token."""
     if settings.auth_mode == "dev":
-        return RequestContext(
-            study_id=settings.dev_study_id,
-            user_id=settings.dev_user_id,
-            role=Role(settings.dev_role),
-            qualifications=frozenset(Qualification(h) for h in settings.dev_qualifications),
-        )
+        return _dev_context(settings)
     token = _bearer_token(authorization)
     try:
         # Signature and claims first: only a trustworthy token opens a database connection.
@@ -193,6 +198,53 @@ def request_context(
             return authenticate.admit(claims)
     except StudyError as error:
         raise study_http_error(error) from error
+
+
+def verified_claims(
+    settings: Annotated[Settings, Depends(get_settings)],
+    verifier: Annotated[TokenVerifier, Depends(token_verifier)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> TokenClaims | None:
+    """The bearer token's claims, checked without the database (`None` in `AUTH_MODE=dev`).
+    Runs as a dependency, so a bad token is rejected before the route opens a connection."""
+    if settings.auth_mode == "dev":
+        return None
+    try:
+        return check_token(verifier, _bearer_token(authorization))
+    except StudyError as error:
+        raise study_http_error(error) from error
+
+
+T = TypeVar("T")
+AuthenticatedUnitOfWork = Callable[[], AbstractContextManager[tuple[RequestContext, T]]]
+
+
+@contextmanager
+def authenticated_unit(
+    settings: Settings,
+    verifier: TokenVerifier,
+    claims: TokenClaims | None,
+    build: Callable[[psycopg.Connection, RequestContext], T],
+) -> Iterator[tuple[RequestContext, T]]:
+    """One transaction for the whole request: who is calling, then the endpoint's work.
+
+    The member is resolved on the transaction the work will use, which then runs as
+    `rgb_app` with the member's study (`resolve` sets it). It commits when the route leaves
+    the `with`, before the response is sent. Without claims (`AUTH_MODE=dev`) it is the
+    fictitious context on its own study transaction, as before.
+    """
+    if claims is None:
+        context = _dev_context(settings)
+        with study_transaction(settings.database_url, context) as conn:
+            yield context, build(conn, context)
+        return
+    with identity_transaction(settings.database_url) as conn:
+        authenticate = Authenticate(verifier, PostgresMemberResolver(conn), PostgresAuditLog(conn))
+        try:
+            context = authenticate.admit(claims)
+        except StudyError as error:
+            raise study_http_error(error) from error
+        yield context, build(conn, context)
 
 
 MembersUnitOfWork = Callable[[RequestContext], AbstractContextManager[ManageMembers]]
@@ -287,6 +339,19 @@ def portfolio_unit_of_work(
             yield PortfolioQueries(PostgresProjects(conn))
 
     return open_unit
+
+
+def authenticated_portfolio_unit_of_work(
+    settings: Annotated[Settings, Depends(get_settings)],
+    verifier: Annotated[TokenVerifier, Depends(token_verifier)],
+    claims: Annotated[TokenClaims | None, Depends(verified_claims)],
+) -> AuthenticatedUnitOfWork[PortfolioQueries]:
+    """Portfolio reads in the same transaction as the caller's authentication (RGB-55)."""
+
+    def build(conn: psycopg.Connection, context: RequestContext) -> PortfolioQueries:
+        return PortfolioQueries(PostgresProjects(conn))
+
+    return lambda: authenticated_unit(settings, verifier, claims, build)
 
 
 ToPromoteUnitOfWork = Callable[[RequestContext], AbstractContextManager[ToPromoteQueue]]
